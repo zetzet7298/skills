@@ -41,7 +41,7 @@ exploring → planning → validating → swarming → executing(×N) → review
 
 ## Core Tools
 
-- `bd` — beads CLI (create/update/close work items)
+- `br` — beads CLI (create/update/close work items)
 - `bv` — beads viewer (graph analytics, priority routing)
 - Agent Mail — inter-agent messaging, file reservations
 - `gkg` — codebase intelligence (optional)

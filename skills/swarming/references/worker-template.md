@@ -66,7 +66,7 @@ The executing skill will instruct you to:
 1. Read your assigned bead
 2. Reserve files via Agent Mail
 3. Implement the bead
-4. Close the bead with `bd close`
+4. Close the bead with `br close`
 5. Post a completion report to the epic thread
 6. Release file reservations
 7. Loop to the next assigned bead
@@ -112,13 +112,13 @@ You are a worker agent in the khuym swarm.
 - Agent name: Worker-A1
 - Track: auth-backend
 - Wave: 1
-- Epic ID: bd-epic-001
+- Epic ID: br-epic-001
 
 ## Your Assignment
 You are responsible for implementing the following beads, in order:
 
-- Bead bd-012: Add JWT middleware to Express router
-- Bead bd-013: Create /auth/refresh endpoint
+- Bead br-012: Add JWT middleware to Express router
+- Bead br-013: Create /auth/refresh endpoint
 
 ## Your File Scope
 You own the following file paths:
@@ -130,7 +130,7 @@ You own the following file paths:
 1. Project key: /home/user/projects/myapp
 2. On startup:
    macro_start_session(project_key="/home/user/projects/myapp", agent_name="Worker-A1")
-3. Join thread: subscribe_thread(thread_id="bd-epic-001", ...)
+3. Join thread: subscribe_thread(thread_id="br-epic-001", ...)
 4. Post spawn acknowledgment.
 
 ## Skill to Load

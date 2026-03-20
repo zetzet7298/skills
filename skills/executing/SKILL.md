@@ -75,7 +75,7 @@ Select the top-ranked open bead that:
 ### Read the bead fully:
 
 ```bash
-bd show <bead-id>
+br show <bead-id>
 ```
 
 Before implementing, confirm you understand:
@@ -191,7 +191,7 @@ All three actions must complete. Do not skip any.
 ### 6a. Close the bead
 
 ```bash
-bd close <bead-id> --reason "Completed: <one-line summary of what was implemented>"
+br close <bead-id> --reason "Completed: <one-line summary of what was implemented>"
 ```
 
 ### 6b. Atomic git commit
@@ -200,7 +200,7 @@ One commit per bead. Exactly this format:
 
 ```bash
 git add <files-you-modified>
-git commit -m "feat(<bead-id>): <summary matching bd close reason>"
+git commit -m "feat(<bead-id>): <summary matching br close reason>"
 ```
 
 Do not batch multiple beads into one commit. Do not commit unrelated changes.
@@ -292,7 +292,7 @@ Re-read in this exact order before any further action:
 
 1. `AGENTS.md`
 2. `history/<feature>/CONTEXT.md`
-3. The current bead you were working on: `bd show <bead-id>`
+3. The current bead you were working on: `br show <bead-id>`
 4. Your active file reservations (query Agent Mail)
 
 Only after re-reading all four may you continue.
@@ -321,10 +321,10 @@ Stop and reassess if you notice any of these:
 |--------|------|
 | Register | `macro_start_session(...)` |
 | Get priority bead | `bv --robot-priority` |
-| Read bead | `bd show <id>` |
+| Read bead | `br show <id>` |
 | Reserve files | `file_reservation_paths(...)` |
 | Release files | `release_file_reservations(...)` |
-| Close bead | `bd close <id> --reason "..."` |
+| Close bead | `br close <id> --reason "..."` |
 | Send mail | `send_message(to=..., thread_id=..., subject=..., body=...)` |
 | Check inbox | `get_messages(agent_name=...)` |
 

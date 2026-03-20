@@ -160,7 +160,7 @@ Can you navigate to /forgot-password, enter an email, and confirm the reset emai
 
 **On failure:**
 1. Invoke `debugging` skill → root-cause the failure
-2. Create a fix bead: `bd create "Fix: <description>" -t task -p 0 --parent <epic-id>`
+2. Create a fix bead: `br create "Fix: <description>" -t task -p 0 --parent <epic-id>`
 3. Execute the fix bead (invoke `executing` skill)
 4. Re-verify the specific UAT item
 5. Do not proceed until the item passes or user explicitly accepts the failure
@@ -176,7 +176,7 @@ You are the last step before compounding. Close the loop completely.
 ```
 [ ] All beads in epic are closed
     → bv --robot-triage --graph-root <epic-id>
-    → Any open beads? Create final fix tasks or explicitly defer with bd update --defer
+    → Any open beads? Create final fix tasks or explicitly defer with br update --defer
 
 [ ] Final build/test/lint passes
     → Run project's standard commands (npm test / pytest / cargo test / etc.)
@@ -192,7 +192,7 @@ You are the last step before compounding. Close the loop completely.
     → git worktree remove .worktrees/<feature>
 
 [ ] Close epic bead
-    → bd close <epic-id> --reason "Feature complete: <summary>"
+    → br close <epic-id> --reason "Feature complete: <summary>"
 
 [ ] Clear working state
     → Archive STATE.md: cp .khuym/STATE.md history/<feature>/STATE-final.md

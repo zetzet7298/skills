@@ -40,7 +40,6 @@ You need all of these. If any are missing, do not proceed — return to the appr
 - `history/<feature>/discovery.md` — research findings from planning
 - `history/<feature>/approach.md` — synthesis + risk map (with HIGH/MEDIUM/LOW risk levels)
 - `.beads/` — all bead files for this epic
-- `history/<feature>/execution-plan.md` — tracks and wave assignments from planning
 
 ---
 
@@ -78,7 +77,7 @@ The plan-checker returns a structured report with `PASS` or `FAIL` per dimension
 **If all 8 dimensions PASS:** Proceed to Phase 2.
 
 **If any dimension FAILS:**
-1. Fix the specific beads identified (update via `bd`)
+1. Fix the specific beads identified (update via `br`)
 2. Re-run plan-checker on the changed beads
 3. Count this as iteration 2
 
@@ -104,8 +103,8 @@ A spike is a time-boxed proof-of-concept that answers one specific uncertain que
 For each HIGH-risk item:
 
 ```bash
-bd create "Spike: <specific question to answer>" -t task -p 0
-# Example: bd create "Spike: Can we use WebSockets with this auth middleware?" -t task -p 0
+br create "Spike: <specific question to answer>" -t task -p 0
+# Example: br create "Spike: Can we use WebSockets with this auth middleware?" -t task -p 0
 ```
 
 The spike question must be specific. "Spike: Is Redis feasible?" is too vague. "Spike: Does our Redis setup support pub/sub with >1000 subscribers without message loss?" is correct.
@@ -124,9 +123,9 @@ For each spike bead:
    - Write findings to `.spikes/<feature>/<spike-id>/FINDINGS.md`
    - Close with a definitive YES or NO:
      ```bash
-     bd close <id> --reason "YES: <validated approach and any constraints>"
+     br close <id> --reason "YES: <validated approach and any constraints>"
      # or
-     bd close <id> --reason "NO: <blocker description and why it prevents the approach>"
+     br close <id> --reason "NO: <blocker description and why it prevents the approach>"
      ```
 
 3. There is no "partial" or "uncertain" — the spike must yield a determination.
@@ -163,7 +162,7 @@ bv --robot-suggest
 
 Reviews the bead graph and suggests missing dependency links. For each suggestion:
 - Evaluate whether the dependency is real (would bead B actually fail without bead A?)
-- Add valid dependencies: `bd dep add <id> <other-id>`
+- Add valid dependencies: `br dep add <id> <other-id>`
 - Ignore suggestions that are speculative rather than structural
 
 If `--robot-suggest` returns more than 5 suggestions, fix them and **re-run Round 1** before proceeding. Up to 3 sub-rounds.
@@ -181,13 +180,19 @@ Detects structural problems: dependency cycles, bottleneck beads, disconnected s
 
 If `--robot-insights` returns any CRITICAL findings, fix and re-run. Up to 3 sub-rounds.
 
+Also verify no orphaned beads:
+```bash
+bv --robot-plan 2>/dev/null | jq '.plan.unassigned'  # Must be empty
+```
+Any unassigned beads must be given parents or removed before approval.
+
 ### Round 3: Priority Sanity
 
 ```bash
 bv --robot-priority
 ```
 
-Validates that bead priorities align with the dependency graph — high-blocking beads should have high priority, leaf beads should have lower priority. Adjust priorities via `bd update <id> --priority <p>` where needed.
+Validates that bead priorities align with the dependency graph — high-blocking beads should have high priority, leaf beads should have lower priority. Adjust priorities via `br update <id> --priority <p>` where needed.
 
 ### Deduplication Check
 
@@ -196,7 +201,7 @@ Read all bead titles and descriptions. Flag any beads that appear to be doing th
 - Different file scope but identical description → possible split of a single concern
 - Same description, different epic → should reference, not duplicate
 
-For confirmed duplicates: merge content into one bead, close the redundant one with `bd close <id> --reason "Duplicate of <id>"`.
+For confirmed duplicates: merge content into one bead, close the redundant one with `br close <id> --reason "Duplicate of <id>"`.
 
 ### Fresh-Eyes Review
 

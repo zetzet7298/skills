@@ -9,7 +9,7 @@ Rules for filling this in:
 - Be concrete: "Card layout, not timeline" not "modern and clean"
 - Every locked decision must have a stable ID (D1, D2...)
 - Code context must cite actual file paths found during the scout
-- Do not leave any section as "TBD" or placeholder — remove unused sections instead
+- Do not leave any section as "Tbr" or placeholder — remove unused sections instead
 
 ---
 

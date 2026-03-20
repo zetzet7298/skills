@@ -123,7 +123,7 @@ bun run lint           # Linter
 
 ## Agent D: External Research
 
-> Source: web_search, librarian, MCP library docs
+> Source: web_search, WebFetch, library docs
 > Guided by locked decisions in CONTEXT.md — not generic research
 
 ### Library Documentation
@@ -156,16 +156,16 @@ bun run lint           # Linter
 ## Open Questions
 
 > Items that were not resolvable through research alone.
-> These will be raised to Oracle in Phase 2.
+> These will be raised to the synthesis subagent in Phase 2.
 
 - [ ] `<Question>` — needed to finalize approach for `<component>`
 - [ ] `<Question>` — impacts risk level of `<component>`
 
 ---
 
-## Summary for Oracle (Phase 2 Input)
+## Summary for Synthesis (Phase 2 Input)
 
-> Brief synthesis for the oracle prompt. Fill this in after all agents complete.
+> Brief synthesis for the subagent prompt. Fill this in after all agents complete.
 
 **What we have**: `<1-2 sentences on existing codebase state relevant to the feature>`
 

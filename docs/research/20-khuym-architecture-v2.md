@@ -60,7 +60,7 @@ GSD's key insight: **"Plans are not executed until they pass verification."** Th
 | 3 | `planning` | Flywheel Phase 1-3 + GSD research+plan | Discovery (gkg, parallel agents), synthesis (oracle), approach + risk map, multi-perspective refinement |
 | 4 | `validating` | GSD plan-checker + Flywheel bead polishing + V3 spike phase | **The gate.** Plan verification (3 iterations), spike execution for HIGH risk, bead polishing (multiple rounds), bv validation. Nothing executes until this passes. |
 | 5 | `swarming` | Flywheel Phase 6-7 (launch + tend) | Bead-to-agent assignment via bv --robot-plan, Agent Mail setup, spawn parallel workers (Task tool), wave execution, monitor, handle blockers, tend the swarm |
-| 6 | `executing` | Flywheel per-agent loop | Single worker: register → bv --robot-priority → reserve files → implement bead → bd close → report → loop |
+| 6 | `executing` | Flywheel per-agent loop | Single worker: register → bv --robot-priority → reserve files → implement bead → br close → report → loop |
 | 7 | `reviewing` | Flywheel Phase 8 + CE review + GSD verify-work | 4-5 review agents, 3-level artifact verification, P1/P2/P3 findings, human UAT gate |
 | 8 | `compounding` | CE compound loop + Flywheel CASS/CM feedback | Capture learnings (patterns/decisions/failures) → history/learnings/, critical-patterns.md, optional CASS indexing |
 | 9 | `writing-khuym-skills` | Superpowers writing-skills | TDD-for-skills, persuasion psychology, CREATION-LOG |
@@ -174,7 +174,7 @@ Phase 3: Multi-Perspective Refinement (from Flywheel Phases 2-3)
   → Iterate approach document (1-2 rounds, not 4-5 — we're not doing Flywheel's extreme refinement)
 
 Phase 4: Decomposition (Beads — existing, unchanged)
-  → Load file-beads skill → bd create
+  → Load file-beads skill → br create
   → Embed spike learnings in bead descriptions (if applicable)
   → Embed approach decisions in bead context fields
 
@@ -219,10 +219,10 @@ Phase 1: Plan Verification (from GSD plan-checker, max 3 iterations)
 
 Phase 2: Spike Execution (for HIGH-risk items — from V3 synthesis)
   → For each HIGH-risk component identified in approach.md:
-    → Create spike bead: bd create "Spike: <question>" -t task -p 0
+    → Create spike bead: br create "Spike: <question>" -t task -p 0
     → Execute spike in isolated context (Task tool, time-boxed 30 min)
     → Spike writes to .spikes/<feature>/<spike-id>/
-    → Close with finding: bd close <id> --reason "YES: <approach>" or "NO: <blocker>"
+    → Close with finding: br close <id> --reason "YES: <approach>" or "NO: <blocker>"
   → If spike fails → STOP. Revise approach, go back to planning
   → If spike succeeds → embed learnings in affected beads
 
@@ -333,7 +333,7 @@ skills/swarming/
 2. Get next bead (bv --robot-priority or from track assignment)
 3. Reserve files
 4. Read bead → implement
-5. bd close → report via Agent Mail
+5. br close → report via Agent Mail
 6. Release reservations
 7. Loop to next bead
 ```
@@ -373,7 +373,7 @@ Phase 4: Finishing (absorbed from v1's finishing skill)
   → Run final build/test/lint
   → Present options: create PR / merge / keep branch / discard
   → Clean up worktree if used
-  → Close epic: bd close <epic-id>
+  → Close epic: br close <epic-id>
   → Clear .khuym/STATE.md
 
 Handoff: "Feature complete. Invoke compounding skill to capture learnings."
@@ -419,7 +419,7 @@ swarming                           ← "Launch the agents"
 │ Spawn workers (Task tool)        ← Each worker loads executing skill
 │ Monitor via Agent Mail           ← Tend the swarm
 ├── executing (×N parallel)        ← Per-bead implementation loop
-│   └── bd → implement → close → report → next bead
+│   └── br → implement → close → report → next bead
 │
 ▼
 reviewing                          ← "Did we build it right?"

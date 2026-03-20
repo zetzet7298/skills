@@ -57,10 +57,10 @@ GSD's key insight: **"Plans are not executed until they pass verification."** Th
 |---|---|---|---|
 | 1 | `using-khuym` | Meta/Bootstrap | Lists skills, priority rules, go mode, red flags |
 | 2 | `exploring` | GSD discuss-phase + Superpowers brainstorming | Gray area identification, Socratic Q&A, CONTEXT.md — **decisions before research** |
-| 3 | `planning` | Flywheel Phase 1-3 + GSD research+plan | Discovery (gkg, parallel agents), synthesis (oracle), approach + risk map, multi-perspective refinement |
+| 3 | `planning` | Flywheel Phase 1-3 + GSD research+plan | Discovery (gkg, parallel agents), synthesis (Task subagent), approach + risk map, multi-perspective refinement |
 | 4 | `validating` | GSD plan-checker + Flywheel bead polishing + V3 spike phase | **The gate.** Plan verification (3 iterations), spike execution for HIGH risk, bead polishing (multiple rounds), bv validation. Nothing executes until this passes. |
 | 5 | `swarming` | Flywheel Phase 6-7 (launch + tend) | Bead-to-agent assignment via bv --robot-plan, Agent Mail setup, spawn parallel workers (Task tool), wave execution, monitor, handle blockers, tend the swarm |
-| 6 | `executing` | Flywheel per-agent loop | Single worker: register → bv --robot-priority → reserve files → implement bead → bd close → report → loop |
+| 6 | `executing` | Flywheel per-agent loop | Single worker: register → bv --robot-priority → reserve files → implement bead → br close → report → loop |
 | 7 | `reviewing` | Flywheel Phase 8 + CE review + GSD verify-work | 4-5 review agents, 3-level artifact verification, P1/P2/P3 findings, human UAT gate |
 | 8 | `compounding` | CE compound loop + Flywheel CASS/CM feedback | Capture learnings (patterns/decisions/failures) → history/learnings/, critical-patterns.md, optional CASS indexing |
 | 9 | `writing-khuym-skills` | Superpowers writing-skills | TDD-for-skills, persuasion psychology, CREATION-LOG |
@@ -155,16 +155,18 @@ Phase 0: Learnings Retrieval (from CE compound loop)
   → grep history/learnings/ by tags matching feature domain
   → Include relevant learnings in discovery context
 
-Phase 1: Discovery (Parallel Exploration — existing, unchanged)
-  → Task() → Agent A: Architecture snapshot (gkg repo_map)
-  → Task() → Agent B: Pattern search (find similar existing code)
-  → Task() → Agent C: Constraints (package.json, deps)
-  → Librarian/exa → External patterns
+Phase 1: Discovery (Goal-Oriented Exploration)
+  → Assess scope from CONTEXT.md + feature type
+  → Spawn parallel Task() agents for independent exploration areas
+  → Available tools: gkg (repo_map, search_codebase_definitions,
+    get_references, import_usage, read_definitions), grep, Read,
+    web_search, WebFetch
   → Output: history/<feature>/discovery.md
 
-Phase 2: Synthesis (Oracle — existing, unchanged)
-  → Feed discovery + CONTEXT.md to Oracle
-  → Output: Approach + Risk Map
+Phase 2: Synthesis (Subagent)
+  → Task() → Synthesis agent reads discovery.md + CONTEXT.md
+  → Prompt: gap analysis + recommended approach + risk classification
+  → Output: Approach + Risk Map (4 sections)
   → CRITICAL: Risk classification → LOW/MEDIUM/HIGH
   → Output: history/<feature>/approach.md
 
@@ -174,23 +176,17 @@ Phase 3: Multi-Perspective Refinement (from Flywheel Phases 2-3)
   → Iterate approach document (1-2 rounds, not 4-5 — we're not doing Flywheel's extreme refinement)
 
 Phase 4: Decomposition (Beads — existing, unchanged)
-  → Load file-beads skill → bd create
+  → Load file-beads skill → br create
   → Embed spike learnings in bead descriptions (if applicable)
   → Embed approach decisions in bead context fields
 
-Phase 5: Track Planning
-  → bv --robot-plan → execution-plan.md
-  → Assign file scopes, agent names
-  → Output: history/<feature>/execution-plan.md
-
-Handoff: "Plan created with N beads in M tracks. Invoke validating skill before execution."
+Handoff: "Plan created with N beads. Invoke validating skill before execution."
 ```
 
 **Output artifacts:**
 - `history/<feature>/discovery.md`
 - `history/<feature>/approach.md`
 - `.beads/*.md` (bead files)
-- `history/<feature>/execution-plan.md`
 
 ### 3.4 validating (NEW — the critical gate)
 
@@ -219,10 +215,10 @@ Phase 1: Plan Verification (from GSD plan-checker, max 3 iterations)
 
 Phase 2: Spike Execution (for HIGH-risk items — from V3 synthesis)
   → For each HIGH-risk component identified in approach.md:
-    → Create spike bead: bd create "Spike: <question>" -t task -p 0
+    → Create spike bead: br create "Spike: <question>" -t task -p 0
     → Execute spike in isolated context (Task tool, time-boxed 30 min)
     → Spike writes to .spikes/<feature>/<spike-id>/
-    → Close with finding: bd close <id> --reason "YES: <approach>" or "NO: <blocker>"
+    → Close with finding: br close <id> --reason "YES: <approach>" or "NO: <blocker>"
   → If spike fails → STOP. Revise approach, go back to planning
   → If spike succeeds → embed learnings in affected beads
 
@@ -271,9 +267,10 @@ skills/validating/
 
 **Process:**
 ```
-Phase 1: Read Execution Plan
-  → Read history/<feature>/execution-plan.md
-  → Extract: EPIC_ID, TRACKS, CROSS_DEPS
+Phase 1: Compute Execution Plan
+  → Read EPIC_ID from .khuym/STATE.md or ask user
+  → bv --robot-plan → compute parallel tracks from live bead graph
+  → Write history/<feature>/execution-plan.md (for audit trail)
 
 Phase 2: Initialize Agent Mail (existing, unchanged)
   → ensure_project → register_agent as Orchestrator
@@ -333,7 +330,7 @@ skills/swarming/
 2. Get next bead (bv --robot-priority or from track assignment)
 3. Reserve files
 4. Read bead → implement
-5. bd close → report via Agent Mail
+5. br close → report via Agent Mail
 6. Release reservations
 7. Loop to next bead
 ```
@@ -373,7 +370,7 @@ Phase 4: Finishing (absorbed from v1's finishing skill)
   → Run final build/test/lint
   → Present options: create PR / merge / keep branch / discard
   → Clean up worktree if used
-  → Close epic: bd close <epic-id>
+  → Close epic: br close <epic-id>
   → Clear .khuym/STATE.md
 
 Handoff: "Feature complete. Invoke compounding skill to capture learnings."
@@ -419,7 +416,7 @@ swarming                           ← "Launch the agents"
 │ Spawn workers (Task tool)        ← Each worker loads executing skill
 │ Monitor via Agent Mail           ← Tend the swarm
 ├── executing (×N parallel)        ← Per-bead implementation loop
-│   └── bd → implement → close → report → next bead
+│   └── br → implement → close → report → next bead
 │
 ▼
 reviewing                          ← "Did we build it right?"

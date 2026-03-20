@@ -125,7 +125,7 @@ If user says "yes": proceed to Step 2.
 - Phase 1: Parallel discovery agents (architecture, patterns, constraints, external)
 - Phase 2: Oracle synthesis → approach.md with risk levels (LOW/MEDIUM/HIGH)
 - Phase 3: Multi-perspective refinement (for HIGH-stakes features: second model opinion)
-- Phase 4: Decompose to beads (bd create, never pseudo-beads)
+- Phase 4: Decompose to beads (br create, never pseudo-beads)
 - Phase 5: Track planning → bv --robot-plan → execution-plan.md
 
 **Update STATE.md:** `phase: go-mode/validating`
@@ -184,7 +184,7 @@ If user says "yes": proceed to Step 4.
 - Compute waves (dependency-aware grouping)
 - For each wave:
   - Spawn workers via Task tool (each loads `executing` skill)
-  - Each worker: register → bv --robot-priority → reserve files → implement bead → bd close → report
+  - Each worker: register → bv --robot-priority → reserve files → implement bead → br close → report
   - Monitor via Agent Mail (blockers, file conflicts, completion reports)
   - Update STATE.md after each wave
   - Context checkpoint: if orchestrator context >65%, write HANDOFF.json and pause
@@ -316,7 +316,7 @@ last_updated: <timestamp>
 
 ### If P1 findings are present at GATE 3 and user wants to fix:
 ```
-→ Create fix beads via bd create for each P1 finding
+→ Create fix beads via br create for each P1 finding
 → Load swarming skill (single wave, fix beads only)
 → After execution: re-run reviewing (targeted — fixes diff only)
 → Re-present GATE 3
@@ -356,7 +356,7 @@ For small fixes (≤3 files, LOW risk, no gray areas):
 
 ```
 planning (lightweight)
-  → single bead, bd create
+  → single bead, br create
   → no multi-model refinement
   → skip exploring (no gray areas)
   ↓

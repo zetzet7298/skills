@@ -10,7 +10,7 @@
 ### Issue 1: `planning` overlaps with `exploring` on research
 
 **v2 says:** exploring "Does NOT research external patterns (that's planning's job)"
-**v2 also says:** planning Phase 1 does "Discovery (Parallel Exploration)" with "Librarian/exa → External patterns"
+**v2 also says:** planning Phase 1 does "Discovery (Goal-Oriented Exploration)" with flexible parallel agents and optional external research
 
 **But GSD says:** Research is a separate phase between Discuss and Plan. GSD has 4 parallel researchers (stack, features, architecture, pitfalls) that run AFTER discuss but BEFORE the planner writes the plan.
 
@@ -20,8 +20,10 @@
 
 ### Issue 2: `validating` Phase 3 (Bead Polishing) overlaps with `planning` Phase 4 (Decomposition)
 
-**v2 says:** planning Phase 4 creates beads via `bd create`, planning Phase 5 runs `bv --robot-plan`
+**v2 says:** planning Phase 4 creates beads via `br create`
 **v2 also says:** validating Phase 3 runs `bv --robot-suggest`, `bv --robot-insights`, `bv --robot-priority`
+
+**Update (2026-03-20):** planning Phase 5 (Track Planning) removed. planning now only creates draft beads (Phase 4). Graph validation lives entirely in validating Phase 3. Track computation moved to swarming Phase 1.
 
 **The mismatch:** Who owns the beads? Planning creates them, but validating polishes them. If validating finds issues with beads, it needs to modify what planning created. This creates a back-and-forth loop between two skills that should be a clean handoff.
 

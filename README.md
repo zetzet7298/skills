@@ -84,7 +84,7 @@ The skills are designed to work together in a multi-agent workflow:
 ## Requirements
 
 - Agent Mail MCP server for inter-agent communication
-- `bd` (beads) CLI for issue tracking
+- `br` (beads) CLI for issue tracking
 - `bv` CLI for bead visualization and planning
 
 ## License

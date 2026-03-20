@@ -188,7 +188,7 @@ Watch for these violations. Pause and surface them immediately when detected:
 
 **Quality violations:**
 - P1 finding present but pipeline continues to merge
-- `bd close` called on a bead with placeholder/stub implementation
+- `br close` called on a bead with placeholder/stub implementation
 - Review skipped because "it's a small change"
 
 **State violations:**
@@ -216,7 +216,7 @@ history/learnings/
   critical-patterns.md      ← Promoted critical learnings (read always)
   YYYYMMDD-<slug>.md        ← Individual learning entries
 
-.beads/             ← Bead files (managed by bd)
+.beads/             ← Bead files (managed by br)
 .spikes/            ← Spike verification results
 .worktrees/         ← Git worktrees for parallel execution
 ```
@@ -233,7 +233,7 @@ Each skill reads from upstream artifacts and writes for downstream:
 | planning | CONTEXT.md, critical-patterns.md | discovery.md, approach.md, .beads/*, execution-plan.md |
 | validating | .beads/*, approach.md, CONTEXT.md | validated beads, .spikes/ results |
 | swarming | execution-plan.md, validated beads | Agent Mail threads, STATE.md |
-| executing | bead file, file scope | implementation commits, bd close |
+| executing | bead file, file scope | implementation commits, br close |
 | reviewing | diff, CONTEXT.md, execution-plan.md | P1/P2/P3 findings |
 | compounding | review findings, full feature history | history/learnings/YYYYMMDD-\<slug>.md, critical-patterns.md |
 

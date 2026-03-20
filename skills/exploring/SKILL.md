@@ -163,7 +163,7 @@ You are a context document reviewer. Verify this CONTEXT.md is ready for plannin
 File to review: history/<feature>/CONTEXT.md
 
 Check for:
-- Completeness: any TODOs, placeholders, "TBD", or unfilled sections?
+- Completeness: any TODOs, placeholders, "Tbr", or unfilled sections?
 - Consistency: internal contradictions or conflicting decisions?
 - Clarity: decisions ambiguous enough to force a planner to guess?
 - Concrete vs vague: replace "should feel good" with specific behaviors

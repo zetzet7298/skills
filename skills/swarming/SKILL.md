@@ -1,6 +1,6 @@
 ---
 name: swarming
-description: Orchestrates parallel worker agents for feature execution. Use after the validating skill approves execution. Reads execution-plan.md, computes dependency waves, spawns executing-skill workers via the Task tool, monitors Agent Mail for bead completions/blockers/file conflicts, coordinates wave transitions, and hands off to reviewing when all beads are closed. The orchestrator TENDS — it never implements beads directly.
+description: Orchestrates parallel worker agents for feature execution. Use after the validating skill approves execution. Computes execution plan from live bead graph via bv --robot-plan, writes execution-plan.md for audit trail, spawns executing-skill workers via the Task tool, monitors Agent Mail for bead completions/blockers/file conflicts, coordinates wave transitions, and hands off to reviewing when all beads are closed. The orchestrator TENDS — it never implements beads directly.
 metadata:
   version: '1.0'
   role: orchestrator
@@ -26,24 +26,25 @@ Teams report that the #1 swarm failure mode is an orchestrator that "helps" a st
 Invoke after the `validating` skill issues: _"Validation complete. All checks pass. Invoke swarming skill."_
 
 Prerequisites:
-- `history/<feature>/execution-plan.md` exists and is approved
-- All beads are in `open` status (not in progress)
+- Beads are in `open` status (validated and approved)
+- EPIC_ID is known (from STATE.md or user input)
 - Agent Mail server is reachable
 
 ---
 
-## Phase 1: Read Execution Plan
+## Phase 1: Compute Execution Plan
 
-1. Read `history/<feature>/execution-plan.md` — extract:
-   - `EPIC_ID` — the root bead ID for this feature
-   - `TRACKS` — list of tracks (A, B, C…) with their assigned beads and file scopes
-   - `CROSS_DEPS` — any cross-track dependencies called out explicitly
-2. Read `.khuym/STATE.md` — check for prior swarm state:
-   - If a previous swarm was interrupted, you may find partial wave progress
-   - Identify which waves already completed vs. still open
+1. Get EPIC_ID: read `.khuym/STATE.md` (from planning handoff)
+   or ask user: "What is the epic bead ID for this feature?"
+2. Compute tracks: `bv --robot-plan 2>/dev/null` → extract TRACKS and CROSS_DEPS
+   from the live bead graph
 3. Check `bv --robot-triage --graph-root <EPIC_ID>` for current bead statuses
+4. Write `history/<feature>/execution-plan.md` — record computed tracks, file
+   scopes, wave assignments (for audit trail and handoff resumption)
 
-**If resuming a prior swarm:** Read `.khuym/HANDOFF.json` and reconcile swarm state before proceeding to Phase 3.
+**If resuming:** Check if `history/<feature>/execution-plan.md` already exists.
+If so, read it to understand prior wave progress, then re-verify with
+`bv --robot-triage` before continuing.
 
 **STATE.md update:** Write current swarm intent under `## Current Focus`.
 
@@ -130,7 +131,7 @@ list_messages(thread_id="<EPIC_ID>", unread_only=true)
 
 ### Bead Completion Reports
 When a worker posts a completion report (see `references/message-templates.md` → **Completion Report**):
-1. Verify the bead is actually closed: `bd status <bead-id>`
+1. Verify the bead is actually closed: `br status <bead-id>`
 2. Update your internal wave completion tally
 3. Acknowledge receipt on the thread
 4. Update `.khuym/STATE.md`
@@ -171,7 +172,7 @@ When all workers in the current wave report completion:
    - Run: `<test-command>` — do all prior tests still pass?
    - If verification fails:
      a. Diagnose which bead broke the build (check git log — each bead is a commit)
-     b. Create fix beads: `bd create "Fix: <description>" --depends-on <broken-bead-id>`
+     b. Create fix beads: `br create "Fix: <description>" --depends-on <broken-bead-id>`
      c. Run a fix wave before proceeding to the next planned wave
      d. If fix wave also fails: STOP and escalate to user
 

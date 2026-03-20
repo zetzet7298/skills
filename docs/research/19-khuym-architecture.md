@@ -13,7 +13,7 @@
 Khuym is a **9-skill ecosystem** for autonomous multi-agent software development. It replaces the existing planning/orchestrator/worker/knowledge/issue-resolution skills with a unified series that learns from Superpowers, GSD, and Compound Engineering.
 
 ### Core Infrastructure (unchanged)
-- **beads** (`bd` CLI) — task tracking, dependencies, priorities, status
+- **beads** (`br` CLI) — task tracking, dependencies, priorities, status
 - **bv** (bead viewer) — graph analysis, parallel track computation, robot-plan
 - **Agent Mail** — cross-agent communication, file reservations, context persistence
 
@@ -197,7 +197,7 @@ skills/brainstorming/
 - Discovery: parallel sub-agents explore codebase (gkg), external patterns, constraints
 - Synthesis: gap analysis, approach options, risk assessment
 - Spikes: for HIGH risk items, create spike beads and execute
-- Decomposition: create beads with `bd create`
+- Decomposition: create beads with `br create`
 - Validation: `bv --robot-suggest`, `bv --robot-insights`
 - Track planning: `bv --robot-plan` → execution-plan.md
 
@@ -257,8 +257,8 @@ skills/planning/
   current_feature: <feature-name>
   current_wave: 2
   tracks:
-    BlueLake: { status: complete, beads_done: [bd-10, bd-11] }
-    GreenCastle: { status: in_progress, current_bead: bd-20 }
+    BlueLake: { status: complete, beads_done: [br-10, br-11] }
+    GreenCastle: { status: in_progress, current_bead: br-20 }
   blockers: []
   decisions: [{ id: D1, choice: "Use REST", context: "..." }]
 ```
@@ -394,7 +394,7 @@ title: "Use constructEvent() for Stripe webhook verification"
 category: pattern          # pattern | decision | failure
 severity: medium           # critical | high | medium | low
 tags: [stripe, webhooks, signature-verification, payments]
-related_beads: [bd-42, bd-45]
+related_beads: [br-42, br-45]
 date: 2026-03-20
 status: active             # active | stale
 stale_reason: ""
@@ -464,8 +464,8 @@ Step 3: Git operations
     D. Discard (abandon work)
 
 Step 4: Cleanup
-  → If worktree used: bd worktree remove .worktrees/<feature-name>
-  → Close epic: bd close <epic-id> --reason "<summary>"
+  → If worktree used: br worktree remove .worktrees/<feature-name>
+  → Close epic: br close <epic-id> --reason "<summary>"
   → Update .khuym/STATE.md: clear current_feature
 
 Step 5: Summary
@@ -628,7 +628,7 @@ project-root/
 │   ├── STATE.md              ← Working memory (current focus, decisions, blockers)
 │   ├── config.json           ← Feature flags (absent=enabled)
 │   └── HANDOFF.json          ← Pause/resume state
-├── .beads/                   ← Bead files (managed by bd CLI)
+├── .beads/                   ← Bead files (managed by br CLI)
 ├── .spikes/                  ← Spike implementations
 ├── history/
 │   ├── <feature>/
@@ -765,7 +765,7 @@ compounding → finishing → DONE
 
 ## Current Feature
 name: dark-mode-toggle
-epic: bd-100
+epic: br-100
 phase: executing
 wave: 2 of 3
 
@@ -773,7 +773,7 @@ wave: 2 of 3
 | Track | Agent | Status | Current Bead |
 |-------|-------|--------|-------------|
 | 1 | BlueLake | complete | — |
-| 2 | GreenCastle | in_progress | bd-105 |
+| 2 | GreenCastle | in_progress | br-105 |
 | 3 | RedStone | pending | — |
 
 ## Decisions
@@ -805,14 +805,14 @@ Last checkpoint: 45% used (after wave 1 completion)
 {
   "timestamp": "2026-03-20T16:30:00+07:00",
   "feature": "dark-mode-toggle",
-  "epic_id": "bd-100",
+  "epic_id": "br-100",
   "phase": "executing",
   "wave": 2,
-  "completed_beads": ["bd-101", "bd-102", "bd-103"],
-  "current_bead": "bd-105",
-  "remaining_beads": ["bd-106", "bd-107"],
+  "completed_beads": ["br-101", "br-102", "br-103"],
+  "current_bead": "br-105",
+  "remaining_beads": ["br-106", "br-107"],
   "context_used_pct": 72,
-  "resume_instructions": "Continue executing wave 2. bd-105 is in progress. Check Agent Mail for BlueLake's track completion context."
+  "resume_instructions": "Continue executing wave 2. br-105 is in progress. Check Agent Mail for BlueLake's track completion context."
 }
 ```
 

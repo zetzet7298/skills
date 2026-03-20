@@ -20,7 +20,7 @@
 
 ### Issue 2: `validating` Phase 3 (Bead Polishing) overlaps with `planning` Phase 4 (Decomposition)
 
-**v2 says:** planning Phase 4 creates beads via `bd create`, planning Phase 5 runs `bv --robot-plan`
+**v2 says:** planning Phase 4 creates beads via `br create`, planning Phase 5 runs `bv --robot-plan`
 **v2 also says:** validating Phase 3 runs `bv --robot-suggest`, `bv --robot-insights`, `bv --robot-priority`
 
 **The mismatch:** Who owns the beads? Planning creates them, but validating polishes them. If validating finds issues with beads, it needs to modify what planning created. This creates a back-and-forth loop between two skills that should be a clean handoff.

@@ -55,7 +55,7 @@ Status: Loading executing skill. Starting on <first-bead-id>.
 ## 3. Completion Report
 
 **Posted by:** Worker  
-**When:** After each bead is closed with `bd close`  
+**When:** After each bead is closed with `br close`  
 **Purpose:** Notifies orchestrator of progress; triggers orchestrator's completion tally
 
 ```
@@ -161,7 +161,7 @@ OPTION B — Release requested:
 
 OPTION C — Defer:
 <AGENT_NAME_requester>: defer this change. Create a follow-up bead with:
-  bd create "Follow-up: <description>" --depends-on <bead-id>
+  br create "Follow-up: <description>" --depends-on <bead-id>
 Then continue to your next assigned bead.
 ```
 

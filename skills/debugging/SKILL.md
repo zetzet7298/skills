@@ -95,7 +95,7 @@ If a recent commit introduced the failure → the fix is likely reverting or adj
 ### 3c. Check bead context
 
 ```bash
-bd show <bead-id>   # What was this bead supposed to do?
+br show <bead-id>   # What was this bead supposed to do?
 ```
 
 Verify: does the failure indicate the bead was implemented against the wrong spec, or that it was implemented correctly but the spec was wrong?
@@ -142,7 +142,7 @@ If you cannot write this sentence, you do not have the root cause yet. Do not pr
 **Substantial fix** (cross-cutting change, logic redesign, multiple files):
 - Create a fix bead before implementing:
   ```bash
-  bd create "Fix: <root cause summary>" -t task --blocks <original-bead-id>
+  br create "Fix: <root cause summary>" -t task --blocks <original-bead-id>
   ```
 - Implement in the fix bead's scope
 - Run verification: the fix bead's acceptance criteria must pass

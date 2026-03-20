@@ -300,7 +300,7 @@ There is no STATE.md equivalent, no session handoff, no context monitoring. The 
 
 ### What Beads Already Provide
 
-The bead (bd CLI) system already covers substantial ground:
+The bead (br CLI) system already covers substantial ground:
 
 | State Dimension | Bead Coverage |
 |---|---|
@@ -424,7 +424,7 @@ Absent features default to enabled (GSD pattern). Opt out by setting `false`.
   "session_id": "khuym-{YYYYMMDD-HHMMSS}",
   "state": {
     "active_skill": "string",
-    "active_beads": ["#bd-123", "#bd-456"],
+    "active_beads": ["#br-123", "#br-456"],
     "current_phase": "string",
     "progress_markers": ["step 1 done", "step 2 in progress"]
   },
@@ -432,11 +432,11 @@ Absent features default to enabled (GSD pattern). Opt out by setting `false`.
     {"timestamp": "...", "decision": "...", "rationale": "..."}
   ],
   "open_questions": [
-    {"question": "...", "context": "...", "bead_ref": "#bd-789"}
+    {"question": "...", "context": "...", "bead_ref": "#br-789"}
   ],
   "pending_agent_mail": ["mail-id-1"],
   "next_actions": [
-    {"priority": 1, "action": "...", "bead_ref": "#bd-123"}
+    {"priority": 1, "action": "...", "bead_ref": "#br-123"}
   ],
   "context_at_pause": {
     "tokens_used_pct": 0.62,
@@ -463,7 +463,7 @@ When a khuym agent needs to pause (context critical, human checkpoint, end of se
 
 **Step 1: Update beads**
 ```
-bd update #bead-id status=in_progress note="paused at step X"
+br update #bead-id status=in_progress note="paused at step X"
 ```
 
 **Step 2: Write HANDOFF.json**
@@ -562,7 +562,7 @@ Implement a lightweight context monitor as a hook or periodic check, following G
 **WARNING:**
 ```
 [CONTEXT WARNING] Context window at ~35% remaining. 
-Recommend: Finish current bead #BD-{id}, write session notes, before taking on new work.
+Recommend: Finish current bead #br-{id}, write session notes, before taking on new work.
 ```
 
 **CRITICAL:**
@@ -603,7 +603,7 @@ Active beads: {list}. Open questions: {count}.
     "phase": "planning | execution | review | compound",
     "active_beads": [
       {
-        "id": "#bd-123",
+        "id": "#br-123",
         "title": "...",
         "status": "in_progress",
         "progress": "Step 2 of 4 complete",
@@ -617,7 +617,7 @@ Active beads: {list}. Open questions: {count}.
       "timestamp": "2026-03-20T14:30:00+07:00",
       "decision": "Use file-based state instead of DB",
       "rationale": "Simpler, readable by any agent without tool calls",
-      "bead_ref": "#bd-123",
+      "bead_ref": "#br-123",
       "reversible": true
     }
   ],
@@ -628,25 +628,25 @@ Active beads: {list}. Open questions: {count}.
       "question": "Should context monitoring be opt-in or opt-out?",
       "context": "Discussed with hoang@kieng.io.vn; no decision reached",
       "urgency": "high | medium | low",
-      "bead_ref": "#bd-456",
+      "bead_ref": "#br-456",
       "for_human": true
     }
   ],
   
   "blockers": [
     {
-      "id": "#bd-789",
+      "id": "#br-789",
       "description": "Agent Mail API endpoint not confirmed",
       "owner": "hoang@kieng.io.vn",
-      "unblocked_by": "human decision or #bd-790"
+      "unblocked_by": "human decision or #br-790"
     }
   ],
   
   "resume_instructions": {
-    "priority_next": "Continue #bd-123 from step 3",
+    "priority_next": "Continue #br-123 from step 3",
     "read_first": [".khuym/STATE.md", "docs/decisions/ADR-001.md"],
     "check_mail": true,
-    "restore_confirmation": "Confirm: active beads are #bd-123, #bd-456. Continue? [y/n]"
+    "restore_confirmation": "Confirm: active beads are #br-123, #br-456. Continue? [y/n]"
   },
   
   "agent_mail_refs": ["mail-id-001", "mail-id-002"]
@@ -661,7 +661,7 @@ Active beads: {list}. Open questions: {count}.
 ## Where We Are
 Working on: khuym/skill-name
 Phase: execution
-Active beads: #bd-123 (in progress, step 2/4), #bd-456 (planning)
+Active beads: #br-123 (in progress, step 2/4), #br-456 (planning)
 
 ## What Was Decided This Session
 1. Use file-based state over DB — simpler, universally readable
@@ -669,17 +669,17 @@ Active beads: #bd-123 (in progress, step 2/4), #bd-456 (planning)
 3. Context monitoring fires at 35%/25% thresholds
 
 ## Open Questions (Need Human Input)
-- [ ] Should context monitoring be opt-in or opt-out? (See #bd-456)
+- [ ] Should context monitoring be opt-in or opt-out? (See #br-456)
 - [ ] Confirm Agent Mail API endpoint for cross-agent handoff
 
 ## Blockers
-- #bd-789: Agent Mail API endpoint not confirmed — blocked on hoang@kieng.io.vn
+- #br-789: Agent Mail API endpoint not confirmed — blocked on hoang@kieng.io.vn
 
 ## To Resume
 1. Read .khuym/STATE.md
 2. Check Agent Mail inbox
 3. Run: `bv --filter status=in_progress`
-4. Continue #bd-123 from step 3: "Run validation tests"
+4. Continue #br-123 from step 3: "Run validation tests"
 ```
 
 ---
