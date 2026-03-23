@@ -1,31 +1,20 @@
 {
   "name": "kuckit",
-  "version": "1.0.0",
-  "description": "Multi-agent coordination skills for planning, orchestration, and execution",
+  "version": "2.0.0",
+  "description": "Khuym: multi-agent coordination skills for planning, validation, swarming, and execution",
   "skills": [
-    {
-      "name": "issue-resolution",
-      "path": "../skills/issue-resolution/SKILL.md"
-    },
-    {
-      "name": "knowledge",
-      "path": "../skills/knowledge/SKILL.md"
-    },
-    {
-      "name": "orchestrator",
-      "path": "../skills/orchestrator/SKILL.md"
-    },
-    {
-      "name": "planning",
-      "path": "../skills/planning/SKILL.md"
-    },
-    {
-      "name": "prompt-leverage",
-      "path": "../skills/prompt-leverage/SKILL.md"
-    },
-    {
-      "name": "worker",
-      "path": "../skills/worker/SKILL.md"
-    }
+    { "name": "using-khuym", "path": "../khuym/using-khuym/SKILL.md" },
+    { "name": "exploring", "path": "../khuym/exploring/SKILL.md" },
+    { "name": "planning", "path": "../khuym/planning/SKILL.md" },
+    { "name": "validating", "path": "../khuym/validating/SKILL.md" },
+    { "name": "swarming", "path": "../khuym/swarming/SKILL.md" },
+    { "name": "executing", "path": "../khuym/executing/SKILL.md" },
+    { "name": "reviewing", "path": "../khuym/reviewing/SKILL.md" },
+    { "name": "compounding", "path": "../khuym/compounding/SKILL.md" },
+    { "name": "debugging", "path": "../khuym/debugging/SKILL.md" },
+    { "name": "gkg", "path": "../khuym/gkg/SKILL.md" },
+    { "name": "writing-khuym-skills", "path": "../khuym/writing-khuym-skills/SKILL.md" },
+    { "name": "book-sft-pipeline", "path": "../standalone/book-sft-pipeline/SKILL.md" },
+    { "name": "instruction-distiller", "path": "../standalone/instruction-distiller/SKILL.md" }
   ]
 }

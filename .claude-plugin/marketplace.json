@@ -5,43 +5,85 @@
     "url": "https://github.com/draphonix"
   },
   "metadata": {
-    "description": "Multi-agent coordination skills for planning, orchestration, and autonomous execution with Agent Mail"
+    "description": "Khuym: multi-agent coordination skills for agentic software development"
   },
   "plugins": [
     {
-      "name": "issue-resolution",
-      "description": "Systematically diagnose and fix bugs through triage, reproduction, root cause analysis, and verified fixes",
-      "source": "./skills/issue-resolution",
+      "name": "using-khuym",
+      "description": "Bootstrap meta-skill: routing, go mode, skill catalog, state bootstrap/resume",
+      "source": "./khuym/using-khuym",
       "strict": false
     },
     {
-      "name": "knowledge",
-      "description": "Extracts knowledge from Amp threads and updates project docs",
-      "source": "./skills/knowledge",
-      "strict": false
-    },
-    {
-      "name": "orchestrator",
-      "description": "Plan and coordinate multi-agent bead execution with parallel workers",
-      "source": "./skills/orchestrator",
+      "name": "exploring",
+      "description": "Extract locked decisions via Socratic dialogue before planning begins",
+      "source": "./khuym/exploring",
       "strict": false
     },
     {
       "name": "planning",
-      "description": "Generate comprehensive plans through discovery, synthesis, verification, and decomposition",
-      "source": "./skills/planning",
+      "description": "Research codebase, synthesize approach, decompose into executable beads",
+      "source": "./khuym/planning",
       "strict": false
     },
     {
-      "name": "prompt-leverage",
-      "description": "Strengthen raw prompts into execution-ready instruction sets with clear structure and verification",
-      "source": "./skills/prompt-leverage",
+      "name": "validating",
+      "description": "Plan verification (8 dimensions), spike execution for HIGH risk, bead polishing",
+      "source": "./khuym/validating",
       "strict": false
     },
     {
-      "name": "worker",
-      "description": "Execute beads autonomously within a track with context persistence via Agent Mail",
-      "source": "./skills/worker",
+      "name": "swarming",
+      "description": "Launch and tend parallel worker agents via Agent Mail",
+      "source": "./khuym/swarming",
+      "strict": false
+    },
+    {
+      "name": "executing",
+      "description": "Per-agent worker loop: self-route from bead graph, implement, close, report",
+      "source": "./khuym/executing",
+      "strict": false
+    },
+    {
+      "name": "reviewing",
+      "description": "5 parallel review agents, 3-level artifact verification, UAT gate",
+      "source": "./khuym/reviewing",
+      "strict": false
+    },
+    {
+      "name": "compounding",
+      "description": "Capture learnings (patterns/decisions/failures) into history/learnings/",
+      "source": "./khuym/compounding",
+      "strict": false
+    },
+    {
+      "name": "debugging",
+      "description": "Systematic debugging for blocked workers, test failures, and build errors",
+      "source": "./khuym/debugging",
+      "strict": false
+    },
+    {
+      "name": "gkg",
+      "description": "Codebase intelligence via gkg tool for architecture and dependency analysis",
+      "source": "./khuym/gkg",
+      "strict": false
+    },
+    {
+      "name": "writing-khuym-skills",
+      "description": "TDD-for-skills meta-skill with pressure testing and persuasion psychology",
+      "source": "./khuym/writing-khuym-skills",
+      "strict": false
+    },
+    {
+      "name": "book-sft-pipeline",
+      "description": "Convert books into SFT datasets for training style-transfer models",
+      "source": "./standalone/book-sft-pipeline",
+      "strict": false
+    },
+    {
+      "name": "instruction-distiller",
+      "description": "Distill AI instructions into structured, consumable formats",
+      "source": "./standalone/instruction-distiller",
       "strict": false
     }
   ]
