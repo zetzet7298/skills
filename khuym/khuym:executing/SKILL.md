@@ -31,9 +31,11 @@ Run once at session start.
 
 ```
 macro_start_session(
-  agent_name: "<agent-id>",         # provided by swarming (e.g., "worker-blue-lake")
-  project: "<project-name>",
-  capabilities: ["bead-implementation", "file-modification"]
+  human_key: "<project-root-path>",
+  model: "gpt-5",
+  program: "codex-cli",
+  task_description: "khuym worker execution",
+  agent_name: "<agent-id>"          # provided by swarming (e.g., "worker-blue-lake")
 )
 ```
 
@@ -94,9 +96,10 @@ Reserve every file this bead will modify before touching a single line of code.
 
 ```
 file_reservation_paths(
+  project_key: "<project-root-path>",
   agent_name: "<agent-id>",
   paths: ["src/foo.ts", "src/bar.ts"],
-  bead_id: "<bead-id>"
+  reason: "Working bead <bead-id>"
 )
 ```
 
@@ -104,10 +107,13 @@ file_reservation_paths(
 
 ```
 send_message(
-  to: "orchestrator",
-  thread_id: "<epic-thread>",
+  project_key: "<project-root-path>",
+  sender_name: "<agent-id>",
+  to: ["<COORDINATOR_AGENT_NAME>"],
+  thread_id: "<EPIC_ID>",
+  topic: "<EPIC_TOPIC>",
   subject: "File conflict on <bead-id>",
-  body: "Need files: [list]. Currently held by: [holder]. Requesting resolution."
+  body_md: "Need files: [list]. Currently held by: [holder]. Requesting resolution."
 )
 ```
 
@@ -172,10 +178,13 @@ npm run lint
 
 ```
 send_message(
-  to: "orchestrator",
-  thread_id: "<epic-thread>",
+  project_key: "<project-root-path>",
+  sender_name: "<agent-id>",
+  to: ["<COORDINATOR_AGENT_NAME>"],
+  thread_id: "<EPIC_ID>",
+  topic: "<EPIC_TOPIC>",
   subject: "Blocker on <bead-id>: verification failing",
-  body: "Failure: [paste exact error]. Attempted fixes: [what you tried]. Need: [specific help or decision]."
+  body_md: "Failure: [paste exact error]. Attempted fixes: [what you tried]. Need: [specific help or decision]."
 )
 ```
 
@@ -219,10 +228,13 @@ Release **before** sending the completion report so other agents can acquire the
 
 ```
 send_message(
-  to: "orchestrator",
-  thread_id: "<epic-thread>",
+  project_key: "<project-root-path>",
+  sender_name: "<agent-id>",
+  to: ["<COORDINATOR_AGENT_NAME>"],
+  thread_id: "<EPIC_ID>",
+  topic: "<EPIC_TOPIC>",
   subject: "Completed <bead-id>",
-  body: "Implemented: [summary]. Files: [list]. Verification: [tests passed / build clean]. Commit: [hash]."
+  body_md: "Implemented: [summary]. Files: [list]. Verification: [tests passed / build clean]. Commit: [hash]."
 )
 ```
 
@@ -272,10 +284,13 @@ Then notify the orchestrator:
 
 ```
 send_message(
-  to: "orchestrator",
-  thread_id: "<epic-thread>",
+  project_key: "<project-root-path>",
+  sender_name: "<agent-id>",
+  to: ["<COORDINATOR_AGENT_NAME>"],
+  thread_id: "<EPIC_ID>",
+  topic: "<EPIC_TOPIC>",
   subject: "Context handoff from <agent-id>",
-  body: "Context at ~67%. Completed N beads. HANDOFF.json written. Safe to resume by checking mail and running bv --robot-priority."
+  body_md: "Context at ~67%. Completed N beads. HANDOFF.json written. Safe to resume by checking mail and running bv --robot-priority."
 )
 ```
 
@@ -324,8 +339,10 @@ Stop and reassess if you notice any of these:
 | Reserve files | `file_reservation_paths(...)` |
 | Release files | `release_file_reservations(...)` |
 | Close bead | `br close <id> --reason "..."` |
-| Send mail | `send_message(to=..., thread_id=..., subject=..., body=...)` |
-| Check inbox | `get_messages(agent_name=...)` |
+| Send mail | `send_message(project_key=..., sender_name=..., to=[...], thread_id=..., topic=..., subject=..., body_md=...)` |
+| Reply in thread | `reply_message(project_key=..., message_id=..., sender_name=..., body_md=...)` |
+| Check inbox | `fetch_inbox(project_key=..., agent_name=..., topic=...)` |
+| Check epic timeline | `fetch_topic(project_key=..., topic_name=...)` |
 
 ---
 
@@ -334,7 +351,9 @@ Stop and reassess if you notice any of these:
 When spawned, swarming provides (via Agent Mail message or task prompt):
 
 - `agent_name` — your identity (e.g., `worker-blue-lake`)
-- `epic_thread_id` — the Agent Mail thread for this feature
+- `coordinator_agent_name` — swarm coordinator identity (e.g., `GreenCastle`)
+- `epic_thread_id` — the Agent Mail thread for this feature (normally the epic bead ID)
+- `epic_topic` — shared swarm topic tag (recommended: `epic-<EPIC_ID>`)
 - `startup_hint` — optional: a bead or area the orchestrator wants checked first
 - `feature_name` — used to locate `history/<feature>/CONTEXT.md`
 

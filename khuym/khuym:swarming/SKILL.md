@@ -52,21 +52,37 @@ Prerequisites:
 ## Phase 2: Initialize Agent Mail
 
 ```
-ensure_project(project_key="<project-root-path>")
-register_agent(name="Orchestrator", role="swarm-coordinator", project_key="<project-root-path>")
-```
-
-Create the epic coordination thread:
-
-```
-create_thread(
-  thread_id="<EPIC_ID>",
-  subject="Swarm: <feature-name>",
-  project_key="<project-root-path>"
+ensure_project(human_key="<project-root-path>")
+register_agent(
+  project_key="<project-root-path>",
+  name="<COORDINATOR_AGENT_NAME>",  # must be a valid adjective+noun Agent Mail identity
+  program="codex-cli",
+  model="gpt-5",
+  task_description="swarm-coordinator"
 )
 ```
 
-Post a swarm start notification to the epic thread. Template: see `references/message-templates.md` → **Spawn Notification**.
+Define an epic topic tag:
+
+```
+EPIC_TOPIC="epic-<EPIC_ID>"
+```
+
+Bootstrap the epic coordination thread by sending the first message (this is the thread-creation moment in Agent Mail):
+
+```
+send_message(
+  project_key="<project-root-path>",
+  sender_name="<COORDINATOR_AGENT_NAME>",
+  to=["<COORDINATOR_AGENT_NAME>"],
+  subject="[SWARM START] <feature-name>",
+  body_md="Swarm initialized for epic <EPIC_ID> ...",
+  thread_id="<EPIC_ID>",
+  topic="<EPIC_TOPIC>"
+)
+```
+
+Template: see `references/message-templates.md` → **Spawn Notification**.
 
 The epic thread is the coordination surface for:
 - worker startup acknowledgments
@@ -117,7 +133,15 @@ This is the "clockwork deity" phase. The swarm is live; now you manage it.
 Check Agent Mail regularly on the epic thread:
 
 ```
-list_messages(thread_id="<EPIC_ID>", unread_only=true)
+fetch_inbox(
+  project_key="<project-root-path>",
+  agent_name="<COORDINATOR_AGENT_NAME>",
+  topic="<EPIC_TOPIC>"
+)
+fetch_topic(
+  project_key="<project-root-path>",
+  topic_name="<EPIC_TOPIC>"
+)
 ```
 
 Use live graph checks for oversight, not assignment:

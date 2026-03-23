@@ -111,8 +111,8 @@ Ask: was a locked decision (D1, D2...) violated by the implementation? Decision 
 ### 3e. Check Agent Mail for related blockers
 
 ```bash
-mcp__agent-mail__list_messages --filter "blocker"
-mcp__agent-mail__list_messages --filter "<feature-name>"
+fetch_topic(project_key="<project-root-path>", topic_name="<EPIC_TOPIC>")
+fetch_inbox(project_key="<project-root-path>", agent_name="<agent-name>", topic="<EPIC_TOPIC>")
 ```
 
 Another worker may have already reported the same issue or a related conflict. Avoid duplicate debugging.
@@ -151,10 +151,15 @@ If you cannot write this sentence, you do not have the root cause yet. Do not pr
 - Do not silently fix — the decision may need to be revisited
 - Report via Agent Mail before implementing:
   ```
-  mcp__agent-mail__send_message
-    to: orchestrator
-    subject: "Decision violation found: <decision-id>"
-    body: "Bead <id> violated decision <D#>: <what was done vs what was decided>. Proposed fix: <approach>."
+  send_message(
+    project_key: "<project-root-path>",
+    sender_name: "<agent-name>",
+    to: ["<COORDINATOR_AGENT_NAME>"],
+    thread_id: "<epic-thread-id>",
+    topic: "<EPIC_TOPIC>",
+    subject: "Decision violation found: <decision-id>",
+    body_md: "Bead <id> violated decision <D#>: <what was done vs what was decided>. Proposed fix: <approach>."
+  )
   ```
 - Wait for response or implement the conservative fix (honor the locked decision)
 
@@ -175,10 +180,15 @@ If verification fails → do not report success. Return to Step 3 with new infor
 ### Report the fix via Agent Mail
 
 ```
-mcp__agent-mail__send_message
-  to: orchestrator
-  subject: "Fix applied: <classification from Step 1>"
-  body: "Root cause: <sentence from 3f>. Fix: <what was changed>. Verification: passed."
+send_message(
+  project_key: "<project-root-path>",
+  sender_name: "<agent-name>",
+  to: ["<COORDINATOR_AGENT_NAME>"],
+  thread_id: "<epic-thread-id>",
+  topic: "<EPIC_TOPIC>",
+  subject: "Fix applied: <classification from Step 1>",
+  body_md: "Root cause: <sentence from 3f>. Fix: <what was changed>. Verification: passed."
+)
 ```
 
 ---
@@ -226,18 +236,28 @@ When a worker is stuck (cannot make progress, not a code error):
 
 **Waiting for another worker** → report to orchestrator and yield:
 ```
-mcp__agent-mail__send_message
-  to: orchestrator
-  subject: "Blocked: waiting on <bead-id>"
-  body: "<bead-id> cannot proceed until <dependency> completes. Pausing."
+send_message(
+  project_key: "<project-root-path>",
+  sender_name: "<agent-name>",
+  to: ["<COORDINATOR_AGENT_NAME>"],
+  thread_id: "<epic-thread-id>",
+  topic: "<EPIC_TOPIC>",
+  subject: "Blocked: waiting on <bead-id>",
+  body_md: "<bead-id> cannot proceed until <dependency> completes. Pausing."
+)
 ```
 
 **Genuinely blocked** (circular dep, impossible constraint, conflicting decisions):
 ```
-mcp__agent-mail__send_message
-  to: orchestrator
-  subject: "Hard blocker: <description>"
-  body: "Cannot resolve: <what is impossible and why>. Options: <A> or <B>. Needs human decision."
+send_message(
+  project_key: "<project-root-path>",
+  sender_name: "<agent-name>",
+  to: ["<COORDINATOR_AGENT_NAME>"],
+  thread_id: "<epic-thread-id>",
+  topic: "<EPIC_TOPIC>",
+  subject: "Hard blocker: <description>",
+  body_md: "Cannot resolve: <what is impossible and why>. Options: <A> or <B>. Needs human decision."
+)
 ```
 
 Do not spin. One report, then pause and let the orchestrator escalate.

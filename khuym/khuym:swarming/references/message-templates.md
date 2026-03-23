@@ -1,18 +1,24 @@
 # Agent Mail Message Templates
 
 Standard message formats for swarm coordination. All messages post to the epic thread (`thread_id=<EPIC_ID>`) unless noted otherwise.
+Use a shared epic topic tag in all messages (recommended: `topic="epic-<EPIC_ID>"`).
+Use `<COORDINATOR_AGENT_NAME>` for the coordinator identity, and keep it a valid Agent Mail adjective+noun name.
 
 ---
 
 ## 1. Spawn Notification
 
-**Posted by:** Orchestrator  
+**Posted by:** Swarm coordinator (`<COORDINATOR_AGENT_NAME>`)  
 **When:** After Agent Mail setup is complete, before spawning workers
 **Purpose:** Announces the swarm start and the self-routing execution model
+
+Runtime call:
+`send_message(project_key=..., sender_name="<COORDINATOR_AGENT_NAME>", to=["<COORDINATOR_AGENT_NAME>"], thread_id="<EPIC_ID>", topic="epic-<EPIC_ID>", ...)`
 
 ```
 Subject: [SWARM START] <feature-name>
 Thread: <EPIC_ID>
+Topic: epic-<EPIC_ID>
 Importance: NORMAL
 
 Swarm initialized for epic <EPIC_ID>.
@@ -38,9 +44,13 @@ All workers: join this thread, post startup acknowledgment, then load the khuym:
 **When:** Immediately on startup  
 **Purpose:** Confirms the worker is live and following the expected loop
 
+Runtime call:
+`send_message(project_key=..., sender_name="<AGENT_NAME>", to=["<COORDINATOR_AGENT_NAME>"], thread_id="<EPIC_ID>", topic="epic-<EPIC_ID>", ...)`
+
 ```
 Subject: [ONLINE] <AGENT_NAME> ready
 Thread: <EPIC_ID>
+Topic: epic-<EPIC_ID>
 Importance: NORMAL
 
 <AGENT_NAME> online.
@@ -56,9 +66,13 @@ Next step: read context, run `bv --robot-priority`, claim the top executable bea
 **When:** After each bead is closed with `br close`  
 **Purpose:** Notifies orchestrator of progress
 
+Runtime call:
+`send_message(project_key=..., sender_name="<AGENT_NAME>", to=["<COORDINATOR_AGENT_NAME>"], thread_id="<EPIC_ID>", topic="epic-<EPIC_ID>", ...)`
+
 ```
 Subject: [DONE] <bead-id>: <bead-title>
 Thread: <EPIC_ID>
+Topic: epic-<EPIC_ID>
 Importance: NORMAL
 
 Bead closed: <bead-id>
@@ -88,9 +102,13 @@ Next action: return to `bv --robot-priority`
 **When:** Immediately upon discovering a blocking issue  
 **Purpose:** Requests orchestrator intervention
 
+Runtime call:
+`send_message(project_key=..., sender_name="<AGENT_NAME>", to=["<COORDINATOR_AGENT_NAME>"], thread_id="<EPIC_ID>", topic="epic-<EPIC_ID>", ...)`
+
 ```
 Subject: [BLOCKED] <bead-id> — <one-line description>
 Thread: <EPIC_ID>
+Topic: epic-<EPIC_ID>
 Importance: HIGH
 
 BLOCKED: <AGENT_NAME> cannot proceed on bead <bead-id>.
@@ -114,9 +132,13 @@ I am paused on this bead and waiting for a reply on this thread.
 **When:** Worker needs a file another worker currently holds
 **Purpose:** Coordinates file access without preassigned worker scopes
 
+Runtime call:
+`send_message(project_key=..., sender_name="<AGENT_NAME>", to=["<COORDINATOR_AGENT_NAME>"], thread_id="<EPIC_ID>", topic="epic-<EPIC_ID>", ...)`
+
 ```
 Subject: [FILE CONFLICT] <path/to/file>
 Thread: <EPIC_ID>
+Topic: epic-<EPIC_ID>
 Importance: HIGH
 
 File conflict: <AGENT_NAME> needs a file that is currently reserved.
@@ -136,12 +158,16 @@ Awaiting orchestrator decision:
 
 ## 6. File Conflict Resolution
 
-**Posted by:** Orchestrator  
+**Posted by:** Swarm coordinator (`<COORDINATOR_AGENT_NAME>`)  
 **When:** Replying to a File Conflict Request
+
+Runtime call:
+`reply_message(project_key=..., message_id=<file-conflict-message-id>, sender_name="<COORDINATOR_AGENT_NAME>", body_md="...")`
 
 ```
 Subject: Re: [FILE CONFLICT] <path/to/file>
 Thread: <EPIC_ID>
+Topic: epic-<EPIC_ID>
 Importance: NORMAL
 
 Decision on file conflict for <path/to/file>:
@@ -163,12 +189,16 @@ OPTION C — Defer:
 
 ## 7. Overseer Broadcast
 
-**Posted by:** Orchestrator  
+**Posted by:** Swarm coordinator (`<COORDINATOR_AGENT_NAME>`)  
 **When:** Shared correction or reminder is needed across the swarm
+
+Runtime call:
+`send_message(project_key=..., sender_name="<COORDINATOR_AGENT_NAME>", to=[<worker-list>], thread_id="<EPIC_ID>", topic="epic-<EPIC_ID>", ...)`
 
 ```
 Subject: [OVERSEER] <short instruction>
 Thread: <EPIC_ID>
+Topic: epic-<EPIC_ID>
 Importance: HIGH
 
 Broadcast to all workers:
@@ -183,18 +213,22 @@ Examples:
 
 ---
 
-## 8. Orchestrator Context Warning
+## 8. Coordinator Context Warning
 
-**Posted by:** Orchestrator  
-**When:** Orchestrator detects its own context is approaching 65%  
+**Posted by:** Swarm coordinator (`<COORDINATOR_AGENT_NAME>`)  
+**When:** Swarm coordinator detects its own context is approaching 65%  
 **Purpose:** Warns workers and records the pause
 
+Runtime call:
+`send_message(project_key=..., sender_name="<COORDINATOR_AGENT_NAME>", to=[<worker-list>], thread_id="<EPIC_ID>", topic="epic-<EPIC_ID>", ...)`
+
 ```
-Subject: [CONTEXT WARNING] Orchestrator approaching capacity
+Subject: [CONTEXT WARNING] Coordinator approaching capacity
 Thread: <EPIC_ID>
+Topic: epic-<EPIC_ID>
 Importance: HIGH
 
-Orchestrator context at ~<XX>%. Writing HANDOFF.json now.
+Coordinator context at ~<XX>%. Writing HANDOFF.json now.
 
 Current status:
 - Open beads: <count>
@@ -213,12 +247,16 @@ Resume artifacts:
 
 ## 9. Swarm Completion Announcement
 
-**Posted by:** Orchestrator  
+**Posted by:** Swarm coordinator (`<COORDINATOR_AGENT_NAME>`)  
 **When:** All beads are verified closed
+
+Runtime call:
+`send_message(project_key=..., sender_name="<COORDINATOR_AGENT_NAME>", to=[<worker-list>], thread_id="<EPIC_ID>", topic="epic-<EPIC_ID>", ...)`
 
 ```
 Subject: [SWARM COMPLETE] <feature-name> — all beads closed
 Thread: <EPIC_ID>
+Topic: epic-<EPIC_ID>
 Importance: NORMAL
 
 Swarm complete for epic <EPIC_ID>.
@@ -238,7 +276,7 @@ Next step: Invoke the khuym:reviewing skill.
 
 ## Handoff JSON Template
 
-Write to `.khuym/HANDOFF.json` when orchestrator context exceeds 65%:
+Write to `.khuym/HANDOFF.json` when the swarm coordinator context exceeds 65%:
 
 ```json
 {
@@ -248,7 +286,7 @@ Write to `.khuym/HANDOFF.json` when orchestrator context exceeds 65%:
     "id": "khuym-swarm-<YYYYMMDD-HHMMSS>",
     "paused_at": "<ISO-8601 timestamp>",
     "reason_for_pause": "context_critical",
-    "agent": "Orchestrator"
+    "agent": "<COORDINATOR_AGENT_NAME>"
   },
   "swarm": {
     "epic_id": "<EPIC_ID>",
