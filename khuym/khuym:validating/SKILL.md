@@ -49,7 +49,7 @@ You need all of these. If any are missing, do not proceed — return to the appr
 
 ### Step 1.1 — Spawn Plan-Checker
 
-Load `references/plan-checker-prompt.md`. Spawn a subagent (Task tool, isolated context) with:
+Load `references/plan-checker-prompt.md`. Spawn a subagent (isolated context) with:
 
 ```
 Inputs: all .beads/*.md for this epic, CONTEXT.md, discovery.md, approach.md
@@ -113,7 +113,7 @@ The spike question must be specific. "Spike: Is Redis feasible?" is too vague. "
 
 For each spike bead:
 
-1. Spawn an isolated subagent (Task tool) with:
+1. Spawn an isolated subagent with:
    - The spike bead content
    - Relevant CONTEXT.md sections
    - The approach.md risk description for this item

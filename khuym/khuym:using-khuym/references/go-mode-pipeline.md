@@ -178,7 +178,7 @@ If user says "yes": proceed to Step 4.
 
 **The khuym:swarming skill will:**
 - Initialize Agent Mail (ensure_project, register_agent as Orchestrator)
-- Spawn workers via Task tool (each loads `khuym:executing` skill)
+- Spawn workers via the canonical `Subagent` delegation contract (each loads `khuym:executing` skill)
 - Each worker: register → bv --robot-priority → reserve files → implement bead → br close → report → loop
 - Monitor via Agent Mail (blockers, file conflicts, completion reports, context handoffs)
 - Tend the swarm with overseer broadcasts when needed

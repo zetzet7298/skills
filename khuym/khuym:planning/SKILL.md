@@ -83,7 +83,7 @@ spawn and what each explores.
 
 ### Available Tools
 
-All Task() agents have access to these tools — use what the area requires:
+All discovery subagents have access to these tools — use what the area requires:
 
 | Tool | What it's for |
 |------|---------------|
@@ -127,7 +127,7 @@ same depth — calibrate based on what CONTEXT.md tells you is being built.
 
 ### Parallelization Guidance
 
-Spawn parallel Task() agents when exploration areas are independent (they
+Spawn parallel subagents when exploration areas are independent (they
 usually are — architecture/pattern/constraint research don't block each other).
 
 - **Standard feature** (builds on existing patterns): 2–3 agents covering
@@ -153,7 +153,7 @@ See `references/discovery-template.md` for the required document structure.
 Spawn a synthesis subagent to close the gap between codebase reality and feature requirements.
 
 ```
-Task(
+Subagent(
   prompt: """
 You are a senior architect performing synthesis. Your job is to close the gap
 between what the codebase currently is and what the feature requires.

@@ -66,7 +66,7 @@ recent git diff. Compounding is still valuable even with partial context.
 
 ### Phase 2: Three-Category Analysis (3 Parallel Subagents)
 
-Launch three subagents simultaneously using `Task()`. Each writes findings to a temp file.
+Launch three subagents simultaneously using the canonical `Subagent(...)` contract. Each writes findings to a temp file.
 Do NOT have subagents write the final learnings file — only the orchestrator writes that.
 
 ---
