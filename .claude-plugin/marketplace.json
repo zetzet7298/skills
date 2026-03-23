@@ -1,8 +1,8 @@
 {
-  "name": "kuckit",
+  "name": "skills",
   "owner": {
-    "name": "draphonix",
-    "url": "https://github.com/draphonix"
+    "name": "hoangnb24",
+    "url": "https://github.com/hoangnb24"
   },
   "metadata": {
     "description": "Khuym: multi-agent coordination skills for agentic software development"

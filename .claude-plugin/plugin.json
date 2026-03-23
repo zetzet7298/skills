@@ -1,5 +1,5 @@
 {
-  "name": "kuckit",
+  "name": "skills",
   "version": "2.1.1",
   "description": "Khuym: multi-agent coordination skills for planning, validation, swarming, and execution",
   "skills": [

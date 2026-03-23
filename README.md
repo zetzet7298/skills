@@ -70,13 +70,24 @@ metadata:                 # optional
 
 See `CONTRIBUTING.md` for the full skill creation guide.
 
-## Deployment
+## Install In Claude Code
 
-Skills are deployed to `~/.claude/skills/` via symlinks:
+This repo ships a Claude Code plugin marketplace in [`.claude-plugin/marketplace.json`](/Users/themrb/Documents/personal/skills/.claude-plugin/marketplace.json).
+
+### Inside Claude Code (recommended)
+
+```text
+/plugin marketplace add hoangnb24/skills
+/plugin install khuym:using-khuym@skills
+```
+
+## Direct Skill Sync
+
+If you want the raw skill directories linked into `~/.claude/skills/` for local development, use the sync script:
 
 ```bash
-bash scripts/sync-skills.sh          # deploy all skills
-bash scripts/sync-skills.sh --dry-run # preview without changes
+bash scripts/sync-skills.sh
+bash scripts/sync-skills.sh --dry-run
 ```
 
 ## Requirements

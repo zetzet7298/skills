@@ -6,6 +6,8 @@ This guide covers the skill format, directory conventions, and how Claude Code d
 
 Claude Code loads skills from `~/.claude/skills/*/SKILL.md`. Each skill's `description` field from the YAML frontmatter is injected into the system prompt. When a user's request matches a skill's trigger description, Claude invokes it via the `Skill` tool, which reads the full SKILL.md body as operational instructions.
 
+This repo also publishes a Claude Code plugin marketplace via [`.claude-plugin/marketplace.json`](/Users/themrb/Documents/personal/skills/.claude-plugin/marketplace.json), so skills can be installed through `claude plugin` instead of only through manual symlinks.
+
 ## SKILL.md Structure
 
 Every skill requires a `SKILL.md` file with YAML frontmatter and a markdown body:
@@ -101,6 +103,24 @@ Tips:
 - Include the verbs users would say ("debug", "fix", "diagnose")
 - Mention what the skill produces ("writes CONTEXT.md", "creates beads")
 
+## Installing For Testing
+
+Preferred plugin flow:
+
+```bash
+claude plugin marketplace add /absolute/path/to/skills --scope local
+claude plugin install prompt-leverage@skills --scope local
+claude plugin list
+```
+
+Replace `prompt-leverage` with the plugin you want to test, for example `khuym:using-khuym` or `book-sft-pipeline`.
+
+Direct symlink flow:
+
+```bash
+bash scripts/sync-skills.sh
+```
+
 ## Adding a Skill to This Repo
 
 1. Create the directory under `khuym/` (ecosystem skills) or `standalone/` (independent):
@@ -110,20 +130,33 @@ Tips:
 
 2. Write `SKILL.md` with frontmatter and body
 
-3. Deploy to Claude Code:
+3. Validate the marketplace manifest:
+   ```bash
+   claude plugin validate .
+   ```
+
+4. Install the plugin into Claude Code:
+   ```bash
+   claude plugin marketplace add /absolute/path/to/skills --scope local
+   claude plugin install my-skill@skills --scope local
+   ```
+
+5. Or deploy raw skills directly:
    ```bash
    bash scripts/sync-skills.sh
    ```
 
-4. Test by asking Claude something that matches your trigger description
+6. Test by asking Claude something that matches your trigger description
 
 ## Testing a Skill
 
-1. Deploy: `bash scripts/sync-skills.sh`
-2. Start a new Claude Code session
-3. Ask something that should trigger the skill
-4. Verify Claude invokes it via the `Skill` tool
-5. Check that the operational instructions produce the expected behavior
+1. Validate: `claude plugin validate .`
+2. Install locally: `claude plugin marketplace add /absolute/path/to/skills --scope local`
+3. Install the plugin under test: `claude plugin install my-skill@skills --scope local`
+4. Start a new Claude Code session
+5. Ask something that should trigger the skill
+6. Verify Claude invokes it via the `Skill` tool
+7. Check that the operational instructions produce the expected behavior
 
 ## Khuym-Specific Conventions
 
