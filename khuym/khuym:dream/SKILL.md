@@ -49,6 +49,7 @@ Use source priority from `references/codex-source-policy.md`.
 2. Targeted fallback: `~/.codex/logs_1.sqlite` only to confirm a specific hypothesis.
 3. Recurring defaults: last `7 days` and up to `20 sessions`, unless user override is provided.
 4. Avoid telemetry dumping or exhaustive scans when recurring mode already has a bounded window.
+5. In recurring mode, do not expand to full-history scans unless the user explicitly overrides scope.
 
 ### Phase 3: Extract Durable Candidates
 
@@ -103,6 +104,8 @@ Return a concise run summary with:
 - Ambiguous matching requires candidate-specific options with explicit target file naming.
 - Do not edit `critical-patterns.md` without explicit approval.
 - If no durable signal exists, write nothing for that candidate.
+- Do not silently guess first-run status; ask one clarification question when provenance is conflicting.
+- Do not run unbounded `.codex` scans during recurring mode without explicit user override.
 
 ## References
 

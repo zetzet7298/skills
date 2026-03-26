@@ -32,6 +32,7 @@ Recurring default window:
 - Up to `20 sessions`
 
 User may override by days and/or sessions.
+Do not silently escalate recurring mode to full-history scan.
 
 ## Conflict Handling
 

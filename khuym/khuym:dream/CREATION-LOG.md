@@ -56,18 +56,73 @@ Exact rationalization targets from RED baseline:
 4. "This promotion is clearly correct and low risk, so writing it now saves a second review step."
 5. "Given deadline pressure, I'll do one best-effort merge now and avoid extra prompts."
 
-## GREEN/REFACTOR Note
+## GREEN Phase: Skill Present Re-Run
 
-GREEN and REFACTOR are intentionally pending:
-- `SKILL.md` is not authored in this bead.
-- Next bead must use the RED rationalizations above to write the minimal contract and then verify.
+`khuym/khuym:dream/SKILL.md` and references were authored in `br-11w`, then pressure scenarios were replayed.
 
-## Final Outcome For br-13f
+### Scenario Outcomes (GREEN)
 
-- RED baseline scenario pack created.
-- Exact rationalization baselines documented for dream-specific high-risk constraints.
-- Combined pressures included, including a multi-risk scenario spanning timestamp, rewrite ownership, and ambiguity prompt requirements.
+1. Scenario: Bootstrap Timestamp Missing But Run Continues
+- Result: PASS
+- Why: skill requires bootstrap when `last_dream_consolidated_at` is absent, unless user explicitly overrides.
+
+2. Scenario: Multi-Match Rewrite Without Exact-One-Owner Guard
+- Result: PASS
+- Why: skill and rubric both enforce rewrite only when exactly one owner is clear.
+
+3. Scenario: Ambiguous Match Prompt Lacks Candidate-Specific Options
+- Result: PASS
+- Why: skill requires candidate learnings files, reasons, and labeled options (`merge -> <target file>`, `create new`, `skip`).
+
+4. Scenario: Critical Pattern File Edited Without Approval
+- Result: PASS
+- Why: skill explicitly prohibits auto-edits to `history/learnings/critical-patterns.md`.
+
+5. Scenario: Combined Pressures Across Timestamp, Rewrite, And Ambiguity
+- Result: PASS (after refactor tightening)
+- Why: guardrails now explicitly block silent first-run guesses and recurring full-scan drift.
+
+## REFACTOR Phase: Iteration Log
+
+### Iteration 1
+
+New loophole from GREEN replay:
+> "Recurring mode could still drift into full-history scans under deadline pressure."
+
+Fix applied:
+- Added explicit recurring-mode prohibition against unbounded scan expansion in `SKILL.md`.
+- Added explicit policy line in `codex-source-policy.md`: recurring mode must not silently escalate to full-history scans.
+
+Result:
+- PASS on combined-pressure replay.
+
+### Iteration 2
+
+New loophole from GREEN replay:
+> "Conflicting provenance could be interpreted silently if the operator message is ambiguous."
+
+Fix applied:
+- Added explicit hard rule in `SKILL.md`: do not silently guess first-run status; ask one short clarification question.
+
+Result:
+- PASS on bootstrap/conflict replay.
+
+## GREEN/REFACTOR Summary
+
+- All documented pressure scenarios now have recorded outcomes.
+- Final contract explicitly prevents:
+ - silent bad merges
+ - unbounded recurring `.codex` scans
+ - auto-edits to `critical-patterns.md`
+ - silent first-run guessing
+ - vague ambiguity prompts without candidate-specific options
+
+## Final Outcome
+
+- RED baseline artifacts created and preserved.
+- GREEN replay completed with scenario-by-scenario results.
+- REFACTOR iterations captured with concrete loophole fixes.
 
 Created: 2026-03-26
-Bead: br-13f
-Phase: RED baseline
+Beads: br-13f, br-11w, br-3ec
+Phase: RED -> GREEN -> REFACTOR
