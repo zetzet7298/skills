@@ -108,6 +108,7 @@ The Khuym ecosystem is the primary story in this repository: a coordinated chain
 | `khuym:executing` | Per-agent worker loop: priority → reserve → implement → close |
 | `khuym:reviewing` | Specialist review passes + 3-level verification + UAT |
 | `khuym:compounding` | Capture learnings → history/learnings/ |
+| `khuym:dream` | Manual dream consolidation pass over Codex artifacts and learnings (support) |
 | `khuym:writing-khuym-skills` | TDD-for-skills meta-skill |
 | `khuym:debugging` | Systematic debugging for blocked workers (support) |
 | `khuym:gkg` | Codebase intelligence via gkg tool (support) |

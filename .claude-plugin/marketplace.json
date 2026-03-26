@@ -57,6 +57,12 @@
       "strict": false
     },
     {
+      "name": "khuym:dream",
+      "description": "Manual dream-style consolidation over Codex artifacts into durable Khuym learnings",
+      "source": "./khuym/khuym:dream",
+      "strict": false
+    },
+    {
       "name": "khuym:debugging",
       "description": "Systematic debugging for blocked workers, test failures, and build errors",
       "source": "./khuym/khuym:debugging",
