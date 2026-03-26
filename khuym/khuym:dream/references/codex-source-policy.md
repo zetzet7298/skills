@@ -24,7 +24,7 @@ extra confirmation and `history.jsonl` is insufficient.
 ## Bootstrap
 
 Use bootstrap when:
-- No learnings file has `last_dream_consolidated_at`, or
+- Neither learnings frontmatter nor `history/learnings/dream-run-provenance.md` has `last_dream_consolidated_at`, or
 - User explicitly asks for a full consolidation scan.
 
 Bootstrap scan scope:
@@ -33,7 +33,7 @@ Bootstrap scan scope:
 ## Recurring
 
 Use recurring when:
-- At least one learnings file has `last_dream_consolidated_at`, and
+- Learnings frontmatter or `history/learnings/dream-run-provenance.md` has `last_dream_consolidated_at`, and
 - User did not request bootstrap.
 
 Recurring default window:
@@ -43,9 +43,18 @@ Recurring default window:
 User may override by days and/or sessions.
 Do not silently escalate recurring mode to full-history scan.
 
+## Run Provenance Persistence
+
+Every completed dream run must update `history/learnings/dream-run-provenance.md` with:
+- `last_dream_consolidated_at`
+- mode used (`bootstrap` or `recurring`)
+- effective source window
+
+This write is required even when no candidate produced a durable learnings change.
+
 ## Conflict Handling
 
-If provenance and user intent conflict (for example marker absent but user requests recurring), ask
+If provenance and user intent conflict (for example no markers but user requests recurring), ask
 one short clarification question. Do not silently guess.
 
 ## Noise Control
