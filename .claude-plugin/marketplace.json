@@ -1,5 +1,5 @@
 {
-  "name": "skills",
+  "name": "khuym",
   "owner": {
     "name": "hoangnb24",
     "url": "https://github.com/hoangnb24"
@@ -11,85 +11,85 @@
     {
       "name": "khuym:using-khuym",
       "description": "Bootstrap meta-skill: routing, go mode, skill catalog, state bootstrap/resume",
-      "source": "./khuym/khuym:using-khuym",
+      "source": "./plugins/khuym/skills/khuym:using-khuym",
       "strict": false
     },
     {
       "name": "khuym:exploring",
       "description": "Extract locked decisions via Socratic dialogue before planning begins",
-      "source": "./khuym/khuym:exploring",
+      "source": "./plugins/khuym/skills/khuym:exploring",
       "strict": false
     },
     {
       "name": "khuym:planning",
       "description": "Research codebase, synthesize approach, decompose into executable beads",
-      "source": "./khuym/khuym:planning",
+      "source": "./plugins/khuym/skills/khuym:planning",
       "strict": false
     },
     {
       "name": "khuym:validating",
       "description": "Plan verification (8 dimensions), spike execution for HIGH risk, bead polishing",
-      "source": "./khuym/khuym:validating",
+      "source": "./plugins/khuym/skills/khuym:validating",
       "strict": false
     },
     {
       "name": "khuym:swarming",
       "description": "Launch and tend parallel worker agents via Agent Mail",
-      "source": "./khuym/khuym:swarming",
+      "source": "./plugins/khuym/skills/khuym:swarming",
       "strict": false
     },
     {
       "name": "khuym:executing",
       "description": "Per-agent worker loop: self-route from bead graph, implement, close, report",
-      "source": "./khuym/khuym:executing",
+      "source": "./plugins/khuym/skills/khuym:executing",
       "strict": false
     },
     {
       "name": "khuym:reviewing",
       "description": "5 parallel review agents, 3-level artifact verification, UAT gate",
-      "source": "./khuym/khuym:reviewing",
+      "source": "./plugins/khuym/skills/khuym:reviewing",
       "strict": false
     },
     {
       "name": "khuym:compounding",
       "description": "Capture learnings (patterns/decisions/failures) into history/learnings/",
-      "source": "./khuym/khuym:compounding",
+      "source": "./plugins/khuym/skills/khuym:compounding",
       "strict": false
     },
     {
       "name": "khuym:dream",
       "description": "Manual dream-style consolidation over Codex artifacts into durable Khuym learnings",
-      "source": "./khuym/khuym:dream",
+      "source": "./plugins/khuym/skills/khuym:dream",
       "strict": false
     },
     {
       "name": "khuym:debugging",
       "description": "Systematic debugging for blocked workers, test failures, and build errors",
-      "source": "./khuym/khuym:debugging",
+      "source": "./plugins/khuym/skills/khuym:debugging",
       "strict": false
     },
     {
       "name": "khuym:gkg",
       "description": "Codebase intelligence via gkg tool for architecture and dependency analysis",
-      "source": "./khuym/khuym:gkg",
+      "source": "./plugins/khuym/skills/khuym:gkg",
       "strict": false
     },
     {
       "name": "khuym:writing-khuym-skills",
       "description": "TDD-for-skills meta-skill with pressure testing and persuasion psychology",
-      "source": "./khuym/khuym:writing-khuym-skills",
+      "source": "./plugins/khuym/skills/khuym:writing-khuym-skills",
       "strict": false
     },
     {
       "name": "book-sft-pipeline",
       "description": "Convert books into SFT datasets for training style-transfer models",
-      "source": "./standalone/book-sft-pipeline",
+      "source": "./plugins/khuym/skills/book-sft-pipeline",
       "strict": false
     },
     {
       "name": "prompt-leverage",
       "description": "Upgrade raw prompts into stronger execution-ready prompts",
-      "source": "./standalone/prompt-leverage",
+      "source": "./plugins/khuym/skills/prompt-leverage",
       "strict": false
     }
   ]

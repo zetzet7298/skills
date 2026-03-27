@@ -80,29 +80,30 @@ The README is the top-level overview. The operational contract lives in the repo
 - [`docs/architecture/ARCHITECTURE.md`](docs/architecture/ARCHITECTURE.md) is the canonical architecture and vocabulary contract.
 - [`CONTRIBUTING.md`](CONTRIBUTING.md) covers skill format, marketplace packaging, and documentation checks.
 
+## Install In Codex
+
+This repo now ships a Codex-standard repo marketplace in [`.agents/plugins/marketplace.json`](.agents/plugins/marketplace.json) and a packaged plugin at [`plugins/khuym/.codex-plugin/plugin.json`](plugins/khuym/.codex-plugin/plugin.json).
+
+### Inside Codex
+
+The canonical skill layout now lives directly under [`plugins/khuym/skills/`](plugins/khuym/skills).
+
+Restart Codex after adding the marketplace, then install the `khuym` plugin from the local repo marketplace.
+
 ## Install In Claude Code
 
-This repo ships a Claude Code plugin marketplace in [`.claude-plugin/marketplace.json`](.claude-plugin/marketplace.json).
+This repo still ships a Claude Code plugin marketplace in [`.claude-plugin/marketplace.json`](.claude-plugin/marketplace.json).
 
-### Inside Claude Code (recommended)
+### Inside Claude Code
 
 ```text
 /plugin marketplace add hoangnb24/skills
-/plugin install khuym:using-khuym@skills
-```
-
-## Direct Skill Sync
-
-If you want the raw skill directories linked into `~/.claude/skills/` for local development, use the sync script:
-
-```bash
-bash scripts/sync-skills.sh
-bash scripts/sync-skills.sh --dry-run
+/plugin install khuym:using-khuym@khuym
 ```
 
 ## Skill Catalog
 
-### Main Chain (`khuym/`)
+### Main Chain
 
 These are the core delivery stages in the Khuym workflow:
 
@@ -116,7 +117,7 @@ These are the core delivery stages in the Khuym workflow:
 | `khuym:reviewing` | Specialist review passes + 3-level verification + UAT |
 | `khuym:compounding` | Capture learnings → history/learnings/ |
 
-### Bootstrap, Support, And Meta Skills (`khuym/`)
+### Bootstrap, Support, And Meta Skills
 
 These skills support the main chain without replacing it:
 
@@ -130,7 +131,7 @@ These skills support the main chain without replacing it:
 
 `khuym:dream` is intentionally outside the main execution chain. It runs on demand, consolidates durable lessons into `history/learnings/`, uses a bootstrap-first scan model with recurring bounded updates after provenance exists, and never edits `history/learnings/critical-patterns.md` without explicit approval.
 
-### Standalone Skills (`standalone/`)
+### Standalone Skills
 
 Standalone skills remain available, but they are intentionally secondary to the Khuym chain in this repo's top-level narrative.
 
@@ -146,11 +147,7 @@ Standalone skills remain available, but they are intentionally secondary to the 
 
 ## Documentation Checks
 
-When you change public docs in this repo, keep links repository-relative and run:
-
-```bash
-bash scripts/check-markdown-links.sh
-```
+When you change public docs in this repo, keep links repository-relative and environment-agnostic.
 
 ## License
 

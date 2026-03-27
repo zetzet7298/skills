@@ -1,0 +1,20 @@
+{
+  "name": "khuym",
+  "interface": {
+    "displayName": "Khuym"
+  },
+  "plugins": [
+    {
+      "name": "khuym",
+      "source": {
+        "source": "local",
+        "path": "./plugins/khuym"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

@@ -1,24 +1,23 @@
-# Creating Claude Code Skills
+# Creating Skills
 
-This guide covers the skill format, directory conventions, and how Claude Code discovers and loads skills.
+This guide covers the skill format, directory conventions, and how this repo packages skills for Codex and Claude Code.
 
 ## How Skills Work
 
-Claude Code loads skills from `~/.claude/skills/*/SKILL.md`. Each skill's `description` field from the YAML frontmatter is injected into the system prompt. When a user's request matches a skill's trigger description, Claude invokes it via the `Skill` tool, which reads the full SKILL.md body as operational instructions.
+The canonical skill directories live under [`plugins/khuym/skills/`](plugins/khuym/skills).
 
-This repo also publishes a Claude Code plugin marketplace via [`.claude-plugin/marketplace.json`](.claude-plugin/marketplace.json), so skills can be installed through `claude plugin` instead of only through manual symlinks.
+- Codex consumes the packaged plugin under [`plugins/khuym/.codex-plugin/plugin.json`](plugins/khuym/.codex-plugin/plugin.json), with the repo marketplace defined in [`.agents/plugins/marketplace.json`](.agents/plugins/marketplace.json).
+- Claude Code can still consume raw symlinked skills from `~/.claude/skills/*/SKILL.md` or the legacy Claude plugin metadata in [`.claude-plugin/marketplace.json`](.claude-plugin/marketplace.json).
+
+In both environments, the `description` field from the YAML frontmatter is the trigger text that determines when a skill is selected.
 
 ## Documentation Checks
 
 Markdown links in this repo should stay repository-relative and environment-agnostic. Do not commit absolute local filesystem paths such as `/Users/...` in rendered docs.
 
-Run the docs link validator before merging documentation-heavy changes:
+Keep documentation links repository-relative and environment-agnostic.
 
-```bash
-bash scripts/check-markdown-links.sh
-```
-
-This check fails when:
+This repo treats these as errors:
 - a Markdown link uses an absolute local path
 - a repository-relative Markdown link points to a missing target
 
@@ -119,58 +118,33 @@ Tips:
 
 ## Installing For Testing
 
-Preferred plugin flow:
+Preferred Codex flow:
 
 ```bash
-claude plugin marketplace add /absolute/path/to/skills --scope local
-claude plugin install prompt-leverage@skills --scope local
-claude plugin list
+# add the repo marketplace in Codex
+# then install the `khuym` plugin
 ```
 
-Replace `prompt-leverage` with the plugin you want to test, for example `khuym:using-khuym` or `book-sft-pipeline`.
-
-Direct symlink flow:
-
-```bash
-bash scripts/sync-skills.sh
-```
+Then add the repo marketplace from [`.agents/plugins/marketplace.json`](.agents/plugins/marketplace.json) in Codex and install the `khuym` plugin.
 
 ## Adding a Skill to This Repo
 
-1. Create the directory under `khuym/` (ecosystem skills) or `standalone/` (independent):
+1. Create the directory under [`plugins/khuym/skills/`](plugins/khuym/skills):
    ```bash
-   mkdir -p standalone/my-skill/references
+   mkdir -p plugins/khuym/skills/my-skill/references
    ```
 
 2. Write `SKILL.md` with frontmatter and body
 
-3. Validate the marketplace manifest:
-   ```bash
-   claude plugin validate .
-   ```
-
-4. Install the plugin into Claude Code:
-   ```bash
-   claude plugin marketplace add /absolute/path/to/skills --scope local
-   claude plugin install my-skill@skills --scope local
-   ```
-
-5. Or deploy raw skills directly:
-   ```bash
-   bash scripts/sync-skills.sh
-   ```
-
-6. Test by asking Claude something that matches your trigger description
+3. Test by asking Codex or Claude something that matches your trigger description
 
 ## Testing a Skill
 
-1. Validate: `claude plugin validate .`
-2. Install locally: `claude plugin marketplace add /absolute/path/to/skills --scope local`
-3. Install the plugin under test: `claude plugin install my-skill@skills --scope local`
-4. Start a new Claude Code session
-5. Ask something that should trigger the skill
-6. Verify Claude invokes it via the `Skill` tool
-7. Check that the operational instructions produce the expected behavior
+1. Install the local repo marketplace in Codex and install the `khuym` plugin
+2. Start a new Codex session
+3. Ask something that should trigger the skill
+4. Verify Codex discovers and invokes the skill
+5. Check that the operational instructions produce the expected behavior
 
 ## Khuym-Specific Conventions
 
