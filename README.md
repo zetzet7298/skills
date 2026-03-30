@@ -21,7 +21,7 @@ The important point is that Khuym does not try to mirror any one upstream framew
 Khuym turns upstream ideas into a custom workflow contract rather than a loose bundle of inspirations:
 
 1. It makes `CONTEXT.md` the source of truth so downstream skills execute against locked decisions rather than reinterpreting intent at every step.
-2. It promotes validation into its own first-class skill, `khuym:validating`, because the GSD lesson is structural: plans should not execute until they pass verification.
+2. It promotes validation into its own first-class skill, `khuym:validating`, because the GSD lesson is structural: phases should not execute until their contract, stories, and beads pass verification.
 3. It keeps Flywheel's swarm and bead infrastructure, but reshapes it into explicit Khuym skill boundaries: `exploring`, `planning`, `validating`, `swarming`, `executing`, `reviewing`, and `compounding`.
 4. It absorbs review, finish, and learning capture into one continuous workflow so the system does not stop at "code was written"; it closes only after verification and compounding.
 
@@ -30,8 +30,8 @@ Khuym turns upstream ideas into a custom workflow contract rather than a loose b
 Khuym treats software delivery as a staged chain where each skill hands off explicit artifacts to the next stage:
 
 - `khuym:exploring` extracts decisions and locks them in `CONTEXT.md`
-- `khuym:planning` researches and decomposes implementation into executable beads
-- `khuym:validating` verifies the plan and bead graph before execution begins
+- `khuym:planning` researches the work, writes a phase contract, maps the internal stories, and only then decomposes to beads
+- `khuym:validating` verifies the phase contract, story map, and bead graph before execution begins
 - `khuym:swarming` launches and coordinates worker subagents
 - `khuym:executing` runs the worker loop (claim, reserve, implement, verify, close)
 - `khuym:reviewing` performs multi-agent review plus acceptance checks
@@ -59,18 +59,18 @@ flowchart LR
 khuym:exploring → khuym:planning → khuym:validating → khuym:swarming → khuym:executing(×N) → khuym:reviewing → khuym:compounding
 ```
 
-The main differentiator is that execution is intentionally gated: the system does not proceed from planning into implementation until validation passes.
+The main differentiator is that execution is intentionally gated: the system does not proceed from planning into implementation until the phase has a clear exit state, coherent stories, and validated beads.
 
 ## Human Gates
 
 - **GATE 1** (after exploring): "Approve decisions/CONTEXT.md?"
-- **GATE 2** (after validating): "Beads verified. Approve execution?"
+- **GATE 2** (after validating): "Phase verified. Approve execution?"
 - **GATE 3** (after reviewing): "P1 findings. Fix before merge?"
 
 ## Compact Workflow Example
 
 1. `khuym:exploring` captures the decisions and constraints for a feature.
-2. `khuym:planning` and `khuym:validating` turn those decisions into verified executable beads.
+2. `khuym:planning` and `khuym:validating` turn those decisions into a clear phase contract, a story map, and verified executable beads.
 3. `khuym:swarming` and `khuym:executing` implement the work in parallel with reservations and bead status updates.
 4. `khuym:reviewing` enforces quality gates, then `khuym:compounding` captures reusable learnings.
 
@@ -135,8 +135,8 @@ These are the core delivery stages in the Khuym workflow:
 | Skill | Purpose |
 |-------|---------|
 | `khuym:exploring` | Socratic dialogue → locked decisions in CONTEXT.md |
-| `khuym:planning` | Research + synthesis → approach.md + beads |
-| `khuym:validating` | Plan verification (8 dims) + spikes + bead polishing — **THE GATE** |
+| `khuym:planning` | Research + synthesis → approach.md + phase-contract.md + story-map.md + beads |
+| `khuym:validating` | Phase/story/bead verification (8 dims) + spikes + bead polishing — **THE GATE** |
 | `khuym:swarming` | Launch + tend parallel worker agents via Agent Mail |
 | `khuym:executing` | Per-agent worker loop: priority → reserve → implement → close |
 | `khuym:reviewing` | Specialist review passes + 3-level verification + UAT |

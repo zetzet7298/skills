@@ -1,9 +1,9 @@
 ---
 name: khuym:validating
 description: |
-  The critical gate between planning and execution in the khuym ecosystem. Load this skill after planning completes and before swarming begins. Verifies plan soundness across 8 structural dimensions, executes time-boxed spikes for HIGH-risk items, polishes beads with bv graph analytics, and requires explicit user approval before any code is written. Prevents executing broken plans, hitting unknown blockers mid-swarm, and redundant duplicate work. Use when you hear "plan is ready", "beads created", "time to build", "start executing", or any transition from planning to execution.
+  The critical gate between planning and execution in the khuym ecosystem. Load this skill after planning completes and before swarming begins. Verifies the phase contract, story map, and bead graph across 8 structural dimensions, executes time-boxed spikes for HIGH-risk items, polishes beads with bv graph analytics, and requires explicit user approval before any code is written. Prevents executing unclear phases, malformed story breakdowns, unknown blockers, and redundant duplicate work.
 metadata:
-  version: '1.0'
+  version: '1.1'
   position: 3
   chain: exploring → planning → validating → swarming
 ---
@@ -17,299 +17,307 @@ If `.khuym/onboarding.json` is missing or stale for the current repo, stop and i
 
 ## Why This Skill Exists
 
-Research across hundreds of agentic coding failures reveals a consistent pattern: broken plans executed at full speed. The damage happens quietly. An agent completes 40 beads in 3 hours, then hits a dependency cycle at bead 41. Or a spike-worthy integration assumption turns out to be wrong. Or two concurrently executable beads were writing to the same file the whole time.
+The most expensive failure in agentic delivery is not a buggy bead. It is launching execution against a phase that was never clear enough to deserve execution.
 
-**GSD's core principle:** "Plans are not executed until they pass verification." The Flywheel prescribes 4–6+ bead polishing rounds before any agent touches code. V3's spike phase proves that HIGH-risk items must be validated in isolation before committing an entire swarm to them.
+Khuym now treats a phase as a **small closed loop**:
 
-This skill IS that verification. Skipping it is the single highest-probability cause of wasted work in the khuym pipeline. Every hour spent here saves 10+ hours of swarm rework.
+- clear entry state
+- clear exit state
+- simple demo story
+- stories that explain why the internal order makes sense
+- beads that implement those stories
 
-**What this skill prevents:**
-- Structural plan failures caught only after 40+ beads execute
-- HIGH-risk blockers discovered mid-swarm with no escape path
-- Concurrent beads silently writing to the same files
-- Beads too large for a single agent context
-- Missing dependencies that break execution order
-- Redundant duplicate beads creating double work
-- Requirements in CONTEXT.md not covered by any bead
+This skill verifies all of that. It is not enough for the bead graph to look tidy. The validator must be able to answer:
+
+- Does this phase close a meaningful loop?
+- If all stories finish, will the exit state be true?
+- If all beads finish, will the stories actually be complete?
+- If the phase fails, will we know whether to debug locally or pivot the larger plan?
+
+Skipping validating is still the fastest path to expensive rework.
+
+## Prerequisites
+
+You need all of these:
+
+- `history/<feature>/CONTEXT.md`
+- `history/<feature>/discovery.md`
+- `history/<feature>/approach.md`
+- `history/<feature>/phase-contract.md`
+- `history/<feature>/story-map.md`
+- `.beads/` for this epic
+
+If any are missing, stop and return to `khuym:planning`.
 
 ---
 
-## Prerequisites — Read Before Starting
+## Phase 1: Structural Verification
 
-You need all of these. If any are missing, do not proceed — return to the appropriate upstream skill.
+**Maximum 3 iterations. Nothing advances until this passes.**
 
-- `history/<feature>/CONTEXT.md` — locked decisions from exploring
-- `history/<feature>/discovery.md` — research findings from planning
-- `history/<feature>/approach.md` — synthesis + risk map (with HIGH/MEDIUM/LOW risk levels)
-- `.beads/` — all bead files for this epic
+### Step 1.1 — Spawn plan-checker
 
----
+Load `references/plan-checker-prompt.md`. Spawn an isolated subagent with:
 
-## Phase 1: Plan Verification
-
-**Maximum 3 iterations. Plans do not advance until this passes.**
-
-### Step 1.1 — Spawn Plan-Checker
-
-Load `references/plan-checker-prompt.md`. Spawn a subagent (isolated context) with:
-
-```
-Inputs: all .beads/*.md for this epic, CONTEXT.md, discovery.md, approach.md
+```text
+Inputs:
+- all .beads/*.md for this epic
+- history/<feature>/CONTEXT.md
+- history/<feature>/discovery.md
+- history/<feature>/approach.md
+- history/<feature>/phase-contract.md
+- history/<feature>/story-map.md
 Role: plan-checker
-Instructions: references/plan-checker-prompt.md
 ```
 
-The plan-checker verifies across **8 dimensions** (full criteria in `references/plan-checker-prompt.md`):
+The plan-checker verifies 8 dimensions:
 
-| # | Dimension | The Question |
-|---|-----------|-------------|
-| 1 | Requirement coverage | Does every CONTEXT.md decision map to at least one bead? |
-| 2 | Dependency correctness | Are all bead dependencies valid? Any cycles? |
-| 3 | File scope isolation | Do concurrently executable beads have overlapping file scopes? |
-| 4 | Context budget | Is each bead completable in a single agent context window? |
-| 5 | Test coverage | Does every bead have explicit verification criteria? |
-| 6 | Gap detection | Any requirements not covered by any bead? |
-| 7 | Risk alignment | Do HIGH-risk items from approach.md have corresponding spikes? |
-| 8 | Completeness | Would completing all beads deliver the feature as specified? |
+1. **Phase contract clarity** — clear entry state, exit state, demo, unlocks
+2. **Story coverage and ordering** — each story has a job and the order makes sense
+3. **Decision coverage** — locked decisions from `CONTEXT.md` map to stories and beads
+4. **Dependency correctness** — graph is valid and acyclic
+5. **File scope isolation** — parallel-ready beads do not silently collide
+6. **Context budget** — each bead fits in one worker context
+7. **Verification completeness** — stories and beads have explicit done/verify criteria
+8. **Exit-state completeness and risk alignment** — if everything finishes, the phase really reaches its exit state and HIGH-risk items are spiked
 
-### Step 1.2 — Triage Results
+### Step 1.2 — Triage results
 
-The plan-checker returns a structured report with `PASS` or `FAIL` per dimension, plus specific bead IDs and issues.
-
-**If all 8 dimensions PASS:** Proceed to Phase 2.
+**If all 8 dimensions PASS:** proceed to Phase 2.
 
 **If any dimension FAILS:**
-1. Fix the specific beads identified (update via `br`)
-2. Re-run plan-checker on the changed beads
-3. Count this as iteration 2
 
-**After 3 iterations with any dimension still failing:**
-- Do NOT attempt to fix further on your own
-- STOP and escalate to user with: the failing dimension, specific beads that failed, what was tried
-- The plan has a structural problem that needs human judgment
+1. Fix the specific issue in the relevant artifact
+2. Re-run the checker
+3. Count that as the next iteration
 
-> **Red flag:** If you find yourself "massaging" a bead to technically pass the checker rather than genuinely fixing the issue — stop. The checker exists to catch real problems. Gaming it defeats the entire purpose of this phase.
+### Repair routing
+
+- Phase contract unclear -> revise `phase-contract.md`
+- Story order or story scope unclear -> revise `story-map.md`
+- Decision/gap issue -> revise story map and/or beads
+- Dependency/scope/test issue -> revise beads
+- Exit state not convincingly reachable -> revise contract, story map, or approach
+
+After 3 iterations with any FAIL still present:
+
+- stop
+- escalate to the user
+- explain which dimension is still failing and why
+
+Do not attempt iteration 4.
 
 ---
 
 ## Phase 2: Spike Execution
 
-**For every HIGH-risk component identified in approach.md.**
+Run this for every HIGH-risk component from `approach.md`.
 
-If approach.md has no HIGH-risk items, skip to Phase 3.
+If no HIGH-risk items exist, skip to Phase 3.
 
-A spike is a time-boxed proof-of-concept that answers one specific uncertain question before the full swarm commits to an approach. A spike that returns NO is worth its weight in gold — it just saved the entire swarm from building on a false assumption.
-
-### Step 2.1 — Create Spike Beads
-
-For each HIGH-risk item:
+### Step 2.1 — Create spike beads
 
 ```bash
-br create "Spike: <specific question to answer>" -t task -p 0
-# Example: br create "Spike: Can we use WebSockets with this auth middleware?" -t task -p 0
+br create "Spike: <specific yes/no question>" -t task -p 0
 ```
 
-The spike question must be specific. "Spike: Is Redis feasible?" is too vague. "Spike: Does our Redis setup support pub/sub with >1000 subscribers without message loss?" is correct.
+### Step 2.2 — Execute spikes in isolation
 
-### Step 2.2 — Execute Spikes in Isolation
+For each spike:
 
-For each spike bead:
+1. Spawn an isolated subagent
+2. Hard time-box: 30 minutes
+3. Write findings to `.spikes/<feature>/<spike-id>/FINDINGS.md`
+4. Close with a definitive YES or NO
 
-1. Spawn an isolated subagent with:
-   - The spike bead content
-   - Relevant CONTEXT.md sections
-   - The approach.md risk description for this item
-   - Output path: `.spikes/<feature>/<spike-id>/`
+```bash
+br close <id> --reason "YES: <validated approach and constraints>"
+# or
+br close <id> --reason "NO: <blocker and why it breaks the approach>"
+```
 
-2. **Hard time-box: 30 minutes.** The spike subagent must:
-   - Write findings to `.spikes/<feature>/<spike-id>/FINDINGS.md`
-   - Close with a definitive YES or NO:
-     ```bash
-     br close <id> --reason "YES: <validated approach and any constraints>"
-     # or
-     br close <id> --reason "NO: <blocker description and why it prevents the approach>"
-     ```
+### Step 2.3 — Act on spike results
 
-3. There is no "partial" or "uncertain" — the spike must yield a determination.
+**If YES:**
 
-### Step 2.3 — Act on Spike Results
+- embed the spike findings into affected beads
+- update `story-map.md` if the story now has tighter constraints
 
-**If spike returns YES:**
-- Embed the spike findings in all affected beads' Notes field
-- The validated approach becomes a locked constraint for those beads
-- Continue to Phase 3
+**If NO:**
 
-**If spike returns NO:**
-- **FULL STOP. Do not proceed to Phase 3.**
-- The planned approach for this HIGH-risk item is blocked
-- Write a blocker summary to `history/<feature>/approach.md` with the spike findings
-- Invoke khuym:planning skill to revise the approach for the blocked component
-- Re-run validating from Phase 1 after the new plan is created
-
-> **The NO path is not a failure — it is the spike working correctly.** Finding a blocker here, before the swarm launches, costs minutes. Finding the same blocker at bead 60 costs the entire execution.
+- full stop
+- write blocker summary into `approach.md`
+- return to `khuym:planning`
+- re-run validating from Phase 1 after replanning
 
 ---
 
 ## Phase 3: Bead Polishing
 
-**Multiple rounds. Quality compounds with each pass.**
+Multiple rounds. Quality compounds here.
 
-Beads that seem complete in isolation often have subtle issues — missing dependencies, ambiguous scope, overlapping responsibility. The Flywheel prescribes 4–6+ polishing rounds for this reason. We run 3 structured rounds with `bv`, plus a human-perspective pass.
-
-### Round 1: Dependency Completeness
+### Round 1: Dependency completeness
 
 ```bash
 bv --robot-suggest
 ```
 
-Reviews the bead graph and suggests missing dependency links. For each suggestion:
-- Evaluate whether the dependency is real (would bead B actually fail without bead A?)
-- Add valid dependencies: `br dep add <id> <other-id>`
-- Ignore suggestions that are speculative rather than structural
+If real structural dependencies are missing, add them and re-run.
 
-If `--robot-suggest` returns more than 5 suggestions, fix them and **re-run Round 1** before proceeding. Up to 3 sub-rounds.
-
-### Round 2: Graph Health
+### Round 2: Graph health
 
 ```bash
 bv --robot-insights
 ```
 
-Detects structural problems: dependency cycles, bottleneck beads, disconnected subgraphs, beads with no path to completion. For each insight:
-- Cycles: break by reordering or splitting the implicated beads
-- Bottlenecks: consider whether the bottleneck bead is doing too much
-- Disconnected beads: verify they belong to this epic or remove them
+Fix cycles, bottlenecks, disconnected work, and orphaned beads. Re-run if critical findings remain.
 
-If `--robot-insights` returns any CRITICAL findings, fix and re-run. Up to 3 sub-rounds.
-
-Also verify no orphaned beads:
-Review the bead set for orphaned work:
-- every bead should either belong to the epic or be intentionally out of scope
-- every bead should have a clear place in the dependency graph
-- any stray bead must be attached, deferred, or removed before approval
-
-### Round 3: Priority Sanity
+### Round 3: Priority sanity
 
 ```bash
 bv --robot-priority
 ```
 
-Validates that bead priorities align with the dependency graph — high-blocking beads should have high priority, leaf beads should have lower priority. Adjust priorities via `br update <id> --priority <p>` where needed.
+Adjust priorities if the graph says foundational work is buried.
 
-### Deduplication Check
+### Deduplication
 
-Read all bead titles and descriptions. Flag any beads that appear to be doing the same work:
-- Same file scope + similar description → likely duplicate
-- Different file scope but identical description → possible split of a single concern
-- Same description, different epic → should reference, not duplicate
+Read all bead titles and descriptions:
 
-For confirmed duplicates: merge content into one bead, close the redundant one with `br close <id> --reason "Duplicate of <id>"`.
+- same story + same file scope + same goal -> likely duplicate
+- same outcome expressed as two different beads -> merge or close redundant work
 
-### Fresh-Eyes Review
+### Fresh-eyes review
 
-Load `references/bead-reviewer-prompt.md`. Spawn a subagent with:
+Load `references/bead-reviewer-prompt.md` and spawn a subagent with the full bead set.
 
-```
-Inputs: all .beads/*.md for this epic (full content, not just titles)
-Role: bead-reviewer
-Instructions: references/bead-reviewer-prompt.md
-```
+Fix all CRITICAL flags before moving on. MINOR flags are judgment calls but should be considered carefully.
 
-The bead-reviewer has no context from planning sessions — it reads beads cold, the same way an executing agent will. It flags:
-- Beads that assume context only the planner knows
-- Ambiguous acceptance criteria ("add proper error handling" — not actionable)
-- Missing implementation hints that will force the executor to guess
-- Scope too large for a single context window
+### Story-to-bead coherence check
 
-Fix all CRITICAL flags before Phase 4. MINOR flags are recommendations; use judgment.
+Before leaving Phase 3, inspect `history/<feature>/story-map.md`:
+
+- every story should map to at least one bead
+- every bead should belong to a story
+- if a story has too many beads, it may be too large
+- if a bead spans multiple unrelated stories, the decomposition is muddy
 
 ---
 
-## Phase 4: Final Approval Gate
+## Phase 4: Exit-State Readiness Review
 
-**This gate is non-negotiable. No auto-approval. No exceptions.**
+This is the human-readable readiness check before approval.
 
-You have now run three phases of verification. Present a structured summary to the user. This is their only opportunity to redirect before the swarm launches and commits begin accumulating.
+Ask these questions explicitly:
 
-### Present to User
+1. If all stories reach "Done Looks Like", does the phase exit state hold?
+2. If all beads close successfully, will all stories actually be done?
+3. Is the phase demo story now credible?
+4. Does this phase still make sense in the larger whole plan?
 
-```
+If any answer is "no" or "not sure", do not approve execution. Route back:
+
+- phase meaning problem -> `phase-contract.md`
+- story decomposition problem -> `story-map.md`
+- implementation granularity problem -> `.beads/`
+- architecture/risk problem -> `approach.md` and maybe replanning
+
+---
+
+## Phase 5: Final Approval Gate
+
+**This gate is non-negotiable.**
+
+Present a structured summary:
+
+```text
 VALIDATION COMPLETE — APPROVAL REQUIRED BEFORE EXECUTION
 
-Plan Summary:
-- Beads: <N> total | <N> open
-- Estimated worker pool: <N> parallel agents at peak
+Phase Summary:
+- Phase: <name>
+- Stories: <N>
+- Beads: <N>
+- Demo story: <one line>
 
-Plan Verification (Phase 1):
+Structural Verification:
 - All 8 dimensions: PASS (after <N> iterations)
-- OR: <dimension> required <N> revisions
 
-Spike Results (Phase 2):
+Spike Results:
 - HIGH-risk items: <N>
-- All spikes: PASSED / [list any concerns]
-- Spike learnings embedded: YES
+- Result: <all passed / concerns listed>
 
-Bead Polishing (Phase 3):
-- bv --robot-suggest: <N> dependencies added
-- bv --robot-insights: <N> issues resolved
-- bv --robot-priority: <N> adjustments made
+Polishing Results:
+- Dependencies added: <N>
+- Graph issues fixed: <N>
+- Priority adjustments: <N>
 - Duplicates removed: <N>
-- Fresh-eyes flags resolved: <N> CRITICAL, <N> MINOR
+- Fresh-eyes CRITICAL flags fixed: <N>
 
-Risk Assessment:
-- Unresolved concerns: <none | list>
-- Confidence level: HIGH / MEDIUM (if any open questions remain)
+Exit-State Readiness:
+- Entry state understood: YES
+- Exit state observable: YES
+- Story sequence coherent: YES
+- Demo credible: YES
 
-Beads validated. Approve for execution? (yes/no)
+Unresolved concerns:
+- <none | list>
+
+Approve execution for this phase? (yes/no)
 ```
 
-### If User Approves
+### If user approves
 
 Update `.khuym/STATE.md`:
-```
+
+```text
 PHASE: validated
 FEATURE: <feature-name>
 VALIDATED_AT: <timestamp>
+STORIES: <N>
 BEADS: <N>
-TRACKS: <N>
 ```
 
-Handoff: "Validation complete. All checks pass. Invoke khuym:swarming skill."
+Handoff:
 
-### If User Rejects
+`Validation complete. Phase contract, story map, and beads all pass. Invoke khuym:swarming skill.`
 
-Ask the user specifically:
-1. Which aspect concerns them?
-2. Is it a plan structure issue → loop back to Phase 1
-3. Is it a risk concern → loop back to Phase 2 (create new spike)
-4. Is it a bead quality issue → loop back to Phase 3
-5. Is it a fundamental approach problem → return to khuym:planning skill
+### If user rejects
 
-Do not guess. Ask specifically. Then loop back to the right phase.
+Ask what concerns them specifically and route back:
 
----
+1. phase meaning / exit state problem
+2. story order or story size problem
+3. risk/spike concern
+4. bead quality problem
+5. fundamental approach problem
 
-## Lightweight Mode (Single Bead / LOW-Risk Only)
-
-For quick fixes or single-bead features where approach.md classifies everything as LOW risk:
-
-1. **Phase 1 abbreviated:** Run plan-checker on the single bead only. Verify dimensions 1, 4, 5, 8.
-2. **Phase 2 skipped:** No HIGH-risk items means no spikes needed.
-3. **Phase 3 abbreviated:** Run `bv --robot-suggest` only. Skip fresh-eyes for single beads.
-4. **Phase 4 unchanged:** Hard gate still applies. Always present and always wait for approval.
-
-> Lightweight mode is for confirmed LOW-risk single-bead work. If you are uncertain whether to use lightweight mode, use full mode.
+Do not guess.
 
 ---
 
-## Red Flags — Stop Immediately If You See These
+## Lightweight Mode
 
-- You are executing any bead before Phase 4 approval — **STOP**
-- The plan-checker found a cycle and you "fixed" it by removing the dependency rather than restructuring — **undo and fix properly**
-- A spike returned NO and you are proceeding anyway — **STOP**
-- Phase 4 approval was given by the orchestrating agent, not the user — **not valid; re-request from user**
-- You are on iteration 4 of plan verification — **escalate; do not attempt iteration 4**
-- A bead's context budget requires >3 large file reads plus implementation — **split it**
+For confirmed LOW-risk single-story, single-bead work:
+
+1. abbreviated structural verification on the single story/bead
+2. skip spikes
+3. run `bv --robot-suggest`
+4. still require the final approval gate
+
+If uncertain, use full mode.
+
+---
+
+## Red Flags
+
+- executing any bead before approval
+- validating a bead set that has no phase contract
+- validating a story map that cannot explain "why now" for Story 1
+- a phase exit state that is not observable
+- a spike returned NO and execution is still being considered
+- iteration 4 of structural verification
+- a bead's "done" does not clearly connect to any story
+- a story that cannot answer "what does this unlock?"
 
 ---
 
@@ -317,5 +325,5 @@ For quick fixes or single-bead features where approach.md classifies everything 
 
 | File | When to Load |
 |------|-------------|
-| `references/plan-checker-prompt.md` | Phase 1 — spawn the plan-checker subagent |
-| `references/bead-reviewer-prompt.md` | Phase 3 fresh-eyes — spawn the bead-reviewer subagent |
+| `references/plan-checker-prompt.md` | Phase 1 |
+| `references/bead-reviewer-prompt.md` | Phase 3 fresh-eyes review |
