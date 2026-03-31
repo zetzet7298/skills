@@ -1,6 +1,6 @@
 ---
 name: khuym:using-khuym
-description: Bootstrap meta-skill for the khuym agentic development ecosystem. Load first on any khuym project. Lists all 9+2 skills with routing logic, go mode (full-auto pipeline with 3 human gates), quick mode for small fixes, priority rules, red flags, and state bootstrap/resume. Invoke when starting a new session, choosing which skill to use, running the full pipeline end-to-end, or resuming after a handoff.
+description: Bootstrap meta-skill for the khuym agentic development ecosystem. Load first on any khuym project. Lists all 9+2 skills with routing logic, go mode (full-auto pipeline with 4 human gates), quick mode for small fixes, priority rules, red flags, and state bootstrap/resume. Invoke when starting a new session, choosing which skill to use, running the full pipeline end-to-end, or resuming after a handoff.
 metadata:
   version: '2.1'
   ecosystem: khuym
@@ -49,8 +49,8 @@ If onboarding is not complete, do not continue into the rest of the Khuym workfl
 |---|-------|----------------------|--------------|
 | 1 | `khuym:using-khuym` | This file. Routing, go mode, red flags. | Starting any session |
 | 2 | `khuym:exploring` | Identify gray areas, lock decisions → CONTEXT.md | Feature request is vague or new; "what exactly should this do?" |
-| 3 | `khuym:planning` | Research + synthesis → phase-contract.md + story-map.md + beads | Decisions are locked (CONTEXT.md exists); ready to shape the phase and decompose it |
-| 4 | `khuym:validating` | Verify phase contract, story map, and bead graph before execution | Stories and beads exist; need to prove the phase is actually execution-ready |
+| 3 | `khuym:planning` | Research + synthesis → `phase-plan.md`, then current-phase contract/story map + beads | Decisions are locked (CONTEXT.md exists); ready to show the full phase/story breakdown and prepare the next phase |
+| 4 | `khuym:validating` | Verify the current phase contract, story map, and bead graph before execution | The phase plan is approved and the current phase has stories and beads; need to prove this phase is actually execution-ready |
 | 5 | `khuym:swarming` | Launch+tend worker pool via Agent Mail + bv | Beads are validated; ready to execute at scale |
 | 6 | `khuym:executing` | Single worker loop: priority → reserve → implement bead → close → loop | Spawned by swarming; one agent, self-routing from the live graph |
 | 7 | `khuym:reviewing` | 5 parallel review agents (P1/P2/P3) + artifact verification + UAT | Execution complete; need quality gate before merge |
@@ -133,11 +133,11 @@ If `.khuym/HANDOFF.json` exists:
 
 ## Go Mode (Full Pipeline)
 
-Go mode chains all skills end-to-end with exactly 3 human gates. Load `references/go-mode-pipeline.md` for the complete step-by-step sequence.
+Go mode chains all skills end-to-end with exactly 4 human gates. Load `references/go-mode-pipeline.md` for the complete step-by-step sequence.
 
 **Trigger:** User says `/go [feature]`, "run the full pipeline", or "go mode".
 
-**The 3 gates — never skip these:**
+**The 4 gates — never skip these:**
 
 ```
 GATE 1 (after exploring):
@@ -145,12 +145,17 @@ GATE 1 (after exploring):
   Ask: "Decisions locked. Approve CONTEXT.md before planning?"
   HARD-GATE: do not invoke planning until user approves.
 
-GATE 2 (after validating):
+GATE 2 (after whole-feature planning):
+  Present: full phase list, stories inside each phase, and which phase will be prepared first.
+  Ask: "Phase breakdown is ready. Approve phase-plan.md before current-phase preparation?"
+  HARD-GATE: do not prepare the current phase or create beads until user approves.
+
+GATE 3 (after validating the current phase):
   Present: phase exit state, story count, bead count, risk summary, spike results.
-  Ask: "Phase verified. Approve execution?"
+  Ask: "Current phase verified. Approve execution?"
   HARD-GATE: do not invoke swarming until user approves.
 
-GATE 3 (after reviewing):
+GATE 4 (after reviewing):
   Present: P1 count, P2 count, P3 count.
   If P1 > 0: "P1 findings block merge. Fix before proceeding?"
   If P1 = 0: "Review complete. Approve merge?"
@@ -159,9 +164,11 @@ GATE 3 (after reviewing):
 
 **Go mode sequence:**
 ```
-exploring → [GATE 1] → planning → validating → [GATE 2]
-         → swarming (+ executing ×N) → reviewing → [GATE 3]
-         → compounding → DONE
+exploring → [GATE 1] → planning (whole feature) → [GATE 2]
+         → planning (current phase prep) → validating → [GATE 3]
+         → swarming (+ executing ×N)
+         → if more phases remain: planning (next phase prep) and repeat
+         → if final phase complete: reviewing → [GATE 4] → compounding → DONE
 ```
 
 ---
@@ -172,6 +179,7 @@ For requests classified as "small fix" (single bead, LOW risk, no gray areas):
 
 ```
 planning (lightweight: single bead, no multi-model refinement)
+  → present one-phase plan and wait for approval
   → validating (lightweight: single-story phase, abbreviated verification + bv check)
   → swarming (single worker)
   → executing
@@ -195,10 +203,64 @@ These override everything else:
 1. **P1 review findings always block.** Never merge, never close epic, never proceed to compounding while P1 findings are open.
 2. **Context budget always applies.** After each bead completion or major phase, if context >65% used: write `.khuym/HANDOFF.json` and pause. Do not continue burning context.
 3. **CONTEXT.md is the source of truth.** If implementation diverges from a locked decision in CONTEXT.md, stop and surface the conflict before proceeding.
-4. **GATE 2 is the most critical gate.** Execution is irreversible. If there is any doubt about the plan's soundness, do not approve. Loop back to validating.
+4. **GATE 3 is the most critical gate.** Execution is irreversible. If there is any doubt about the current phase's soundness, do not approve. Loop back to validating.
 5. **Spike failures halt the pipeline.** A failed spike means the approach is broken. Do not proceed to swarming; return to planning.
 6. **Never skip validating.** Not for small features. Not for "obvious" plans. Skipping validating is the #1 cause of wasted execution work. (GSD: "Plans are not executed until they pass verification.")
 7. **critical-patterns.md is mandatory context.** If it exists, read it before planning or executing anything. Teams report that ignoring past critical patterns is the #1 source of repeat failures.
+
+---
+
+## Communication Contract
+
+This is the default way Codex and GPT models should communicate anywhere inside the Khuym workflow unless a narrower skill requires something stricter.
+
+### The default tone
+
+- practical first, abstract second
+- scenario-first, not jargon-first
+- explain what happens in real life or in the real system before naming the technical property
+- translate decision IDs, invariants, and architecture terms into plain language
+- prefer "here is what the code does today" over "here is the category of bug"
+
+### What a good response sounds like
+
+When presenting a plan, finding, blocker, or handoff, the model should usually answer in this order:
+
+1. **Plain-language summary** — what is happening or what is proposed
+2. **Current behavior or current state** — what the system does today
+3. **Why it matters** — what requirement, decision, or goal this affects
+4. **Concrete scenario** — one realistic example with values, timestamps, requests, user actions, or ordering
+5. **Next step** — the smallest credible fix, revision, or decision needed
+
+### What to avoid
+
+- terse shorthand like "violates D5", "non-monotonic", "race condition", "coverage gap", or "architecture concern" without immediate explanation
+- summaries that assume the reader remembers the diff or the planning session
+- abstract labels with no example of what would actually happen
+- explanations that begin with terminology and only later reveal the user-visible problem
+
+### Translation rule
+
+If you use technical language, immediately translate it.
+
+Examples:
+
+- Instead of: `This write is non-monotonic.`
+  Say: `An older update can overwrite a newer timestamp, so the system can think the user was last active earlier than they really were.`
+
+- Instead of: `Violates D5.`
+  Say: `Decision D5 says the fallback should use the most recent inbound user message time. Right now the code uses webhook ingest time instead, which can drift from the real message time.`
+
+### Scope
+
+Apply this tone to:
+
+- planning phase and story explanations
+- validating failures and approval summaries
+- reviewing findings and user-facing summaries
+- swarming blocker reports and handoffs
+
+If a skill gives a structured format, keep the structure but make the content follow this tone.
 
 ---
 
@@ -246,8 +308,9 @@ history/<feature>/
   CONTEXT.md        ← Locked decisions from exploring (source of truth)
   discovery.md      ← Research findings from planning
   approach.md       ← Synthesis + risk map from planning
-  phase-contract.md ← Entry state, exit state, demo, unlocks, pivot signals
-  story-map.md      ← Story sequence inside the phase; maps stories to beads
+  phase-plan.md     ← Full feature broken into phases and stories before execution
+  phase-<n>-contract.md ← Current-phase entry state, exit state, demo, unlocks, pivot signals
+  phase-<n>-story-map.md ← Story sequence inside the current phase; maps stories to beads
 
 history/learnings/
   critical-patterns.md      ← Promoted critical learnings (read always)
@@ -267,8 +330,8 @@ Each skill reads from upstream artifacts and writes for downstream:
 | Skill | Reads | Writes |
 |-------|-------|--------|
 | exploring | (user conversation) | history/\<feature>/CONTEXT.md |
-| planning | CONTEXT.md, critical-patterns.md | discovery.md, approach.md, phase-contract.md, story-map.md, .beads/* |
-| validating | phase-contract.md, story-map.md, .beads/*, approach.md, CONTEXT.md | validated phase, .spikes/ results |
+| planning | CONTEXT.md, critical-patterns.md | discovery.md, approach.md, phase-plan.md, current-phase contract/story map, current-phase beads |
+| validating | phase-plan.md, current-phase contract/story map, current-phase beads, approach.md, CONTEXT.md | validated current phase, .spikes/ results |
 | swarming | validated beads, STATE.md | Agent Mail threads, HANDOFF.json, updated STATE.md |
 | executing | bead file, Agent Mail, CONTEXT.md | implementation commits, br close |
 | reviewing | diff, CONTEXT.md, approach.md, beads | P1/P2/P3 findings |

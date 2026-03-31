@@ -25,6 +25,10 @@ CRITICAL RULES:
 - Use P1 only for genuine blockers. Not everything is critical.
 - If you find nothing in your area, say so explicitly: "No findings in [specialty] scope."
 - Do not flag pipeline artifacts (history/, .khuym/) for deletion.
+- Do not stop at shorthand like "X violates D5" or "this is non-monotonic." Explain what the code is doing now in plain language.
+- Every serious finding must explain the bug the way you would explain it to a teammate who did not read the diff.
+- Include one concrete scenario with real values, timestamps, requests, or user actions whenever that makes the risk easier to picture.
+- If you cite a decision ID, explain what that decision means in practice instead of assuming the reader remembers it.
 
 Severity calibration:
 - P1: Would cause security breach, data loss, or break production right now
@@ -88,6 +92,12 @@ OUTPUT FORMAT:
 - One review bead per distinct issue
 - Group minor style issues into a single P3 finding if there are 3+
 - Start your response with a one-line summary: "code-quality: N findings (P1: X, P2: Y, P3: Z)"
+- In each finding body, prefer this order:
+  1. plain-language summary of the issue
+  2. what the code does today
+  3. why that conflicts with the requirement or decision
+  4. one concrete scenario that shows the failure
+  5. smallest credible fix direction
 ```
 
 ---
@@ -139,6 +149,8 @@ Review the diff for:
 OUTPUT FORMAT:
 - One review bead per distinct architectural concern
 - Start: "architecture: N findings (P1: X, P2: Y, P3: Z)"
+- Explain architecture problems as behavior problems first, architecture problems second.
+- If the risk is abstract, force it into a concrete "here is what would happen" scenario.
 ```
 
 ---
@@ -198,6 +210,7 @@ OUTPUT FORMAT:
 - One review bead per vulnerability class per affected location
 - Include attack path description for P1 findings
 - Start: "security: N findings (P1: X, P2: Y, P3: Z)"
+- For P1 findings, make the attack path concrete enough that a non-security specialist can picture the exploit.
 ```
 
 ---
@@ -246,6 +259,7 @@ OUTPUT FORMAT:
 - One review bead per gap area (not per individual missing test)
 - Be specific: "Missing test for error case in processPayment() when Stripe API returns 402"
 - Start: "test-coverage: N findings (P1: X, P2: Y, P3: Z)"
+- If a missing test matters because of a realistic failure mode, describe that failure mode directly instead of only naming the uncovered branch.
 ```
 
 ---

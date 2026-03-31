@@ -8,9 +8,9 @@
 
 ## Overview
 
-Go mode is the full khuym pipeline from raw feature request to merged, compounded learnings. It chains every skill in sequence with exactly 3 human gates. The pipeline is designed so that each phase validates something the next phase depends on.
+Go mode is the full khuym pipeline from raw feature request to merged, compounded learnings. It chains every skill in sequence with exactly 4 human gates. The pipeline is designed so that each gate protects the next irreversible commitment.
 
-```
+```text
 User: "/go [feature]"
        │
        ▼
@@ -24,32 +24,40 @@ User: "/go [feature]"
 [GATE 1] ← HARD STOP: "Approve CONTEXT.md?"
        │
        ▼
-[STEP 2] planning
-       │ Output: approach.md, beads
+[STEP 2] planning (whole feature)
+       │ Output: discovery.md, approach.md, phase-plan.md
        │
        ▼
-[STEP 3] validating
-       │ Plan-checker (≤3×) + spikes + bead polish
+[GATE 2] ← HARD STOP: "Approve phase-plan.md?"
        │
        ▼
-[GATE 2] ← HARD STOP: "Beads verified. Approve execution?"
+[STEP 3] planning (current phase prep)
+       │ Output: phase-<n>-contract.md, phase-<n>-story-map.md, current-phase beads
        │
        ▼
-[STEP 4] swarming → executing (×N parallel workers)
-       │ Self-routing workers via Agent Mail + bv
+[STEP 4] validating (current phase)
+       │ Plan-checker (<=3x) + spikes + bead polish
        │
        ▼
-[STEP 5] reviewing
-       │ 5 parallel review agents → P1/P2/P3 findings
-       │ Artifact verification (exists → substantive → wired)
-       │ Human UAT
+[GATE 3] ← HARD STOP: "Current phase verified. Approve execution?"
        │
        ▼
-[GATE 3] ← HARD STOP: P1? "Fix before merge." | No P1? "Approve merge?"
+[STEP 5] swarming -> executing (xN workers)
+       │ Current phase only
+       │
+       ├── if later phases remain -> return to STEP 3 for the next phase
        │
        ▼
-[STEP 6] compounding
-       │ Capture learnings → history/learnings/
+[STEP 6] reviewing (after final phase only)
+       │ 5 parallel review agents -> P1/P2/P3 findings
+       │ Artifact verification + human UAT
+       │
+       ▼
+[GATE 4] ← HARD STOP: "Approve merge?"
+       │
+       ▼
+[STEP 7] compounding
+       │ Capture learnings -> history/learnings/
        │
        ▼
 DONE
@@ -61,11 +69,11 @@ DONE
 
 Before invoking `khuym:exploring`, always:
 
-1. Run State Bootstrap from SKILL.md (check .khuym/, read critical-patterns.md).
-2. Determine feature slug from user's description (lowercase-hyphenated, e.g., `user-auth`).
-3. Create `history/<feature>/` directory if it doesn't exist.
+1. Run State Bootstrap from SKILL.md (check `.khuym/`, read `critical-patterns.md`).
+2. Determine feature slug from the user's description (lowercase-hyphenated, e.g. `agent-email-inbox`).
+3. Create `history/<feature>/` if it does not exist.
 4. Write `.khuym/STATE.md`:
-   ```
+   ```text
    focus: <feature>
    phase: go-mode/exploring
    pipeline: go
@@ -81,11 +89,12 @@ Before invoking `khuym:exploring`, always:
 **Input:** User's feature description.
 
 **The khuym:exploring skill will:**
+
 - Classify domain (SEE / CALL / RUN / READ / ORGANIZE)
-- Identify gray areas via Socratic Q&A (one question at a time, HARD-GATE per answer)
+- Identify gray areas via Socratic Q&A
 - Lock decisions with stable IDs (D1, D2, ...)
 - Write `history/<feature>/CONTEXT.md`
-- Self-review CONTEXT.md via subagent
+- Self-review `CONTEXT.md`
 
 **Update STATE.md:** `phase: go-mode/gate-1`
 
@@ -93,242 +102,291 @@ Before invoking `khuym:exploring`, always:
 
 ## GATE 1: Approve CONTEXT.md
 
-```
+```text
 HARD-GATE: Do not proceed until user explicitly approves.
 
 Present:
   "Exploration complete for [feature].
    [N] decisions locked in history/<feature>/CONTEXT.md.
    [M] open questions noted.
-   
+
    Key decisions:
    - D1: [summary]
    - D2: [summary]
-   ... (max 5, then "see CONTEXT.md for full list")
-   
-   Approve decisions and proceed to planning? (yes / revise / show full CONTEXT.md)"
+   ... (max 5, then 'see CONTEXT.md for full list')
 
-If user says "revise": identify which decisions to re-examine, loop back to exploring.
-If user says "yes": proceed to Step 2.
+   Approve decisions and proceed to planning? (yes / revise / show full CONTEXT.md)"
 ```
+
+If user says `revise`, loop back to exploring. If user says `yes`, proceed to Step 2.
 
 ---
 
-## Step 2: Planning
+## Step 2: Planning (Whole Feature)
 
 **Invoke:** Load `khuym:planning` skill.
 
 **Input:** `history/<feature>/CONTEXT.md`, `history/learnings/critical-patterns.md`.
 
-**The khuym:planning skill will:**
-- Phase 0: Retrieve relevant past learnings (grep history/learnings/ by domain tags)
-- Phase 1: Parallel discovery agents (architecture, patterns, constraints, external)
-- Phase 2: Oracle synthesis → approach.md with risk levels (LOW/MEDIUM/HIGH)
-- Phase 3: Multi-perspective refinement (for HIGH-stakes features: second model opinion)
-- Phase 4: Decompose to beads (br create, never pseudo-beads)
+**The first planning pass will:**
 
-**Update STATE.md:** `phase: go-mode/validating`
+- retrieve learnings
+- run discovery
+- synthesize an approach
+- write `history/<feature>/phase-plan.md`
+- show the full phase breakdown in plain English
 
----
-
-## Step 3: Validating
-
-**Invoke:** Load `khuym:validating` skill.
-
-**Input:** `.beads/`, `approach.md`, `CONTEXT.md`, `discovery.md`.
-
-**The khuym:validating skill will:**
-- Phase 1: Plan-checker loop (≤3 iterations, 8 dimensions)
-  - All 8 dimensions must pass before proceeding
-  - If still failing after 3 iterations: surface to user, do not proceed
-- Phase 2: Spike execution for all HIGH-risk items
-  - If spike FAILS: STOP. Return to planning. Do not proceed.
-  - If spike PASSES: embed learnings in bead descriptions
-- Phase 3: Bead polishing (bv --robot-suggest, --robot-insights, --robot-priority)
-  - Deduplication check
-  - Fresh-eyes review subagent
+**Important:** this step does **not** create beads yet.
 
 **Update STATE.md:** `phase: go-mode/gate-2`
 
 ---
 
-## GATE 2: Approve Execution
+## GATE 2: Approve phase-plan.md
 
-```
-HARD-GATE: This is the most critical gate. Do not proceed until user explicitly approves.
+```text
+HARD-GATE: Do not proceed until user explicitly approves.
 
 Present:
-  "Validation complete for [feature].
-   [N] beads ready for execution.
-   Risk: [X] HIGH items → spikes: [all passed / N failed]
-   
-   Any unresolved concerns: [list or "none"]
-   
-   Beads verified. Approve execution? (yes / review beads / no — revise plan)"
+  "Planning complete for [feature].
+   Proposed phases:
+   - Phase 1: [name] -> [real-world outcome]
+   - Phase 2: [name] -> [real-world outcome]
+   - Phase 3: [name] -> [real-world outcome]
 
-If user says "no" or "revise": identify concern, loop back to planning or validating.
-If user says "yes": proceed to Step 4.
+   Stories inside each phase are documented in history/<feature>/phase-plan.md.
+
+   Approve this phase/story breakdown before current-phase preparation? (yes / revise / show full phase-plan.md)"
 ```
+
+If user says `revise`, return to the planning pass that owns `phase-plan.md`. If user says `yes`, proceed to Step 3.
 
 ---
 
-## Step 4: Swarming + Executing
+## Step 3: Planning (Current Phase Prep)
 
-**Invoke:** Load `khuym:swarming` skill.
+**Invoke:** Load `khuym:planning` again in current-phase preparation mode.
 
-**The khuym:swarming skill will:**
-- Initialize Agent Mail (ensure_project, register_agent as Orchestrator)
-- Spawn workers via the canonical `Subagent` delegation contract (each loads `khuym:executing` skill)
-- Each worker: register → bv --robot-priority → reserve files → implement bead → br close → report → loop
-- Monitor via Agent Mail (blockers, file conflicts, completion reports, context handoffs)
-- Tend the swarm with overseer broadcasts when needed
-- After all work: verify all beads closed (`bv --robot-triage`)
+**Input:** approved `phase-plan.md`, `approach.md`, `CONTEXT.md`.
 
-**Context safety:** If paused mid-swarm:
-```
-Write .khuym/HANDOFF.json:
-{
-  "phase": "go-mode/swarming",
-  "feature": "<feature>",
-  "beads_in_flight": [<list>],
-  "beads_complete": [<list>],
-  "next_action": "Resume swarming from live bead graph + epic thread"
-}
-```
+**The second planning pass will:**
 
-**Update STATE.md:** `phase: go-mode/reviewing`
+- select the current phase from `phase-plan.md`
+- write `history/<feature>/phase-<n>-contract.md`
+- write `history/<feature>/phase-<n>-story-map.md`
+- create beads only for that phase
+
+**Rules:**
+
+- default to the first unprepared phase
+- never create later-phase beads early
+- every bead must include `Phase <n>` and `Story <m>` context
+
+**Update STATE.md:** `phase: go-mode/validating`
 
 ---
 
-## Step 5: Reviewing
+## Step 4: Validating (Current Phase)
 
-**Invoke:** Load `khuym:reviewing` skill.
+**Invoke:** Load `khuym:validating` skill.
 
-**The khuym:reviewing skill will:**
-- Phase 1: Dispatch 5 parallel review agents (isolated context, diff + CONTEXT.md):
-  - code-quality-reviewer
-  - security-reviewer
-  - architecture-reviewer
-  - test-coverage-reviewer
-  - learnings-synthesizer (always last)
-- Phase 2: 3-level artifact verification (exists → substantive → wired)
-- Phase 3: Human UAT (walk through testable deliverables from CONTEXT.md)
-- Phase 4: Finishing (verify all beads closed, final build/test/lint, PR options)
-- Synthesize → P1/P2/P3 findings
+**Input:** current phase beads, `phase-plan.md`, current phase contract/story map, `approach.md`, `CONTEXT.md`.
+
+**The khuym:validating skill will:**
+
+- Phase 0: orient on the current phase and confirm the phase plan was approved
+- Phase 1: plan-checker loop (<=3 iterations, 8 dimensions)
+- Phase 2: spike execution for current-phase HIGH-risk items
+- Phase 3: bead polishing (`bv --robot-suggest`, `--robot-insights`, `--robot-priority`)
+- Phase 4: current-phase exit-state readiness review
 
 **Update STATE.md:** `phase: go-mode/gate-3`
 
 ---
 
-## GATE 3: Approve Merge
+## GATE 3: Approve Current-Phase Execution
 
+```text
+HARD-GATE: This is the most critical gate. Do not proceed until user explicitly approves.
+
+Present:
+  "Validation complete for [feature], Phase <n>.
+   [N] beads ready for current-phase execution.
+   Risk: [X] HIGH items -> spikes: [all passed / N failed]
+
+   Any unresolved concerns: [list or 'none']
+
+   Current phase verified. Approve execution? (yes / review beads / no - revise plan)"
 ```
+
+If user says `no` or `revise`, return to planning or validating. If user says `yes`, proceed to Step 5.
+
+---
+
+## Step 5: Swarming + Executing (Current Phase)
+
+**Invoke:** Load `khuym:swarming` skill.
+
+**The khuym:swarming skill will:**
+
+- initialize Agent Mail
+- spawn workers for the current phase bead set
+- monitor current-phase execution
+- verify current-phase beads closed
+
+### Phase loop rule
+
+After current-phase execution completes:
+
+- if `phase-plan.md` shows later phases still pending -> return to Step 3 for the next phase
+- if the current phase was the final phase -> proceed to Step 6
+
+**Update STATE.md:** either:
+
+- `phase: go-mode/planning-next-phase`, or
+- `phase: go-mode/reviewing`
+
+---
+
+## Step 6: Reviewing
+
+**Invoke:** Load `khuym:reviewing` skill only after the final phase swarm completes.
+
+**The khuym:reviewing skill will:**
+
+- dispatch 5 specialist review agents
+- run 3-level artifact verification
+- run human UAT
+- run final finishing tasks
+
+**Update STATE.md:** `phase: go-mode/gate-4`
+
+---
+
+## GATE 4: Approve Merge
+
+```text
 HARD-GATE: Never auto-merge.
 
 Present:
   "Review complete for [feature].
-   P1 (blocks merge): [count] — [titles if any]
+   P1 (blocks merge): [count] - [titles if any]
    P2 (should fix):   [count]
    P3 (nice to have): [count]"
 
 IF P1 > 0:
   "P1 findings block merge. Options:
-   (a) Fix P1s now — I'll create fix beads and re-run
+   (a) Fix P1s now
    (b) Show P1 details
    (c) Override (requires explicit user confirmation)"
-  Wait for user decision.
 
 IF P1 = 0:
   "No blocking findings.
    Ready to [create PR / merge to main / keep branch].
    Approve? (yes / show P2s first / no)"
-
-If fix beads created: after executing fixes, re-run reviewing (partial — diff only on fixes).
 ```
+
+If fix beads are created, execute them and re-run reviewing before presenting GATE 4 again.
 
 ---
 
-## Step 6: Compounding
+## Step 7: Compounding
 
 **Invoke:** Load `khuym:compounding` skill.
 
-**Input:** Full feature history (CONTEXT.md, approach.md, review findings, execution notes).
+**Input:** full feature history (`CONTEXT.md`, `approach.md`, `phase-plan.md`, review findings, execution notes).
 
 **The khuym:compounding skill will:**
-- Dispatch 3 analysis subagents: patterns / decisions / failures
-- Write `history/learnings/YYYYMMDD-<feature>.md`
-- Promote critical items to `history/learnings/critical-patterns.md`
-- Optionally index via CASS
+
+- dispatch 3 analysis subagents: patterns / decisions / failures
+- write `history/learnings/YYYYMMDD-<feature>.md`
+- promote critical items to `history/learnings/critical-patterns.md`
+- optionally index via CASS
 
 **Final update STATE.md:**
-```
+
+```text
 focus: (none)
 phase: idle
 last_feature: <feature>
 last_updated: <timestamp>
 ```
 
-**Delete** `.khuym/HANDOFF.json` if it exists (clean state).
+Delete `.khuym/HANDOFF.json` if it exists.
 
 ---
 
 ## Fallback Paths
 
-### If exploring produces a CONTEXT.md the user rejects at GATE 1:
-```
-→ Identify which decisions need revision
-→ Load khuym:exploring skill, focus on those specific gray areas
-→ Update CONTEXT.md in place
-→ Re-present GATE 1
+### If exploring produces a CONTEXT.md the user rejects at GATE 1
+
+```text
+-> Identify which decisions need revision
+-> Load khuym:exploring skill, focus on those specific gray areas
+-> Update CONTEXT.md in place
+-> Re-present GATE 1
 ```
 
-### If validating fails after 3 plan-checker iterations:
-```
-→ Present failing dimensions to user
-→ Ask: "Return to planning with these specific concerns?"
-→ Load planning with the failure report as context
-→ Re-run validating after new beads created
+### If the user rejects phase-plan.md at GATE 2
+
+```text
+-> Identify which phase names, boundaries, or stories feel wrong
+-> Return to the whole-feature planning pass
+-> Update phase-plan.md
+-> Re-present GATE 2
 ```
 
-### If a spike fails:
-```
-→ STOP: do not proceed to GATE 2
-→ Present: "Spike [id] failed: [reason]. Approach '[approach]' is blocked."
-→ Options: (a) Revise approach, (b) Descope HIGH-risk component, (c) Abandon feature
-→ If revise: return to planning Phase 3 with spike failure embedded
+### If validating fails after 3 plan-checker iterations
+
+```text
+-> Present failing dimensions to user
+-> Ask: "Return to planning with these specific concerns?"
+-> Load planning with the failure report as context
+-> Re-run validating after the current phase is re-prepared
 ```
 
-### If orchestrator context hits 65% mid-swarm:
+### If a spike fails
+
+```text
+-> STOP: do not proceed to GATE 3
+-> Present: "Spike [id] failed: [reason]. Current phase is blocked."
+-> Options: (a) Revise approach, (b) Descope the risky part, (c) Re-split phase boundaries
+-> If revise: return to planning and then re-run validating
 ```
-→ Write HANDOFF.json (see above)
-→ Present: "Context budget reached. Swarm paused.
+
+### If orchestrator context hits 65% mid-swarm
+
+```text
+-> Write HANDOFF.json
+-> Present: "Context budget reached. Current phase swarm paused.
             [X] beads complete, [Y] in flight.
             Resume in a new session with HANDOFF.json."
-→ End turn gracefully
+-> End turn gracefully
 ```
 
-### If P1 findings are present at GATE 3 and user wants to fix:
-```
-→ Create fix beads via br create for each P1 finding
-→ Load khuym:swarming skill (fix-bead swarm only)
-→ After execution: re-run reviewing (targeted — fixes diff only)
-→ Re-present GATE 3
-→ Repeat until P1 = 0 or user explicitly overrides
+### If P1 findings are present at GATE 4 and the user wants to fix
+
+```text
+-> Create fix beads via br create for each P1 finding
+-> Load khuym:swarming skill (fix-bead swarm only)
+-> After execution: re-run reviewing (targeted - fixes diff only)
+-> Re-present GATE 4
+-> Repeat until P1 = 0 or user explicitly overrides
 ```
 
 ---
 
 ## Config Options (.khuym/config.json)
 
-Absent = enabled (GSD pattern). Only set to disable.
+Absent = enabled. Only set to disable.
 
 ```json
 {
   "go_mode": {
-    "skip_exploring": false,        // set true only for confirmed quick fixes
-    "skip_compounding": false,      // set true to skip learnings capture
-    "auto_approve_gates": false,    // NEVER set true — gates are always manual
-    "spike_on_medium_risk": false   // set true to spike MEDIUM items too
+    "skip_exploring": false,
+    "skip_compounding": false,
+    "auto_approve_gates": false,
+    "spike_on_medium_risk": false
   },
   "validating": {
     "plan_checker_max_iterations": 3,
@@ -336,7 +394,7 @@ Absent = enabled (GSD pattern). Only set to disable.
   },
   "reviewing": {
     "parallel_agents": true,
-    "serial_threshold": 6           // auto-switch to serial if > 6 agents
+    "serial_threshold": 6
   }
 }
 ```
@@ -345,39 +403,52 @@ Absent = enabled (GSD pattern). Only set to disable.
 
 ## Quick Mode Pipeline (Reference)
 
-For small fixes (≤3 files, LOW risk, no gray areas):
+For small fixes (<=3 files, LOW risk, no gray areas):
 
-```
+```text
 planning (lightweight)
-  → single bead, br create
-  → no multi-model refinement
-  → skip exploring (no gray areas)
+  -> one-phase plan
+  -> approval gate
+  -> one current-phase bead
+  -> no multi-model refinement
   ↓
 validating (lightweight)
-  → skip plan-checker loop (single bead)
-  → skip spikes (LOW risk)
-  → bv check only (one round)
+  -> abbreviated structural verification
+  -> skip spikes (LOW risk)
+  -> bv check only
   ↓
-swarming → executing (single worker)
+swarming -> executing (single worker)
   ↓
 reviewing (optional)
-  → skip if trivial (typo fix, config change)
-  → run if any logic touched
+  -> skip if truly trivial
   ↓
 compounding (only if lesson learned)
 ```
-
-No gates in quick mode. The risk is low enough that sequential confirmation would slow down more than it protects.
 
 ---
 
 ## Design Rationale
 
-**Why 3 gates, not more?**
-Based on CE's `/lfg` pattern and GSD's interactive mode philosophy: too many gates erode trust ("the agent keeps stopping") while too few create irreversible mistakes. Three gates map precisely to the three irreversible transitions: committing to a plan, committing to execution, committing to merge.
+**Why 4 gates, not 3?**
 
-**Why is GATE 2 the most critical?**
-Execution is the only phase that creates side effects (file changes, commits, Agent Mail traffic). A broken plan discovered post-execution costs far more to fix than one caught pre-execution. GSD's core principle: "Plans are not executed until they pass verification."
+Because the phase breakdown itself is now a first-class human decision. `CONTEXT.md` locks intent, `phase-plan.md` locks the feature shape, validating locks execution-readiness for the current phase, and reviewing locks merge-readiness.
 
-**Why does validating have its own skill?**
-GSD's plan-checker loop, Flywheel's bead polishing, and V3's spike phase are structurally distinct processes requiring their own subagents, their own artifacts, and their own iteration loops. Treating validation as a sub-step of planning caused it to be consistently skipped in v1. Making it a full skill with its own SKILL.md enforces its non-optional nature.
+**Why is GATE 3 the most critical?**
+
+Execution is the only phase that creates source-code side effects. A broken current phase discovered post-execution costs far more to fix than one caught in validating.
+
+**Why does planning now happen in two passes?**
+
+Because "show me the whole shape" and "prepare one phase for execution" are different jobs. Combining them made phase/story explanations too abstract and pushed bead creation earlier than users wanted.
+
+**What tone should the model use at every gate?**
+
+Concrete and scenario-first. At every gate, the model should explain:
+
+1. what becomes true or what is wrong
+2. what the system does today
+3. why that matters
+4. one realistic example
+5. what approval or change is needed next
+
+Gate summaries should not rely on reviewer shorthand or planner jargon alone.

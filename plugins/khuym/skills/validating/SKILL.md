@@ -1,11 +1,11 @@
 ---
 name: khuym:validating
 description: |
-  The critical gate between planning and execution in the khuym ecosystem. Load this skill after planning completes and before swarming begins. Verifies the phase contract, story map, and bead graph across 8 structural dimensions, executes time-boxed spikes for HIGH-risk items, polishes beads with bv graph analytics, and requires explicit user approval before any code is written. Prevents executing unclear phases, malformed story breakdowns, unknown blockers, and redundant duplicate work.
+  The critical gate between planning and execution in the khuym ecosystem. Load this skill after planning has written phase-plan.md, the user has approved the phase plan, and the current phase has been decomposed into stories and beads. Verifies the current phase contract, story map, and bead graph across 8 structural dimensions, executes time-boxed spikes for HIGH-risk items, polishes current-phase beads with bv graph analytics, and requires explicit user approval before any code is written.
 metadata:
-  version: '1.1'
+  version: '1.2'
   position: 3
-  chain: exploring → planning → validating → swarming
+  chain: exploring -> planning -> validating -> swarming
 ---
 
 # Validating
@@ -19,22 +19,29 @@ If `.khuym/onboarding.json` is missing or stale for the current repo, stop and i
 
 The most expensive failure in agentic delivery is not a buggy bead. It is launching execution against a phase that was never clear enough to deserve execution.
 
-Khuym now treats a phase as a **small closed loop**:
+Validating now works on **one phase at a time**.
 
-- clear entry state
-- clear exit state
-- simple demo story
-- stories that explain why the internal order makes sense
-- beads that implement those stories
+That means the validator must be able to answer:
 
-This skill verifies all of that. It is not enough for the bead graph to look tidy. The validator must be able to answer:
-
-- Does this phase close a meaningful loop?
-- If all stories finish, will the exit state be true?
-- If all beads finish, will the stories actually be complete?
-- If the phase fails, will we know whether to debug locally or pivot the larger plan?
+- Does the current phase close a believable small loop?
+- If all current-phase stories finish, will the current phase exit state be true?
+- If all current-phase beads finish, will those stories actually be complete?
+- If this phase fails, will we know whether to debug locally or rethink the larger feature plan?
 
 Skipping validating is still the fastest path to expensive rework.
+
+## Communication Standard
+
+Validation output must explain risk the way an implementer or user can picture it.
+
+When reporting a failing dimension, spike result, or approval summary:
+
+- state what the current phase is trying to make true
+- describe what is wrong in the current plan or bead set
+- explain why that would fail in a real scenario
+- name the smallest credible repair
+
+Do not stop at labels like `dependency issue`, `story order problem`, `context budget failure`, or `risk alignment problem` without translating them into plain language.
 
 ## Prerequisites
 
@@ -43,11 +50,38 @@ You need all of these:
 - `history/<feature>/CONTEXT.md`
 - `history/<feature>/discovery.md`
 - `history/<feature>/approach.md`
-- `history/<feature>/phase-contract.md`
-- `history/<feature>/story-map.md`
-- `.beads/` for this epic
+- `history/<feature>/phase-plan.md`
+- `history/<feature>/phase-<n>-contract.md`
+- `history/<feature>/phase-<n>-story-map.md`
+- `.beads/` for the current phase
 
 If any are missing, stop and return to `khuym:planning`.
+
+## Phase 0: Current Phase Orientation
+
+Before structural verification, orient the validator.
+
+Read from `.khuym/STATE.md` and the phase artifacts:
+
+- current phase number and name
+- whether `phase-plan.md` was approved
+- current phase bead IDs
+
+Present a short summary before continuing:
+
+```text
+Validating Phase <n> of <total>: <phase name>
+
+Stories:
+- Story 1: <name>
+- Story 2: <name>
+- Story 3: <name>
+
+Goal of this phase:
+- <one-line practical outcome>
+```
+
+If the phase plan has not been approved, stop immediately. Do not validate an unapproved phase plan.
 
 ---
 
@@ -61,12 +95,13 @@ Load `references/plan-checker-prompt.md`. Spawn an isolated subagent with:
 
 ```text
 Inputs:
-- all .beads/*.md for this epic
+- current phase bead set
 - history/<feature>/CONTEXT.md
 - history/<feature>/discovery.md
 - history/<feature>/approach.md
-- history/<feature>/phase-contract.md
-- history/<feature>/story-map.md
+- history/<feature>/phase-plan.md
+- history/<feature>/phase-<n>-contract.md
+- history/<feature>/phase-<n>-story-map.md
 Role: plan-checker
 ```
 
@@ -79,7 +114,7 @@ The plan-checker verifies 8 dimensions:
 5. **File scope isolation** — parallel-ready beads do not silently collide
 6. **Context budget** — each bead fits in one worker context
 7. **Verification completeness** — stories and beads have explicit done/verify criteria
-8. **Exit-state completeness and risk alignment** — if everything finishes, the phase really reaches its exit state and HIGH-risk items are spiked
+8. **Exit-state completeness and risk alignment** — if everything finishes, the current phase really reaches its exit state and HIGH-risk items are spiked
 
 ### Step 1.2 — Triage results
 
@@ -93,11 +128,11 @@ The plan-checker verifies 8 dimensions:
 
 ### Repair routing
 
-- Phase contract unclear -> revise `phase-contract.md`
-- Story order or story scope unclear -> revise `story-map.md`
-- Decision/gap issue -> revise story map and/or beads
-- Dependency/scope/test issue -> revise beads
-- Exit state not convincingly reachable -> revise contract, story map, or approach
+- phase meaning unclear -> revise `phase-<n>-contract.md`
+- story order or story scope unclear -> revise `phase-<n>-story-map.md`
+- decision/gap issue -> revise current phase story map and/or beads
+- dependency/scope/test issue -> revise current phase beads
+- exit state not convincingly reachable -> revise current phase contract, story map, or phase plan
 
 After 3 iterations with any FAIL still present:
 
@@ -111,14 +146,14 @@ Do not attempt iteration 4.
 
 ## Phase 2: Spike Execution
 
-Run this for every HIGH-risk component from `approach.md`.
+Run this for every HIGH-risk component that matters to the current phase.
 
-If no HIGH-risk items exist, skip to Phase 3.
+If no HIGH-risk items exist for the current phase, skip to Phase 3.
 
 ### Step 2.1 — Create spike beads
 
 ```bash
-br create "Spike: <specific yes/no question>" -t task -p 0
+br create "Spike: Phase <n> - <specific yes/no question>" -t task -p 0
 ```
 
 ### Step 2.2 — Execute spikes in isolation
@@ -140,15 +175,15 @@ br close <id> --reason "NO: <blocker and why it breaks the approach>"
 
 **If YES:**
 
-- embed the spike findings into affected beads
-- update `story-map.md` if the story now has tighter constraints
+- embed the spike findings into affected current-phase beads
+- update `phase-<n>-story-map.md` if the story now has tighter constraints
 
 **If NO:**
 
 - full stop
 - write blocker summary into `approach.md`
 - return to `khuym:planning`
-- re-run validating from Phase 1 after replanning
+- re-run validating from Phase 0 after replanning
 
 ---
 
@@ -182,20 +217,20 @@ Adjust priorities if the graph says foundational work is buried.
 
 ### Deduplication
 
-Read all bead titles and descriptions:
+Read all current-phase bead titles and descriptions:
 
 - same story + same file scope + same goal -> likely duplicate
 - same outcome expressed as two different beads -> merge or close redundant work
 
 ### Fresh-eyes review
 
-Load `references/bead-reviewer-prompt.md` and spawn a subagent with the full bead set.
+Load `references/bead-reviewer-prompt.md` and review the current phase bead set.
 
 Fix all CRITICAL flags before moving on. MINOR flags are judgment calls but should be considered carefully.
 
 ### Story-to-bead coherence check
 
-Before leaving Phase 3, inspect `history/<feature>/story-map.md`:
+Before leaving Phase 3, inspect `history/<feature>/phase-<n>-story-map.md`:
 
 - every story should map to at least one bead
 - every bead should belong to a story
@@ -210,17 +245,17 @@ This is the human-readable readiness check before approval.
 
 Ask these questions explicitly:
 
-1. If all stories reach "Done Looks Like", does the phase exit state hold?
-2. If all beads close successfully, will all stories actually be done?
-3. Is the phase demo story now credible?
-4. Does this phase still make sense in the larger whole plan?
+1. If all stories reach "Done Looks Like", does the current phase exit state hold?
+2. If all current-phase beads close successfully, will all stories actually be done?
+3. Is the phase demo now credible?
+4. Does this phase still make sense in the larger `phase-plan.md`?
 
 If any answer is "no" or "not sure", do not approve execution. Route back:
 
-- phase meaning problem -> `phase-contract.md`
-- story decomposition problem -> `story-map.md`
+- phase meaning problem -> `phase-<n>-contract.md`
+- story decomposition problem -> `phase-<n>-story-map.md`
 - implementation granularity problem -> `.beads/`
-- architecture/risk problem -> `approach.md` and maybe replanning
+- architecture or phase-boundary problem -> `approach.md` or `phase-plan.md`
 
 ---
 
@@ -233,17 +268,17 @@ Present a structured summary:
 ```text
 VALIDATION COMPLETE — APPROVAL REQUIRED BEFORE EXECUTION
 
-Phase Summary:
-- Phase: <name>
+Current Phase Summary:
+- Phase: Phase <n> - <name>
 - Stories: <N>
 - Beads: <N>
-- Demo story: <one line>
+- Demo walkthrough: <one line>
 
 Structural Verification:
 - All 8 dimensions: PASS (after <N> iterations)
 
 Spike Results:
-- HIGH-risk items: <N>
+- HIGH-risk items for this phase: <N>
 - Result: <all passed / concerns listed>
 
 Polishing Results:
@@ -262,7 +297,7 @@ Exit-State Readiness:
 Unresolved concerns:
 - <none | list>
 
-Approve execution for this phase? (yes/no)
+Approve execution for Phase <n>? (yes/no)
 ```
 
 ### If user approves
@@ -272,6 +307,7 @@ Update `.khuym/STATE.md`:
 ```text
 PHASE: validated
 FEATURE: <feature-name>
+CURRENT_PHASE: Phase <n> - <name>
 VALIDATED_AT: <timestamp>
 STORIES: <N>
 BEADS: <N>
@@ -279,7 +315,7 @@ BEADS: <N>
 
 Handoff:
 
-`Validation complete. Phase contract, story map, and beads all pass. Invoke khuym:swarming skill.`
+`Validation complete. Current phase passes. Invoke khuym:swarming skill.`
 
 ### If user rejects
 
@@ -287,9 +323,9 @@ Ask what concerns them specifically and route back:
 
 1. phase meaning / exit state problem
 2. story order or story size problem
-3. risk/spike concern
+3. risk / spike concern
 4. bead quality problem
-5. fundamental approach problem
+5. fundamental approach or phase-boundary problem
 
 Do not guess.
 
@@ -297,7 +333,7 @@ Do not guess.
 
 ## Lightweight Mode
 
-For confirmed LOW-risk single-story, single-bead work:
+For confirmed LOW-risk single-story, single-phase work:
 
 1. abbreviated structural verification on the single story/bead
 2. skip spikes
@@ -308,10 +344,24 @@ If uncertain, use full mode.
 
 ---
 
+## What Happens After This Phase
+
+Validating approves execution for the **current phase only**.
+
+After swarming finishes:
+
+- if more phases remain in `phase-plan.md`, return to `khuym:planning` to prepare the next phase
+- if this was the final phase, proceed to `khuym:reviewing`
+
+Do not assume later phases are ready just because the current phase passed.
+
+---
+
 ## Red Flags
 
 - executing any bead before approval
-- validating a bead set that has no phase contract
+- validating a bead set that has no approved `phase-plan.md`
+- validating a current phase that has no current-phase contract or story map
 - validating a story map that cannot explain "why now" for Story 1
 - a phase exit state that is not observable
 - a spike returned NO and execution is still being considered

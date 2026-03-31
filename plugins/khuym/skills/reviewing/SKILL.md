@@ -1,6 +1,6 @@
 ---
 name: khuym:reviewing
-description: Post-execution quality verification skill for the khuym ecosystem. Invoke after swarming completes. Runs 5 parallel specialist review agents, 3-level artifact verification, human UAT, and finishing (PR, cleanup, epic close). Review issues become beads instead of per-finding markdown files; P1 still blocks merge while P2/P3 become non-blocking follow-up beads. Absorbs finishing responsibilities and hands off to compounding.
+description: Post-execution quality verification skill for the khuym ecosystem. Invoke after the final phase swarm completes. Runs 5 parallel specialist review agents, 3-level artifact verification, human UAT, and finishing (PR, cleanup, epic close). Review issues become beads instead of per-finding markdown files; P1 still blocks merge while P2/P3 become non-blocking follow-up beads. Absorbs finishing responsibilities and hands off to compounding.
 metadata:
   version: '1.0'
   ecosystem: khuym
@@ -17,9 +17,20 @@ Post-execution quality verification. You are the last automated gate before a fe
 
 Research confirms this is not optional: removing the verification agent degrades fix precision most sharply ([Multi-Agent Bug Detection, IJRASET 2025](https://ieeexplore.ieee.org/document/11135756/)). Multi-perspective review covers 7.8 dimensions vs. 1–3 for a single reviewer ([Hydra-Reviewer, IEEE TSE 2025](https://ieeexplore.ieee.org/document/11203269/)).
 
+## Communication Standard
+
+Reviewing is where terse technical shorthand is most dangerous. The default tone here is:
+
+- explain the bug in plain language first
+- then show the evidence
+- then give one concrete failure scenario
+- then give the smallest credible fix direction
+
+If a finding makes sense only to someone who already read the diff carefully, it is not written well enough yet.
+
 ## When to Invoke
 
-- After `khuym:swarming` reports "All beads closed"
+- After `khuym:swarming` reports the final phase is complete
 - Manually: when spot-checking any branch or set of changes
 - Flags: `--serial` (always serial), `--skip-uat` (auto mode only, skips Phase 3)
 
@@ -91,7 +102,7 @@ Resolve Review P2: <problem title>
 Resolve Review P3: <problem title>
 ```
 
-The full review write-up lives in the bead body itself: problem statement, evidence, proposed solutions, and acceptance criteria.
+The full review write-up lives in the bead body itself: plain-language summary, current behavior, why it matters, concrete failure scenario, evidence, proposed solutions, and acceptance criteria.
 
 ### Severity Rules
 
@@ -112,6 +123,13 @@ The full review write-up lives in the bead body itself: problem statement, evide
 3. Surface `learnings-synthesizer` matches with known-pattern notes on the relevant review bead
 4. Count: N P1, N P2, N P3 review beads
 5. Present a summary table to user with bead IDs by severity
+
+When presenting serious findings to the user, do not stop at terse reviewer shorthand. Translate the finding into:
+
+- what the code does today
+- why that breaks the intended behavior
+- one concrete scenario showing the failure
+- the smallest credible fix direction
 
 **If P1 review beads exist:** HARD-GATE — stop and present. Do not proceed to Phase 2 until user acknowledges. Even in go mode, P1 is always human-gated.
 

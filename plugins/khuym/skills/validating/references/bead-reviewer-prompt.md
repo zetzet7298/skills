@@ -10,7 +10,7 @@ You are not here to redesign the plan. You are not here to judge architectural c
 
 ## Your Inputs
 
-You receive the full content of all `.beads/*.md` for this epic.
+You receive the full content of the current phase bead set.
 
 You do NOT receive:
 - Planning session history
@@ -27,7 +27,7 @@ This restriction is intentional. If a bead requires external context to understa
 
 ```
 BEAD REVIEW REPORT
-Epic: <infer from bead titles if possible>
+Phase: Phase <n> - <infer from bead titles if possible>
 Beads reviewed: <N>
 Date: <today>
 
@@ -181,7 +181,7 @@ The bead makes a choice where alternative approaches are plausible. Without a no
 
 ## Calibration
 
-Before writing your report, read all beads through once without flagging anything. Get a sense of the overall plan shape. Then read each bead again carefully for your flags.
+Before writing your report, read all current-phase beads through once without flagging anything. Get a sense of the overall plan shape. Then read each bead again carefully for your flags.
 
 A well-polished set of beads should have:
 - 0–2 CRITICAL flags (if more, the plan needs another polishing round before review)

@@ -1,6 +1,6 @@
 ---
 name: khuym:swarming
-description: Orchestrates parallel worker agents for feature execution. Use after the khuym:validating skill approves execution. Initializes the overseer/orchestrator context, spawns bounded worker subagents, monitors Agent Mail for completions/blockers/file conflicts, coordinates rescues and course corrections, and hands off to reviewing when all beads are closed. The orchestrator TENDS — it never implements beads directly.
+description: Orchestrates parallel worker agents for phase execution. Use after the khuym:validating skill approves the current phase for execution. Initializes the overseer/orchestrator context, spawns bounded worker subagents, monitors Agent Mail for completions/blockers/file conflicts, coordinates rescues and course corrections, and hands off either to planning for the next phase or to reviewing after the final phase. The orchestrator TENDS — it never implements beads directly.
 metadata:
   version: '1.0'
   role: orchestrator
@@ -21,14 +21,27 @@ You are the **ORCHESTRATOR**. You launch workers, monitor coordination, handle e
 - **swarming** = launches and tends workers (this skill)
 - **executing** = each worker's self-routing implementation loop
 
+## Communication Standard
+
+Blocker reports, conflict reports, and handoffs should be written so a busy teammate can understand them in one read.
+
+Prefer:
+
+- what is blocked
+- what is happening right now
+- one concrete example of the collision or failure
+- what needs to happen next
+
+Do not hide the real issue behind labels like `reservation conflict`, `startup drift`, or `runtime blocker` without explaining the practical effect.
+
 In Flywheel terms, this skill is the Khuym/Codex adaptation of the `ntm spawn` + human-overseer phase. The orchestrator launches the swarm, then tends it. Workers decide what to do next by using `bv --robot-priority` against the live bead graph.
 
 ## When to Use This Skill
 
-Invoke after the `khuym:validating` skill issues: _"Validation complete. All checks pass. Invoke khuym:swarming skill."_
+Invoke after the `khuym:validating` skill issues: _"Validation complete. Current phase passes. Invoke khuym:swarming skill."_
 
 Prerequisites:
-- Beads are in `open` status and approved for execution
+- Current-phase beads are in `open` status and approved for execution
 - EPIC_ID is known (from STATE.md or user input)
 - Agent Mail server is reachable
 
@@ -208,7 +221,7 @@ After each significant event, estimate your own context budget.
 
 ## Phase 5: Swarm Complete
 
-When no beads remain `in_progress` and the graph shows no remaining executable work:
+When no current-phase beads remain `in_progress` and the graph shows no remaining executable work for the current phase:
 
 1. Run final bead verification:
    ```bash
@@ -217,17 +230,28 @@ When no beads remain `in_progress` and the graph shows no remaining executable w
 2. If orphaned or blocked beads remain:
    - report which beads remain and why
    - ask the user whether to defer, create cleanup beads, or continue later
-3. If all beads are closed:
+3. If all current-phase beads are closed:
    - run final build/test commands appropriate to the project
-   - update `.khuym/STATE.md`:
-     ```
-     Active skill: swarming → COMPLETE
-     Swarm: <EPIC_ID> — all beads closed
-     ```
    - clear `## Active Workers` from `.khuym/STATE.md`
+   - inspect `history/<feature>/phase-plan.md` and `.khuym/STATE.md`
+   - if more phases remain:
+     ```
+     Active skill: swarming -> COMPLETE
+     Swarm: <EPIC_ID> - current phase complete
+     Next: planning for Phase <n+1>
+     ```
+   - if this was the final phase:
+     ```
+     Active skill: swarming -> COMPLETE
+     Swarm: <EPIC_ID> - final phase complete
+     Next: reviewing
+     ```
 
 4. Handoff message:
-   > "Swarm execution complete. All beads closed. Invoke khuym:reviewing skill."
+   - if more phases remain:
+     > "Swarm execution complete for the current phase. Return to khuym:planning to prepare the next phase."
+   - if this was the final phase:
+     > "Swarm execution complete for the final phase. Invoke khuym:reviewing skill."
 
 ---
 
