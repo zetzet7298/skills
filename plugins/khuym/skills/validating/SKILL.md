@@ -226,6 +226,12 @@ Read all current-phase bead titles and descriptions:
 
 Load `references/bead-reviewer-prompt.md` and review the current phase bead set.
 
+When asking a model to perform the bead-refinement pass, use this prompt:
+
+```text
+Check over each bead super carefully-- are you sure it makes sense? Is it optimal? Could we change anything to make the system work better for users? If so, revise the beads. It's a lot easier and faster to operate in "plan space" before we start implementing these things! Use /effort max.
+```
+
 Fix all CRITICAL flags before moving on. MINOR flags are judgment calls but should be considered carefully.
 
 ### Story-to-bead coherence check
@@ -234,7 +240,7 @@ Before leaving Phase 3, inspect `history/<feature>/phase-<n>-story-map.md`:
 
 - every story should map to at least one bead
 - every bead should belong to a story
-- if a story has too many beads, it may be too large
+- if a story has many beads, confirm the decomposition is still coherent and each bead has a clear reason to exist
 - if a bead spans multiple unrelated stories, the decomposition is muddy
 
 ---

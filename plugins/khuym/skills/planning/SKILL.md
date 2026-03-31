@@ -383,6 +383,12 @@ Iterate 1-2 rounds. Stop when changes become incremental.
 
 Only now convert the current phase story map into executable beads using `br create`.
 
+When asking a model to perform the bead-creation pass, use this prompt:
+
+```text
+OK so please take ALL of that and elaborate on it more and then create a comprehensive and granular set of beads for all this with tasks, subtasks, and dependency structure overlaid, with detailed comments so that the whole thing is totally self-contained and self-documenting (including relevant background, reasoning/justification, considerations, etc.-- anything we'd want our "future self" to know about the goals and intentions and thought process and how it serves the over-arching goals of the project.) Use the `br` tool repeatedly to create the actual beads. Use /effort max.
+```
+
 ### Non-negotiable rule
 
 Never write pseudo-beads in Markdown. Create the real graph with `br`.
@@ -413,9 +419,9 @@ br dep add br-<id2> br-<id1>
 
 ### Story-to-bead decomposition rules
 
-- One story usually becomes 1-3 beads
+- Use as many beads as the story genuinely needs; there is no fixed numeric cap
 - A bead should not span multiple unrelated stories
-- If a story needs 4+ substantial beads, re-check whether the story is too large
+- If a story breaks into many beads, confirm the decomposition still reflects one coherent story and each bead has a distinct purpose
 - The story order should still be visible after decomposition
 - Do not create beads for later phases yet
 
