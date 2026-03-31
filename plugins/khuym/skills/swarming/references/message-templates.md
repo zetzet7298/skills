@@ -34,6 +34,7 @@ Workers spawning now:
 - Codex: <CODEX_NICKNAME_3> / Agent Mail: pending
 
 All workers: join this thread, post startup acknowledgment, then load the khuym:executing skill.
+Coordinator: do not idle after this message. Keep polling `fetch_inbox(...)` and `fetch_topic(...)` until the swarm is complete.
 ```
 
 ---
@@ -55,8 +56,9 @@ Importance: NORMAL
 
 Codex nickname: <CODEX_NICKNAME>
 Agent Mail name: <AGENT_MAIL_NAME>
+AGENTS.md: read
 Status: Loading khuym:executing skill.
-Next step: read context, run `bv --robot-priority`, claim the top executable bead.
+Next step: fetch inbox, then run `bv --robot-priority`, then claim the top executable bead.
 ```
 
 ---
@@ -94,7 +96,7 @@ Verification:
 - <command/result summary>
 
 Context budget: ~<XX>% used
-Next action: return to `bv --robot-priority`
+Next action: fetch inbox, then return to `bv --robot-priority`
 ```
 
 ---
@@ -128,6 +130,7 @@ What I need to proceed:
 <Specific ask: information, release of a file reservation, user decision, etc.>
 
 I am paused on this bead and waiting for a reply on this thread.
+Until a reply arrives, I will keep polling `fetch_inbox(...)` on this topic.
 ```
 
 ---
@@ -161,6 +164,8 @@ Awaiting orchestrator decision:
 1. Request holder release at a safe checkpoint
 2. Ask me to wait
 3. Ask me to defer and create a follow-up bead
+
+Until a decision arrives, I will keep polling `fetch_inbox(...)` on this topic.
 ```
 
 ---
@@ -216,13 +221,69 @@ Broadcast to all workers:
 
 Examples:
 - Re-read AGENTS.md before continuing
+- Fetch inbox before claiming new work
 - Do not touch <file/path> until blocker <id> is resolved
 - Decision D7 is now locked; honor it in all remaining work
 ```
 
 ---
 
-## 8. Coordinator Context Warning
+## 8. Missing Startup Reminder
+
+**Posted by:** Swarm coordinator (`<COORDINATOR_AGENT_NAME>`)
+**When:** A spawned worker has not posted `[ONLINE]` after 2 poll cycles
+**Purpose:** Forces the worker back onto the thread and back through `AGENTS.md`
+
+Runtime call:
+`send_message(project_key=..., sender_name="<COORDINATOR_AGENT_NAME>", to=["<AGENT_MAIL_NAME-or-codex-target>"], thread_id="<EPIC_ID>", topic="epic-<EPIC_ID>", ...)`
+
+```
+Subject: [OVERSEER] Startup acknowledgment missing
+Thread: <EPIC_ID>
+Topic: epic-<EPIC_ID>
+Importance: HIGH
+
+You were spawned for epic <EPIC_ID>, but you have not posted your startup acknowledgment yet.
+
+Do this now, in order:
+1. Re-read `AGENTS.md`
+2. Post `[ONLINE]` with your Codex nickname and Agent Mail name
+3. Confirm `AGENTS.md: read`
+4. Run `fetch_inbox(...)`
+5. Only then continue into `bv --robot-priority`
+```
+
+---
+
+## 9. Silent Worker Reminder
+
+**Posted by:** Swarm coordinator (`<COORDINATOR_AGENT_NAME>`)
+**When:** An active worker has gone quiet for 3 poll cycles
+**Purpose:** Pulls an off-thread or drifting worker back into the coordination loop
+
+Runtime call:
+`send_message(project_key=..., sender_name="<COORDINATOR_AGENT_NAME>", to=["<AGENT_MAIL_NAME>"], thread_id="<EPIC_ID>", topic="epic-<EPIC_ID>", ...)`
+
+```
+Subject: [OVERSEER] Status update required
+Thread: <EPIC_ID>
+Topic: epic-<EPIC_ID>
+Importance: HIGH
+
+You have gone quiet while the swarm is still active.
+
+Reply on this thread with one of:
+- `[DONE] <bead-id>` if the bead is complete
+- `[BLOCKED] <bead-id>` if you need help
+- `[FILE CONFLICT] <path>` if you are waiting on a reservation
+- `Status: still working on <bead-id>` if you are actively progressing
+
+Before replying, re-read `AGENTS.md` if you compacted or drifted, then run `fetch_inbox(...)`.
+```
+
+---
+
+## 10. Coordinator Context Warning
 
 **Posted by:** Swarm coordinator (`<COORDINATOR_AGENT_NAME>`)  
 **When:** Swarm coordinator detects its own context is approaching 65%  
@@ -254,7 +315,7 @@ Resume artifacts:
 
 ---
 
-## 9. Swarm Completion Announcement
+## 11. Swarm Completion Announcement
 
 **Posted by:** Swarm coordinator (`<COORDINATOR_AGENT_NAME>`)  
 **When:** All beads are verified closed

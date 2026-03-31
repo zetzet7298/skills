@@ -59,7 +59,13 @@ From this point on, use `resolved_agent_mail_name` for every Agent Mail call.
 
 If any of these files does not exist, note the absence and proceed — do not fabricate content.
 
-### 1c. Check for Handoff
+### 1c. Report Online Before Claiming Work
+
+Before you select a bead, you must report in on the epic thread. Startup is not complete until you read `AGENTS.md`, post a startup acknowledgment with both identities, say `AGENTS.md` was read and `khuym:executing` is loading, and run `fetch_inbox(...)` on the epic topic.
+
+Do not call `bv --robot-priority` before this sequence is complete.
+
+### 1d. Check for Handoff
 
 If `.khuym/HANDOFF.json` exists and was written by a prior instance of you (same agent identity):
 
@@ -70,6 +76,11 @@ If `.khuym/HANDOFF.json` exists and was written by a prior instance of you (same
 ---
 
 ## Step 2: Get Next Bead
+
+Every loop starts with coordination, not bead selection.
+
+Start with `fetch_inbox(project_key="<project-root-path>", agent_name="<resolved-agent-mail-name>", topic="<EPIC_TOPIC>")`.
+If the thread looks stale, also run `fetch_topic(project_key="<project-root-path>", topic_name="<EPIC_TOPIC>")`.
 
 ### Normal path: self-route from the live graph
 
@@ -130,6 +141,7 @@ send_message(
 ```
 
 Wait for resolution. Do not proceed without your reservations.
+While waiting, keep polling `fetch_inbox(...)` on the epic topic.
 
 ### If reservation succeeds:
 
@@ -201,12 +213,13 @@ send_message(
 ```
 
 Do not close the bead. Mark it blocked and wait.
+While blocked, keep polling `fetch_inbox(...)` for the coordinator reply.
 
 ---
 
 ## Step 6: Close & Report
 
-All three actions must complete. Do not skip any.
+All actions must complete. Do not skip any, and do not start another bead until the completion report is sent.
 
 ### 6a. Close the bead
 
@@ -249,6 +262,10 @@ send_message(
   body_md: "Codex nickname: <codex-subagent-name>. Agent Mail name: <resolved-agent-mail-name>. Implemented: [summary]. Files: [list]. Verification: [tests passed / build clean]. Commit: [hash]."
 )
 ```
+
+### 6e. Check inbox once after reporting
+
+Before you claim the next bead, run `fetch_inbox(project_key="<project-root-path>", agent_name="<resolved-agent-mail-name>", topic="<EPIC_TOPIC>")`.
 
 ---
 
@@ -339,6 +356,8 @@ Stop and reassess if you notice any of these:
 - **Ignoring a locked decision from CONTEXT.md** — swarming and planning effort was spent locking that decision for a reason
 - **Batching multiple bead commits** — atomic commits per bead are the audit trail; don't corrupt it
 - **Claiming a bead without checking reservations** — self-routing still depends on file coordination
+- **Closing or blocking a bead without reporting via Agent Mail** — off-thread progress is invisible progress; it breaks the swarm
+- **Waiting silently for the coordinator** — if you are blocked, conflicted, handing off, or done, post and keep polling
 
 ---
 
