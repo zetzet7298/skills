@@ -11,6 +11,7 @@ import {
   readKhuymState,
   writeKhuymState,
 } from "./khuym_state.mjs";
+import { buildKhuymDependencyReport } from "./khuym_dependencies.mjs";
 
 const SCRIPT_PATH = fileURLToPath(import.meta.url);
 const USING_KHUYM_DIR = path.dirname(path.dirname(SCRIPT_PATH));
@@ -36,7 +37,30 @@ const LEGACY_HOOK_FILENAMES = [
 const MANAGED_SUPPORT_FILES = {
   "khuym_status.mjs": path.join(HOOK_TEMPLATES_DIR, "khuym_status.mjs"),
   "khuym_state.mjs": path.join(USING_KHUYM_SCRIPTS_DIR, "khuym_state.mjs"),
+  "khuym_dependencies.mjs": path.join(USING_KHUYM_SCRIPTS_DIR, "khuym_dependencies.mjs"),
 };
+
+function readDependencyHealth(repoRoot) {
+  try {
+    return buildKhuymDependencyReport({ repoRoot });
+  } catch (error) {
+    return {
+      checked_at: utcNow(),
+      summary: {
+        skills_total: 0,
+        skills_available: 0,
+        skills_degraded: 0,
+        skills_unavailable: 0,
+        declared_dependencies: 0,
+        missing_dependencies: 0,
+      },
+      skills: [],
+      missing_dependencies: [],
+      mcp_sources: [],
+      error: error instanceof Error ? error.message : String(error),
+    };
+  }
+}
 
 export function getNodeRuntimeStatus(version = process.versions.node) {
   const major = Number.parseInt(String(version).split(".")[0] || "0", 10);
@@ -500,6 +524,7 @@ export function checkRepo(repoRoot) {
   if (!runtime.supported) {
     return buildRuntimeBlockedPayload(repoRoot, "check");
   }
+  const dependencyHealth = readDependencyHealth(repoRoot);
 
   const pluginVersion = loadPluginVersion();
   const agentsPath = path.join(repoRoot, "AGENTS.md");
@@ -596,6 +621,7 @@ export function checkRepo(repoRoot) {
       compact_prompt_conflict: compactPromptConflict,
       onboarding_state: Object.keys(onboarding).length > 0 ? onboarding : null,
       runtime,
+      dependency_health: dependencyHealth,
     },
   };
 }

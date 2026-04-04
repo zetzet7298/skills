@@ -8,6 +8,7 @@ import path from "node:path";
 import { execFileSync } from "node:child_process";
 
 import { applyRepo, checkRepo, getNodeRuntimeStatus } from "./onboard_khuym.mjs";
+import { buildKhuymDependencyReport } from "./khuym_dependencies.mjs";
 
 test("applyRepo creates full repo onboarding with node-based hooks", () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "khuym-onboard-"));
@@ -27,6 +28,7 @@ test("applyRepo creates full repo onboarding with node-based hooks", () => {
     assert.ok(fs.existsSync(path.join(root, ".codex", "hooks", "khuym_session_start.mjs")));
     assert.ok(fs.existsSync(path.join(root, ".codex", "khuym_status.mjs")));
     assert.ok(fs.existsSync(path.join(root, ".codex", "khuym_state.mjs")));
+    assert.ok(fs.existsSync(path.join(root, ".codex", "khuym_dependencies.mjs")));
     assert.match(
       fs.readFileSync(path.join(root, ".codex", "hooks.json"), "utf8"),
       /node \.codex\/hooks\/khuym_session_start\.mjs/,
@@ -135,6 +137,76 @@ test("installed khuym_status script reports onboarding and state", () => {
     assert.equal(status.state_json.exists, true);
     assert.equal(status.state_json.phase, "idle");
     assert.ok(status.next_reads.includes("AGENTS.md"));
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("checkRepo reports dependency health summary without blocking onboarding status", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "khuym-onboard-"));
+
+  try {
+    applyRepo(root, false);
+    const payload = checkRepo(root);
+
+    assert.equal(payload.status, "up_to_date");
+    assert.ok(payload.details.dependency_health);
+    assert.ok(typeof payload.details.dependency_health.summary.skills_total === "number");
+    assert.ok(Array.isArray(payload.details.dependency_health.skills));
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("dependency helper marks missing command and missing mcp_server dependencies", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "khuym-deps-"));
+  const skillsRoot = path.join(root, "plugins", "khuym", "skills");
+
+  try {
+    const alphaDir = path.join(skillsRoot, "alpha");
+    fs.mkdirSync(alphaDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(alphaDir, "SKILL.md"),
+      [
+        "---",
+        "name: khuym:alpha",
+        "metadata:",
+        "  dependencies:",
+        "    - id: must-have-command",
+        "      kind: command",
+        "      command: definitely-missing-command",
+        "      missing_effect: unavailable",
+        "      reason: required",
+        "    - id: am-server",
+        "      kind: mcp_server",
+        "      server_names: [mcp_agent_mail]",
+        "      config_sources: [repo_codex_config, global_codex_config]",
+        "      missing_effect: degraded",
+        "      reason: coordination",
+        "---",
+        "",
+        "# alpha",
+        "",
+      ].join("\n"),
+      "utf8",
+    );
+
+    const report = buildKhuymDependencyReport({
+      repoRoot: root,
+      skillsRoot,
+      globalCodexConfigPath: path.join(root, "missing-global.toml"),
+      commandProbe: () => ({ available: false, detail: "missing in test" }),
+    });
+
+    assert.equal(report.summary.skills_total, 1);
+    assert.equal(report.summary.skills_available, 0);
+    assert.equal(report.summary.skills_unavailable, 1);
+    assert.equal(report.summary.missing_dependencies, 2);
+    assert.equal(report.skills[0].status, "unavailable");
+    assert.deepEqual(
+      report.skills[0].missing_dependencies.map((dependency) => dependency.id).sort(),
+      ["am-server", "must-have-command"],
+    );
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
   }
