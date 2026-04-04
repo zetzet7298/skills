@@ -7,6 +7,35 @@ description: >-
   learnings, runs discovery and synthesis, writes discovery.md, approach.md,
   phase-plan.md, and then writes current-phase contract/story artifacts plus
   beads for that phase only.
+metadata:
+  ecosystem: khuym
+  dependencies:
+    - id: beads-cli
+      kind: command
+      command: br
+      missing_effect: unavailable
+      reason: Planning creates and links real bead graphs with br.
+    - id: beads-viewer
+      kind: command
+      command: bv
+      missing_effect: degraded
+      reason: Planning relies on graph-aware triage and validation checks.
+    - id: cass-cli
+      kind: command
+      command: cass
+      missing_effect: degraded
+      reason: Planning searches prior sessions to avoid re-solving problems.
+    - id: cass-memory
+      kind: command
+      command: cm
+      missing_effect: degraded
+      reason: Planning retrieves reusable playbook context before deep work.
+    - id: gkg
+      kind: mcp_server
+      server_names: [gkg]
+      config_sources: [repo_codex_config, global_codex_config]
+      missing_effect: degraded
+      reason: Discovery architecture snapshots rely on gkg-backed analysis.
 ---
 
 # Planning Skill

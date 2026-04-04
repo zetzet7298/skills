@@ -4,6 +4,44 @@ description: Bootstrap meta-skill for the khuym agentic development ecosystem. L
 metadata:
   version: '2.2'
   ecosystem: khuym
+  dependencies:
+    - id: nodejs-runtime
+      kind: command
+      command: node
+      missing_effect: unavailable
+      reason: The bootstrap scripts run in Node.js.
+    - id: beads-cli
+      kind: command
+      command: br
+      missing_effect: degraded
+      reason: Bead planning and execution flows rely on br.
+    - id: beads-viewer
+      kind: command
+      command: bv
+      missing_effect: degraded
+      reason: Triage and readiness checks rely on bv robot commands.
+    - id: cass-cli
+      kind: command
+      command: cass
+      missing_effect: degraded
+      reason: Session-history lookups are part of the default workflow.
+    - id: cass-memory
+      kind: command
+      command: cm
+      missing_effect: degraded
+      reason: Memory context retrieval is part of the default workflow.
+    - id: gkg
+      kind: mcp_server
+      server_names: [gkg]
+      config_sources: [repo_codex_config, global_codex_config]
+      missing_effect: degraded
+      reason: Planning and exploration depend on gkg-backed architecture intelligence.
+    - id: agent-mail
+      kind: mcp_server
+      server_names: [mcp_agent_mail]
+      config_sources: [repo_codex_config, global_codex_config]
+      missing_effect: degraded
+      reason: Swarming and worker coordination rely on Agent Mail.
 ---
 
 # using-khuym

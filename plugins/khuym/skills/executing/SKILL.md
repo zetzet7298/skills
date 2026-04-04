@@ -5,6 +5,25 @@ description: >-
   spawned by the khuym:swarming skill. Implements the Flywheel single-agent loop (register,
   get bead, reserve files, implement, verify, close, report, loop). Handles context
   monitoring, atomic git commits, post-compaction recovery, and graceful handoff.
+metadata:
+  ecosystem: khuym
+  dependencies:
+    - id: beads-cli
+      kind: command
+      command: br
+      missing_effect: unavailable
+      reason: Workers read, update, and close beads through br.
+    - id: beads-viewer
+      kind: command
+      command: bv
+      missing_effect: unavailable
+      reason: Worker self-routing relies on bv robot priority output.
+    - id: agent-mail
+      kind: mcp_server
+      server_names: [mcp_agent_mail]
+      config_sources: [repo_codex_config, global_codex_config]
+      missing_effect: unavailable
+      reason: Reservations, coordination, and reporting are executed via Agent Mail.
 ---
 
 # Executing — Worker Loop

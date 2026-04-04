@@ -6,6 +6,18 @@ metadata:
   version: '1.2'
   position: 3
   chain: exploring -> planning -> validating -> swarming
+  ecosystem: khuym
+  dependencies:
+    - id: beads-cli
+      kind: command
+      command: br
+      missing_effect: unavailable
+      reason: Validation creates and closes spike beads during gating.
+    - id: beads-viewer
+      kind: command
+      command: bv
+      missing_effect: unavailable
+      reason: Validation depends on bv graph checks for polishing and risk review.
 ---
 
 # Validating

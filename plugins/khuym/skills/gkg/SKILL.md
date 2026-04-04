@@ -10,6 +10,13 @@ metadata:
   version: '1.0'
   ecosystem: khuym
   type: support
+  dependencies:
+    - id: gkg
+      kind: mcp_server
+      server_names: [gkg]
+      config_sources: [repo_codex_config, global_codex_config]
+      missing_effect: unavailable
+      reason: This skill's intelligence queries require the gkg MCP server.
 ---
 
 # gkg — Codebase Intelligence

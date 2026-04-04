@@ -8,6 +8,23 @@ metadata:
   position: 5-of-9
   upstream: validating
   downstream: reviewing
+  dependencies:
+    - id: beads-cli
+      kind: command
+      command: br
+      missing_effect: degraded
+      reason: Swarm tending checks bead state and closure through br.
+    - id: beads-viewer
+      kind: command
+      command: bv
+      missing_effect: unavailable
+      reason: Live graph triage is required to route and supervise workers.
+    - id: agent-mail
+      kind: mcp_server
+      server_names: [mcp_agent_mail]
+      config_sources: [repo_codex_config, global_codex_config]
+      missing_effect: unavailable
+      reason: Worker orchestration and coordination run through Agent Mail.
 ---
 
 # Swarming
