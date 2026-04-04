@@ -13,6 +13,16 @@ import { buildKhuymDependencyReport } from "./khuym_dependencies.mjs";
 
 const LOCAL_ONBOARD_SCRIPT_PATH = fileURLToPath(new URL("./onboard_khuym.mjs", import.meta.url));
 
+function runSessionStartHook(root, payload = { cwd: root }) {
+  const hookPath = path.join(root, ".codex", "hooks", "khuym_session_start.mjs");
+  const stdout = execFileSync("node", [hookPath], {
+    cwd: root,
+    encoding: "utf8",
+    input: JSON.stringify(payload),
+  });
+  return JSON.parse(stdout);
+}
+
 test("applyRepo creates full repo onboarding with node-based hooks", () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "khuym-onboard-"));
 
@@ -321,6 +331,71 @@ test("onboard check JSON includes dependency warning summary when dependencies a
     assert.match(warning.message, /Dependency warning:/);
     assert.match(warning.message, /khuym:alpha/);
     assert.equal(warning.missing_dependencies_count, 2);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("session-start hook emits dependency warning with command-vs-MCP split when dependencies are missing", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "khuym-onboard-"));
+
+  try {
+    applyRepo(root, false);
+    const skillsRoot = path.join(root, "plugins", "khuym", "skills");
+    const alphaDir = path.join(skillsRoot, "alpha");
+    fs.mkdirSync(alphaDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(alphaDir, "SKILL.md"),
+      [
+        "---",
+        "name: khuym:alpha",
+        "metadata:",
+        "  dependencies:",
+        "    - id: missing-cli",
+        "      kind: command",
+        "      command: definitely-missing-command",
+        "      missing_effect: unavailable",
+        "      reason: required for test",
+        "    - id: missing-server",
+        "      kind: mcp_server",
+        "      server_names: [definitely_missing_mcp_server_name]",
+        "      config_sources: [repo_codex_config, global_codex_config]",
+        "      missing_effect: degraded",
+        "      reason: required for test",
+        "---",
+        "",
+        "# alpha",
+        "",
+      ].join("\n"),
+      "utf8",
+    );
+
+    const payload = runSessionStartHook(root);
+    const context = payload.hookSpecificOutput.additionalContext;
+
+    assert.match(context, /Dependency warning:/);
+    assert.match(context, /khuym:alpha/);
+    assert.match(context, /Missing commands: definitely-missing-command/);
+    assert.match(
+      context,
+      /Missing MCP server configuration: definitely_missing_mcp_server_name/,
+    );
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("session-start hook stays quiet about dependency warnings when dependencies are healthy", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "khuym-onboard-"));
+
+  try {
+    applyRepo(root, false);
+    const payload = runSessionStartHook(root);
+    const context = payload.hookSpecificOutput.additionalContext;
+
+    assert.doesNotMatch(context, /Dependency warning:/);
+    assert.doesNotMatch(context, /Missing commands:/);
+    assert.doesNotMatch(context, /Missing MCP server configuration:/);
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
   }

@@ -3,6 +3,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { buildKhuymDependencyReport } from "../khuym_dependencies.mjs";
 
 function findRepoRoot(start) {
   let candidate = path.resolve(start || ".");
@@ -30,6 +31,64 @@ async function readPayload() {
   return JSON.parse(raw || "{}");
 }
 
+function normalizeDependencyTarget(target) {
+  if (Array.isArray(target)) {
+    return target.filter(Boolean);
+  }
+  if (typeof target === "string" && target.trim()) {
+    return [target.trim()];
+  }
+  return [];
+}
+
+function uniqueSorted(values) {
+  return [...new Set(values.filter(Boolean))].sort((left, right) => left.localeCompare(right));
+}
+
+function buildSessionDependencyWarning(repoRoot) {
+  let dependencyHealth;
+  try {
+    dependencyHealth = buildKhuymDependencyReport({ repoRoot });
+  } catch {
+    return "";
+  }
+
+  const missingDependencies = Array.isArray(dependencyHealth?.missing_dependencies)
+    ? dependencyHealth.missing_dependencies
+    : [];
+  if (missingDependencies.length === 0) {
+    return "";
+  }
+
+  const affectedSkills = uniqueSorted(
+    missingDependencies.flatMap((dependency) =>
+      Array.isArray(dependency.required_by) ? dependency.required_by : [],
+    ),
+  );
+  const missingCommands = uniqueSorted(
+    missingDependencies
+      .filter((dependency) => dependency.kind === "command")
+      .flatMap((dependency) => normalizeDependencyTarget(dependency.target)),
+  );
+  const missingMcpServers = uniqueSorted(
+    missingDependencies
+      .filter((dependency) => dependency.kind === "mcp_server")
+      .flatMap((dependency) => normalizeDependencyTarget(dependency.target)),
+  );
+
+  const affected = affectedSkills.length > 0 ? affectedSkills.join(", ") : "(unknown skills)";
+  const commands = missingCommands.length > 0 ? missingCommands.join(", ") : "none";
+  const mcpServers = missingMcpServers.length > 0 ? missingMcpServers.join(", ") : "none";
+
+  return (
+    `Dependency warning: ${missingDependencies.length} declared dependencies are missing, ` +
+    `so some Khuym skills are degraded or unavailable. ` +
+    `Affected skills: ${affected}. ` +
+    `Missing commands: ${commands}. ` +
+    `Missing MCP server configuration: ${mcpServers}.`
+  );
+}
+
 export async function main() {
   const payload = await readPayload();
   const repoRoot = findRepoRoot(payload.cwd || ".");
@@ -49,6 +108,11 @@ export async function main() {
     notes.push("If you move into planning or execution, read history/learnings/critical-patterns.md.");
   }
 
+  const dependencyWarning = buildSessionDependencyWarning(repoRoot);
+  if (dependencyWarning) {
+    notes.push(dependencyWarning);
+  }
+
   process.stdout.write(
     JSON.stringify({
       hookSpecificOutput: {
@@ -60,6 +124,24 @@ export async function main() {
   return 0;
 }
 
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+function isDirectExecution() {
+  if (!process.argv[1]) {
+    return false;
+  }
+
+  const argvPath = path.resolve(process.argv[1]);
+  const selfPath = fileURLToPath(import.meta.url);
+  if (argvPath === selfPath) {
+    return true;
+  }
+
+  try {
+    return fs.realpathSync.native(argvPath) === fs.realpathSync.native(selfPath);
+  } catch {
+    return false;
+  }
+}
+
+if (isDirectExecution()) {
   process.exitCode = await main();
 }
