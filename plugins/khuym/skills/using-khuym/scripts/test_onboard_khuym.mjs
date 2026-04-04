@@ -12,6 +12,7 @@ import { applyRepo, checkRepo, getNodeRuntimeStatus } from "./onboard_khuym.mjs"
 import { buildKhuymDependencyReport } from "./khuym_dependencies.mjs";
 
 const LOCAL_ONBOARD_SCRIPT_PATH = fileURLToPath(new URL("./onboard_khuym.mjs", import.meta.url));
+const LOCAL_USING_KHUYM_SKILL_PATH = fileURLToPath(new URL("../SKILL.md", import.meta.url));
 
 function runSessionStartHook(root, payload = { cwd: root }) {
   const hookPath = path.join(root, ".codex", "hooks", "khuym_session_start.mjs");
@@ -265,6 +266,11 @@ test("checkRepo promotes missing dependency data into an operator-facing warning
     assert.deepEqual(warning.affected_skills, ["khuym:alpha"]);
     assert.match(warning.message, /Dependency warning:/);
     assert.match(warning.message, /khuym:alpha/);
+    assert.match(warning.message, /Missing commands: definitely-missing-command/);
+    assert.match(
+      warning.message,
+      /Missing MCP server configuration: definitely_missing_mcp_server_name/,
+    );
     assert.equal(warning.missing_commands.length, 1);
     assert.equal(warning.missing_commands[0].command, "definitely-missing-command");
     assert.equal(warning.missing_mcp_servers.length, 1);
@@ -330,6 +336,11 @@ test("onboard check JSON includes dependency warning summary when dependencies a
     assert.equal(warning.status, "warning");
     assert.match(warning.message, /Dependency warning:/);
     assert.match(warning.message, /khuym:alpha/);
+    assert.match(warning.message, /Missing commands: definitely-missing-command/);
+    assert.match(
+      warning.message,
+      /Missing MCP server configuration: definitely_missing_mcp_server_name/,
+    );
     assert.equal(warning.missing_dependencies_count, 2);
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
@@ -396,6 +407,82 @@ test("session-start hook stays quiet about dependency warnings when dependencies
     assert.doesNotMatch(context, /Dependency warning:/);
     assert.doesNotMatch(context, /Missing commands:/);
     assert.doesNotMatch(context, /Missing MCP server configuration:/);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("entry surfaces share the same missing-command vs missing-MCP wording boundary", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "khuym-onboard-"));
+
+  try {
+    applyRepo(root, false);
+    const skillsRoot = path.join(root, "plugins", "khuym", "skills");
+    const alphaDir = path.join(skillsRoot, "alpha");
+    fs.mkdirSync(alphaDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(alphaDir, "SKILL.md"),
+      [
+        "---",
+        "name: khuym:alpha",
+        "metadata:",
+        "  dependencies:",
+        "    - id: missing-cli",
+        "      kind: command",
+        "      command: definitely-missing-command",
+        "      missing_effect: unavailable",
+        "      reason: required for test",
+        "    - id: missing-server",
+        "      kind: mcp_server",
+        "      server_names: [definitely_missing_mcp_server_name]",
+        "      config_sources: [repo_codex_config, global_codex_config]",
+        "      missing_effect: degraded",
+        "      reason: required for test",
+        "---",
+        "",
+        "# alpha",
+        "",
+      ].join("\n"),
+      "utf8",
+    );
+
+    const scoutText = execFileSync("node", [path.join(root, ".codex", "khuym_status.mjs")], {
+      cwd: root,
+      encoding: "utf8",
+    });
+    assert.match(scoutText, /Missing commands:/);
+    assert.match(scoutText, /Missing MCP server configuration:/);
+    assert.match(scoutText, /definitely-missing-command/);
+    assert.match(scoutText, /definitely_missing_mcp_server_name/);
+    assert.match(scoutText, /Affects: khuym:alpha/);
+
+    const onboardPayload = JSON.parse(
+      execFileSync(
+        "node",
+        [LOCAL_ONBOARD_SCRIPT_PATH, "--repo-root", root],
+        { cwd: root, encoding: "utf8" },
+      ),
+    );
+    const onboardingWarning = onboardPayload.details.dependency_warning;
+    assert.match(onboardingWarning.message, /Missing commands: definitely-missing-command/);
+    assert.match(
+      onboardingWarning.message,
+      /Missing MCP server configuration: definitely_missing_mcp_server_name/,
+    );
+    assert.match(onboardingWarning.message, /Affected skills: khuym:alpha/);
+
+    const startupPayload = runSessionStartHook(root);
+    const startupContext = startupPayload.hookSpecificOutput.additionalContext;
+    assert.match(startupContext, /Missing commands: definitely-missing-command/);
+    assert.match(
+      startupContext,
+      /Missing MCP server configuration: definitely_missing_mcp_server_name/,
+    );
+    assert.match(startupContext, /Affected skills: khuym:alpha/);
+
+    const skillText = fs.readFileSync(LOCAL_USING_KHUYM_SKILL_PATH, "utf8");
+    assert.match(skillText, /Missing commands:/);
+    assert.match(skillText, /Missing MCP server configuration:/);
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
   }

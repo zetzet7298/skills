@@ -118,13 +118,22 @@ function buildDependencyWarningSummary(dependencyHealth) {
 
   const commandCount = missingCommands.length;
   const mcpCount = missingMcpServers.length;
+  const commandNames = uniqueSorted(missingCommands.map((dependency) => dependency.command));
+  const mcpServerNames = uniqueSorted(
+    missingMcpServers.flatMap((dependency) => dependency.servers || []),
+  );
+  const commandText = commandNames.length > 0 ? commandNames.join(", ") : "none";
+  const mcpText = mcpServerNames.length > 0 ? mcpServerNames.join(", ") : "none";
+
   return {
     status: "warning",
     message:
       `Dependency warning: ${missingDependencies.length} declared dependencies are missing ` +
       `(${commandCount} command${commandCount === 1 ? "" : "s"}, ` +
       `${mcpCount} MCP server configuration gap${mcpCount === 1 ? "" : "s"}). ` +
-      `Affected skills: ${affectedSkills.join(", ")}.`,
+      `Affected skills: ${affectedSkills.join(", ")}. ` +
+      `Missing commands: ${commandText}. ` +
+      `Missing MCP server configuration: ${mcpText}.`,
     missing_dependencies_count: missingDependencies.length,
     affected_skills: affectedSkills,
     missing_commands: missingCommands,
