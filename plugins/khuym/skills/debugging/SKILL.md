@@ -1,6 +1,25 @@
 ---
 name: khuym:debugging
 description: Systematic debugging for blocked workers, test failures, build errors, runtime crashes, and integration issues. Invoked standalone ("debug this error") or by other skills (reviewing spawns debugger on UAT failure, executing invokes it on blocker). Reads history/learnings/critical-patterns.md to avoid re-solving known issues. Writes debug notes that compounding can later capture.
+metadata:
+  ecosystem: khuym
+  dependencies:
+    - id: beads-cli
+      kind: command
+      command: br
+      missing_effect: degraded
+      reason: Debugging checks bead context and creates fix beads with br when needed.
+    - id: beads-viewer
+      kind: command
+      command: bv
+      missing_effect: degraded
+      reason: Debugging inspects blocker and cycle state with bv during stuck-worker triage.
+    - id: agent-mail
+      kind: mcp_server
+      server_names: [mcp_agent_mail]
+      config_sources: [repo_codex_config, global_codex_config]
+      missing_effect: degraded
+      reason: Debugging checks epic mail threads and reports blockers or fixes through Agent Mail.
 ---
 
 # Debugging
