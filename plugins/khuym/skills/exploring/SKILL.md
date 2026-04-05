@@ -11,6 +11,7 @@ metadata:
   version: '1.0'
   ecosystem: khuym
   position: '2 of 9 — runs after using-khuym, before planning'
+  dependencies: []
 ---
 
 # Exploring Skill

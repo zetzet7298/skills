@@ -9,6 +9,7 @@ metadata:
   version: "1.0"
   ecosystem: "khuym"
   position: "support skill — invoked on demand"
+  dependencies: []
 ---
 
 # Dream Skill
