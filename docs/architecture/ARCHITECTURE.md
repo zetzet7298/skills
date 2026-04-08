@@ -9,9 +9,9 @@ If a skill doc and this file disagree, update the skill doc to match this file.
 - The live canonical skill tree is [`plugins/khuym/skills/`](../../plugins/khuym/skills).
 - Codex consumes the packaged plugin from [`plugins/khuym/.codex-plugin/plugin.json`](../../plugins/khuym/.codex-plugin/plugin.json).
 - The repo marketplace is [`.agents/plugins/marketplace.json`](../../.agents/plugins/marketplace.json).
-- Claude compatibility metadata is still shipped from [`.claude-plugin/plugin.json`](../../.claude-plugin/plugin.json).
+- Claude compatibility metadata is shipped from [`.claude-plugin/plugin.json`](../../.claude-plugin/plugin.json).
 
-Older references to `khuym/*` are historical or compatibility language only. The canonical authoring location in this repo is `plugins/khuym/skills/*`.
+Author and maintain skills in `plugins/khuym/skills/*`; compatibility metadata should resolve back to that tree.
 
 ## Core Principles
 
@@ -113,5 +113,6 @@ Public-doc changes in this repo should pass:
 ```bash
 bash scripts/check-markdown-links.sh
 bash scripts/sync-skills.sh --dry-run
+bash scripts/sync-skills.sh --target all --dry-run
 claude plugin validate .
 ```

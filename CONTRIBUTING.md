@@ -15,7 +15,7 @@ This repository is a Codex plugin repo. The installable Codex plugin is `khuym`.
 The canonical skill directories live under [`plugins/khuym/skills/`](plugins/khuym/skills).
 
 - Codex consumes the packaged plugin under [`plugins/khuym/.codex-plugin/plugin.json`](plugins/khuym/.codex-plugin/plugin.json), with the repo marketplace defined in [`.agents/plugins/marketplace.json`](.agents/plugins/marketplace.json).
-- Claude Code can still consume raw symlinked skills from `~/.claude/skills/*/SKILL.md` or the legacy Claude plugin metadata in [`.claude-plugin/marketplace.json`](.claude-plugin/marketplace.json).
+- Claude Code consumes raw symlinked skills from `~/.claude/skills/*/SKILL.md` or the plugin metadata in [`.claude-plugin/marketplace.json`](.claude-plugin/marketplace.json).
 
 In both environments, the `description` field from the YAML frontmatter is the trigger text that determines when a skill is selected.
 
@@ -145,7 +145,7 @@ Then:
 2. Install the `khuym` plugin from that marketplace
 3. Restart Codex if the marketplace does not appear immediately
 
-Codex plugins are not installed directly from a GitHub URL. The standard flow is local clone -> local marketplace -> plugin install.
+For this repo, use the local marketplace flow: local clone -> local marketplace -> plugin install.
 
 ## Adding a Skill to This Repo
 
@@ -171,6 +171,7 @@ For repo-level verification, also run:
 
 ```bash
 bash scripts/sync-skills.sh --dry-run
+bash scripts/sync-skills.sh --target all --dry-run
 claude plugin validate .
 ```
 

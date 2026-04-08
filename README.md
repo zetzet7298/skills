@@ -139,7 +139,7 @@ The README is the top-level overview. The operational contract lives in the repo
 
 ## Install In Codex
 
-This repo now ships a Codex-standard repo marketplace in [`.agents/plugins/marketplace.json`](.agents/plugins/marketplace.json) and a packaged plugin at [`plugins/khuym/.codex-plugin/plugin.json`](plugins/khuym/.codex-plugin/plugin.json).
+Codex installation uses the repo marketplace in [`.agents/plugins/marketplace.json`](.agents/plugins/marketplace.json) and the packaged plugin at [`plugins/khuym/.codex-plugin/plugin.json`](plugins/khuym/.codex-plugin/plugin.json).
 
 ### Standard Install Flow
 
@@ -160,6 +160,12 @@ Codex plugins are installed from a local marketplace. The standard flow is:
 
 The canonical skill layout lives directly under [`plugins/khuym/skills/`](plugins/khuym/skills).
 
+If you also want the raw skill mirror for agent tooling outside the Codex plugin runtime, sync it into `~/.agents/skills`:
+
+```bash
+bash scripts/sync-skills.sh --target agents
+```
+
 ### Verify The Plugin Layout
 
 This repo follows the standard Codex plugin structure:
@@ -168,13 +174,15 @@ This repo follows the standard Codex plugin structure:
 - Plugin manifest: [`plugins/khuym/.codex-plugin/plugin.json`](plugins/khuym/.codex-plugin/plugin.json)
 - Plugin skills: [`plugins/khuym/skills/`](plugins/khuym/skills)
 
-There is no standard OpenAI-documented "install directly from a GitHub URL" flow for Codex plugins. The supported pattern is to clone the repo locally, add its marketplace, then install the plugin from that marketplace.
+For this repository, the installation flow is: clone the repo locally, add its marketplace, then install the plugin from that marketplace.
 
 ## Install In Claude Code
 
-This repo still ships a Claude Code plugin marketplace in [`.claude-plugin/marketplace.json`](.claude-plugin/marketplace.json).
+Claude Code compatibility uses the marketplace in [`.claude-plugin/marketplace.json`](.claude-plugin/marketplace.json).
 
 ### Inside Claude Code
+
+`claude plugin marketplace add` accepts a URL, path, or GitHub repo source. This repository can be added by GitHub slug:
 
 ```text
 /plugin marketplace add hoangnb24/skills
@@ -236,6 +244,7 @@ Recommended verification set:
 ```bash
 bash scripts/check-markdown-links.sh
 bash scripts/sync-skills.sh --dry-run
+bash scripts/sync-skills.sh --target all --dry-run
 claude plugin validate .
 ```
 
