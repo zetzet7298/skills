@@ -1,194 +1,192 @@
 ---
-name: khuym:gkg
+name: gkg
 description: >-
-  Codebase intelligence support skill using the gkg tool. Use when asked about codebase
-  architecture, finding files related to a feature, dependency graphs, module relationships,
-  code patterns, or when the khuym:planning skill needs an architecture snapshot during Phase 1
-  Discovery. Trigger phrases include what is the architecture, find files related to,
-  show dependency graph, what patterns does this codebase use, how is X wired.
+  Codebase intelligence support skill for Khuym using the gkg MCP tools. Use when
+  planning or discovery needs an architecture snapshot, file/definition discovery,
+  existing-pattern evidence, importer lookups, or a quick symbol trace in a
+  supported repo. Primary path: scout readiness with `node .codex/khuym_status.mjs --json`,
+  then `repo_map` plus `search_codebase_definitions` plus `read_definitions`.
 metadata:
-  version: '1.0'
+  version: "1.1"
   ecosystem: khuym
-  type: support
   dependencies:
     - id: gkg
       kind: mcp_server
       server_names: [gkg]
       config_sources: [repo_codex_config, global_codex_config, plugin_mcp_manifest]
       missing_effect: unavailable
-      reason: This skill's intelligence queries require the gkg MCP server.
+      reason: This skill depends on the gkg MCP server for codebase discovery queries.
 ---
 
-# gkg — Codebase Intelligence
+# gkg
 
-If `.khuym/onboarding.json` is missing or stale for the current repo, stop and invoke `khuym:using-khuym` before continuing.
+If `.khuym/onboarding.json` is missing or stale for the current repo, stop and invoke `khuym:using-khuym` first.
 
-## When to Use
+## Start With The Repo Scout
 
-- User asks: "What's the architecture of this project?"
-- User asks: "Find all files related to authentication"
-- User asks: "Show me the dependency graph for module X"
-- User asks: "What patterns does this codebase use?"
-- **planning** Phase 1 (Discovery) needs an architecture snapshot
-- **planning** Phase 2 (Synthesis) needs to validate approach against codebase reality
-- **exploring** Phase 2 (Gray Area) needs quick pattern confirmation
+Do not start with `which gkg` or any imagined `gkg <subcommand>` discovery flow.
 
-## Check MCP Availability First
+Run:
 
-This skill is **MCP-backed**, not CLI-backed.
-
-Before using it, confirm the `gkg` MCP server is available from one of the declared sources:
-
-- repo-local `.codex/config.toml`
-- user-level `~/.codex/config.toml`
-- packaged plugin manifest `plugins/khuym/.mcp.json`
-
-The packaged plugin manifest is the repo's built-in fallback for the expected `gkg` query tools. If none of those sources expose `gkg`, use the [Fallback Commands](#fallback-without-gkg) section below.
-
-Before doing any discovery query, check the session scout output from `node .codex/khuym_status.mjs --json`:
-
-- `supported_repo = false` means this repo is outside gkg's supported language set. Do not force it; use the fallback commands.
-- `server_reachable = false` or `project_indexed = false` means `using-khuym` must finish readiness first. Do not pretend MCP discovery is ready when it is not.
-
-Do **not** treat the local `gkg` binary as the normal discovery path for this skill. CLI commands are only for lifecycle/bootstrap readiness. Once ready, discovery work should go through MCP tools.
-
----
-
-## MCP Tool Mapping
-
-The supported MCP tool surface for `gkg` in this repo is declared in `plugins/khuym/.mcp.json`.
-
-Use these tools conceptually through the MCP server:
-
-### `list_projects` — Index Presence Check
-
-Use first when the scout says the repo should be gkg-backed. Confirms the current project exists in the index before any deeper query work.
-
-When to call: planning Phase 1 at the start of discovery, or whenever an agent suspects the scout is stale.  
-Output: note success inline, or stop and hand back to `using-khuym` readiness if the repo is missing.
-
-### `index_project` — Rebuild an Existing Project Index
-
-Use when the project is already indexed but obviously stale or incomplete.
-
-When to call: planning or validating only after `list_projects` confirms the project already exists.  
-Output: note the refresh inline, then re-run the query that needed fresh data.
-
-### `repo_map` — Architecture Snapshot
-
-Use at the **start** of any discovery phase. Produces a ranked overview of files and their relationships.
-
-When to call: planning Phase 1, first time encountering an unfamiliar codebase.  
-Output: Save to `history/<feature>/discovery.md` under the heading `## Architecture Snapshot`.
-
-### `search_codebase_definitions` + `read_definitions` — Pattern Search
-
-Search for relevant definitions, then read the strongest matches for concrete evidence.
-
-Suggested queries:
-
-- `authentication middleware`
-- `database connection pooling`
-- `error handling patterns`
-
-When to call: planning Phase 1 Agent B (pattern search), exploring Phase 2 (existing patterns check).  
-Output: Append results to `history/<feature>/discovery.md` under `## Existing Patterns`.
-
-### `get_references` + direct file read — Dependency Graph
-
-Use `get_references` to find inbound usage of a target definition, then read the file directly to confirm imports and nearby structure. The packaged MCP surface here does not expose a single `deps` command, so dependency graphs should be assembled from references plus local file inspection.
-
-Suggested targets:
-
-- `src/auth/middleware.ts`
-- `lib/db/connection.go`
-
-When to call: planning Phase 1 Agent A (constraints check), validating (verifying bead file scope isolation doesn't break deps).  
-Output: Append to `history/<feature>/discovery.md` under `## Dependency Graph`.
-
-### `get_definition` + `read_definitions` — Full File Context
-
-Resolve a definition, then read its surrounding content when a bead's file scope needs clarification.
-
-Suggested target:
-
-- `src/api/routes.ts`
-
-When to call: When a bead's file scope needs clarification, or khuym:executing skill needs to understand a file before modifying it.  
-Output: Use inline (don't always save — only save if it changes the approach).
-
----
-
-## Integration with Planning Skill
-
-The khuym:planning skill calls gkg in **Phase 1 (Discovery)** via parallel task agents:
-
-| Agent | gkg MCP tools | Output Section |
-|-------|---------------|----------------|
-| Agent A | `list_projects` -> `repo_map` | `## Architecture Snapshot` |
-| Agent B | `search_codebase_definitions` + `read_definitions` | `## Existing Patterns` |
-| Agent C | `get_references` + direct file read | `## Dependency Graph` |
-
-In **Phase 2 (Synthesis)**, the khuym:planning skill may call:
-`search_codebase_definitions` with proposed-approach keywords
-
-to confirm the approach aligns with existing patterns — not to change the plan, but to catch contradictions early.
-
-The **exploring** skill uses gkg lightly — one `search_codebase_definitions` pass at most, to check if a gray area already has an answer in code. Never deep analysis during exploring.
-
----
-
-## Output Format
-
-All gkg outputs saved to `history/<feature>/discovery.md`:
-
-```markdown
-## Architecture Snapshot
-<!-- gkg repo_map MCP output -->
-Generated: <timestamp>
-Top files by usage: <list>
-Key modules: <list>
-
-## Existing Patterns
-<!-- gkg MCP definition-search results -->
-Query: "<search-term>"
-Matches:
-- <file>: <summary> (deps: N)
-
-## Dependency Graph
-<!-- gkg MCP references + local file-read summary -->
-Target: <path or definition>
-Imported by / referenced from: <list>
-Local import scan: <list>
+```bash
+node .codex/khuym_status.mjs --json
 ```
 
-Always include:
-- File paths (absolute from project root)
-- Dependency counts where available
-- A 1-line pattern summary per result
+Use the scout output as the source of truth for this repo:
 
----
+- `gkg_readiness.supported_repo = false`: do not force gkg; use the fallback section below.
+- `gkg_readiness.server_reachable = false`: gkg is not ready for query work yet.
+- `gkg_readiness.project_indexed = false`: do not pretend MCP discovery is ready. Hand back to `khuym:using-khuym` readiness or follow the scout's `recommended_action`.
+- If readiness is green, use MCP tools for discovery. Do not switch back to a CLI-shaped discovery workflow.
 
-## Fallback Without gkg
+In this repo, readiness is exposed through the scout. Treat that as the normal operator path.
 
-If the `gkg` MCP server is not configured, the repo is unsupported, or readiness is still red, use these equivalents:
+## What Is Reliable Here
 
-| gkg MCP need | Fallback |
-|-------------|----------|
-| `repo_map` | `find . -name "*.ts" -o -name "*.go" -o -name "*.py" \| head -60` + `cat package.json` or equivalent manifest |
-| `search_codebase_definitions` | `grep -r "<query>" --include="*.ts" -l \| head -20` |
-| `get_references` + local import graph | `grep -r "<filename or symbol>" --include="*.ts" -l` + manual import scan |
-| `get_definition` / `read_definitions` | `head -50 <file>` + grep for exports |
+Use gkg as a discovery accelerator, not as a replacement for reading files.
 
-Note fallback in discovery.md: `> gkg was unavailable for this repo/session, so discovery used grep/find fallback.`
+Strong, normal-path tools in this repo:
 
----
+- `list_projects`
+- `index_project`
+- `repo_map`
+- `search_codebase_definitions`
+- `read_definitions`
 
-## Red Flags
+Helper-only tool:
 
-- **Do not skip readiness checks** — `MCP configured` is not the same as `server reachable` or `project indexed`.
-- **Do not use `index_project` for first-time indexing** — it is for refreshing an existing indexed project, not replacing `gkg index <repo-root>`.
-- **Do not use the local `gkg` CLI as the normal discovery path** — this skill is about the MCP query surface after readiness is green.
-- **Do not use gkg as a replacement for reading files** — gkg gives structural overview; actually read key files before modifying them.
-- **Do not run gkg during executing** — architecture queries belong in planning/validating. If an executing agent needs codebase context, it reads the already-generated `discovery.md`.
-- **Do not skip saving to discovery.md** — downstream agents (synthesizer, plan-checker) depend on this file.
+- `import_usage`
+
+Non-core, lower-confidence tools:
+
+- `get_references`
+- `get_definition`
+
+The practical rule is simple: use `repo_map` plus `search_codebase_definitions` plus `read_definitions` first, then fall back to local inspection whenever symbol-linking looks thin or suspicious.
+
+## Primary Discovery Path
+
+Use this path by default during Khuym planning and other codebase discovery work.
+
+### 1. `repo_map`
+
+Use first for unfamiliar areas. It is the best starting point for a compact architecture snapshot.
+
+Use it to answer:
+
+- which directories and files matter for this feature
+- which files expose the main definitions in a target area
+- how the local repo slice is shaped before deeper reads
+
+When discovery is being written down for planning, save the result or summary to `history/<feature>/discovery.md` under `## Architecture Snapshot`.
+
+### 2. `search_codebase_definitions`
+
+Use next to find candidate symbols, classes, functions, constants, or handlers related to the feature.
+
+Good uses:
+
+- find auth entry points
+- find route handlers
+- find data access helpers
+- find existing naming and pattern anchors before proposing a new approach
+
+Keep search terms concrete and code-shaped. Prefer symbol names or narrow domain phrases over prose.
+
+### 3. `read_definitions`
+
+Use immediately after `search_codebase_definitions` to read the strongest matches in full.
+
+This is the main evidence-gathering step. It is usually better than hopping file-to-file manually because it keeps discovery centered on actual definitions instead of filenames alone.
+
+When planning writes formal discovery output, summarize the findings in `history/<feature>/discovery.md` under `## Existing Patterns`.
+
+## Tool Guidance
+
+### `list_projects`
+
+Use as a light sanity check when the scout says gkg should work and you want to confirm the repo is present in the index.
+
+Do not treat this as the primary readiness check. The scout comes first.
+
+### `index_project`
+
+Use to refresh an indexed project when the index is stale or after significant repo changes.
+
+Do not use this as the first response to `project_indexed = false` in the scout unless the surrounding readiness workflow explicitly called for it. In this repo, first-time indexing is surfaced by the scout and typically handled by the scout's recommended action.
+
+### `import_usage`
+
+Use only as a helper for importer discovery.
+
+Good uses:
+
+- find who imports a package or module
+- check whether a dependency is used broadly or only in one slice
+- identify a likely entry file after a package-level search
+
+Do not use it as a general substitute for `repo_map` or `search_codebase_definitions`.
+
+### `get_references`
+
+Treat as non-core and low-confidence in this repo.
+
+Use it only when:
+
+- you already know the exact definition to inspect
+- you want a quick inbound-usage hint
+- you are prepared to verify the answer with local file reads or `rg`
+
+If it misses callers, gives a thin set, or returns ambiguous results, fall back immediately to `rg -n "<symbol>"` and nearby file inspection.
+
+### `get_definition`
+
+Treat as non-core and low-confidence in this repo.
+
+Use it only as a quick jump helper from a known call site to a likely definition. Always confirm with `read_definitions` or a direct file read before relying on it.
+
+If it cannot resolve the symbol cleanly, do not fight it. Fall back to `search_codebase_definitions`, `read_definitions`, and `rg`.
+
+## Khuym Workflow Fit
+
+Use this skill mainly during `khuym:planning` discovery work.
+
+- `repo_map` feeds the architecture snapshot.
+- `search_codebase_definitions` plus `read_definitions` feed the existing-pattern evidence.
+- `import_usage` can help confirm importer spread when that matters to the approach.
+- `get_references` and `get_definition` are optional spot tools, not the backbone of the workflow.
+
+If planning is producing `history/<feature>/discovery.md`, keep the saved output concise and evidence-based:
+
+- `## Architecture Snapshot`
+- `## Existing Patterns`
+- `## Dependency Notes` when importer or caller evidence materially affects the plan
+
+Do not dump raw tool output when a short grounded summary will do.
+
+## Practical Fallback Without gkg
+
+If the scout says gkg is unsupported or not ready, use local inspection with `rg`.
+
+Useful fallbacks:
+
+- file inventory: `rg --files`
+- narrow slice inventory: `rg --files | rg 'auth|router|db|queue'`
+- symbol search: `rg -n "MySymbol|myFunction|authMiddleware" .`
+- importer search: `rg -n "^import .*from ['\"].*target|require\\(.*target" .`
+- definition search: `rg -n "export (async )?function|class |const .*=" .`
+
+Then read the relevant files directly.
+
+If planning is writing discovery output, note the fallback plainly in `history/<feature>/discovery.md`, for example:
+
+> gkg was unavailable or not ready for this repo/session, so discovery used `rg` and direct file inspection.
+
+## Guardrails
+
+- Do not describe the workflow as `gkg repo_map`, `gkg search`, `gkg deps`, or `gkg context`. Those are not the discovery interface this repo relies on.
+- Do not skip the scout-based readiness check.
+- Do not let symbol-linking tools outrank direct file evidence.
+- Do not use `import_usage` as a general architecture mapper.
+- Do not rely on `get_references` or `get_definition` without a fallback plan.
+- Do not skip reading the actual files before code changes.
