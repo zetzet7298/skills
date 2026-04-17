@@ -2,7 +2,19 @@
 name: xia
 description: Use when the user asks to add, change, integrate, design, or evaluate a feature and the work should begin with research before implementation. Forces a repo-first discovery pass that detects the real stack from local artifacts, finds existing local functionality and extension points, checks relevant upstream GitHub repositories for reusable patterns, reviews the latest official documentation for the libraries and services involved, and produces a concise research brief before any coding starts. Skip only when the user explicitly says to bypass research.
 metadata:
-  dependencies: []
+  dependencies:
+    - id: exa
+      kind: mcp_server
+      server_names: [exa]
+      config_sources: [global_codex_config, plugin_mcp_manifest]
+      missing_effect: degraded
+      reason: Xia uses Exa to research current official documentation and recent implementation guidance.
+    - id: deepwiki
+      kind: mcp_server
+      server_names: [deepwiki]
+      config_sources: [global_codex_config, plugin_mcp_manifest]
+      missing_effect: degraded
+      reason: Xia uses DeepWiki as a best-effort upstream pattern and repository-structure research path.
 ---
 
 # Xia
