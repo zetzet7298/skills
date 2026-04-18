@@ -1,0 +1,11 @@
+{
+  "name": "khuym",
+  "description": "Khuym: validate-first multi-agent skills for Factory Droid",
+  "version": "2.4.10",
+  "author": {
+    "name": "hoangnb24"
+  },
+  "homepage": "https://github.com/hoangnb24/skills",
+  "repository": "https://github.com/hoangnb24/skills",
+  "license": "MIT"
+}
