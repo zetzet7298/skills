@@ -1,0 +1,44 @@
+{
+  "skill_name": "project-bootstrap",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Mình có một ý tưởng product mới hoàn toàn, chưa có repo. Hãy khởi tạo theo best practice trước khi đưa gì đó vào Khuym.",
+      "expected_output": "Phân loại greenfield, tạo initiative framing trước, tạo research brief, và dừng trước roadmap hoặc Khuym.",
+      "files": [],
+      "expectations": [
+        "Classifies the initiative as greenfield or says there is no meaningful brownfield repo yet.",
+        "Writes or proposes INITIATIVE.md before any roadmap or Khuym artifact.",
+        "Writes or proposes RESEARCH-BRIEF.md after initiative framing.",
+        "Does not write CONTEXT.md, phase-plan.md, or beads.",
+        "Hands off to project-roadmap instead of entering Khuym."
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Repo này là brownfield và khá lớn. Nếu cần scan sâu thì bạn tự quyết luôn, đừng hỏi thêm. Hãy làm bước khởi tạo trước Khuym.",
+      "expected_output": "Vẫn yêu cầu human chọn scan depth vì nó đổi cost/risk, sau đó tạo bootstrap artifacts thay vì nhảy vào Khuym.",
+      "files": [],
+      "expectations": [
+        "Classifies the initiative as brownfield.",
+        "Asks the human to choose scan depth instead of auto-picking it.",
+        "Presents scan depth choices such as quick seam scan, reuse map, and reuse plus risk map.",
+        "Writes or proposes INITIATIVE.md and RESEARCH-BRIEF.md.",
+        "Does not auto-enter Khuym."
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Đừng làm report dài. Chỉ research nhanh repo + upstream + docs rồi khởi tạo bước đầu cho mình trước khi vào Khuym.",
+      "expected_output": "Giữ brief ngắn nhưng vẫn tách rõ Local, Upstream, Docs, và Inference, rồi dừng ở bootstrap artifacts.",
+      "files": [],
+      "expectations": [
+        "Keeps the bootstrap output concise.",
+        "Separates Local, Upstream, Docs, and Inference explicitly.",
+        "Makes a recommendation grounded in those evidence boundaries.",
+        "Stops before roadmap generation if only bootstrap was requested.",
+        "Does not blur bootstrap work with Khuym artifacts."
+      ]
+    }
+  ]
+}
