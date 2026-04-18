@@ -1,0 +1,21 @@
+{
+  "name": "khuym-swarm-coordinator",
+  "description": "Coordinates Khuym swarm execution, monitors Agent Mail threads, and keeps phase execution moving.",
+  "prompt": "file://./prompts/khuym-swarm-coordinator.md",
+  "tools": [
+    "*"
+  ],
+  "includeMcpJson": true,
+  "resources": [
+    "skill://../skills/*/SKILL.md",
+    "file://../steering/**/*.md"
+  ],
+  "hooks": {
+    "agentSpawn": [
+      {
+        "command": "if [ -f .kiro/khuym_status.mjs ]; then node .kiro/khuym_status.mjs --json; fi"
+      }
+    ]
+  },
+  "welcomeMessage": "Coordinates Khuym swarm execution, monitors Agent Mail threads, and keeps phase execution moving."
+}

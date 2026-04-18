@@ -1,0 +1,61 @@
+{
+  "skill_name": "setup-khuym",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Tôi muốn dùng Khuym trong Codex cho repo này thôi. Hãy cài theo scope hợp lý nhất rồi nói bước tiếp theo để bắt đầu workflow.",
+      "expected_output": "Chọn Codex, dùng template có cấu trúc rõ ràng, giải thích local marketplace flow, tách riêng install scope với repo onboarding scope, rồi handoff sang using-khuym.",
+      "files": [],
+      "expectations": [
+        "Chooses Codex as the platform for this request.",
+        "Uses the top-level headings Chosen platform, Chosen scope, Install steps, and Bootstrap next step.",
+        "Explicitly states both install scope and repo onboarding scope.",
+        "Explains the boundary between platform install and repo onboarding.",
+        "Includes the local Codex marketplace flow or marketplace path.",
+        "Tells the user to start with using-khuym after install."
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Mình đang phân vân giữa Kiro và Factory Droid để dùng Khuym cho một repo nội bộ. Hãy chọn platform phù hợp hơn và nói rõ project/workspace/global khác nhau thế nào.",
+      "expected_output": "So sánh Kiro với Factory Droid, khuyến nghị Kiro cho một repo, dùng template có cấu trúc rõ ràng, và nêu riêng install scope với repo onboarding scope cùng lệnh cài Kiro workspace.",
+      "files": [],
+      "expectations": [
+        "Recommends Kiro for the single-repo scenario.",
+        "Uses the top-level headings Chosen platform, Chosen scope, Install steps, and Bootstrap next step.",
+        "Explicitly states both install scope and repo onboarding scope.",
+        "Explains the difference between workspace and global scope, or project/workspace/global.",
+        "Explains the boundary between platform install and repo onboarding.",
+        "Includes the Kiro workspace install command with install_khuym_kiro.mjs."
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Cài Khuym cho tôi trên cả Codex, Factory Droid và Kiro. Sau đó chỉ luôn bước bootstrap để tôi đi vào full workflow.",
+      "expected_output": "Chia thành 3 phần theo platform dưới Install steps, có top-level template rõ ràng, nêu đúng lệnh hoặc UI path cho từng cái, rồi kết thúc bằng handoff sang using-khuym và full workflow routing.",
+      "files": [],
+      "expectations": [
+        "Covers all three platforms: Codex, Factory Droid, and Kiro.",
+        "Uses the top-level headings Chosen platform, Chosen scope, Install steps, and Bootstrap next step.",
+        "Uses nested platform sections for Codex, Factory Droid, and Kiro inside Install steps.",
+        "Includes concrete install instructions for each platform.",
+        "Tells the user the next bootstrap step is using-khuym.",
+        "Mentions the full Khuym workflow chain after bootstrap."
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Mình đang chọn giữa Kiro và Codex cho một repo nội bộ. Chưa cần cài gì cả, chỉ chọn giúp platform hợp hơn cho 1 repo và giải thích scope ngắn gọn.",
+      "expected_output": "Khuyến nghị Kiro cho một repo, dùng mode recommendation-only với Chosen platform + Chosen scope, giải thích workspace/global và repo onboarding scope, rồi dừng lại mà không đưa lệnh cài hay handoff bootstrap.",
+      "files": [],
+      "expectations": [
+        "Recommends Kiro for a single-repo recommendation-only request.",
+        "Uses the top-level headings Chosen platform and Chosen scope.",
+        "Does not include Install steps or Bootstrap next step headings.",
+        "Explains workspace/global scope and repo onboarding scope.",
+        "Does not include install commands or marketplace commands.",
+        "Does not hand off to using-khuym because install was not requested."
+      ]
+    }
+  ]
+}

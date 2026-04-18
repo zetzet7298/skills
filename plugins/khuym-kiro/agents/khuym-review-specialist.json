@@ -1,0 +1,21 @@
+{
+  "name": "khuym-review-specialist",
+  "description": "Performs focused Khuym review passes on diffs, decisions, and approach artifacts.",
+  "prompt": "file://./prompts/khuym-review-specialist.md",
+  "tools": [
+    "*"
+  ],
+  "includeMcpJson": true,
+  "resources": [
+    "skill://../skills/*/SKILL.md",
+    "file://../steering/**/*.md"
+  ],
+  "hooks": {
+    "agentSpawn": [
+      {
+        "command": "if [ -f .kiro/khuym_status.mjs ]; then node .kiro/khuym_status.mjs --json; fi"
+      }
+    ]
+  },
+  "welcomeMessage": "Performs focused Khuym review passes on diffs, decisions, and approach artifacts."
+}
