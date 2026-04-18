@@ -1,8 +1,8 @@
 {
   "mcpServers": {
     "gkg": {
-      "type": "sse",
-      "url": "http://localhost:27495/mcp/sse",
+      "type": "http",
+      "url": "http://localhost:27495/mcp",
       "includeTools": [
         "list_projects",
         "index_project",
@@ -18,6 +18,23 @@
       "command": "docker",
       "args": ["mcp", "gateway", "run"],
       "includeTools": ["resolve-library-id", "get-library-docs", "web_search_exa"]
+    },
+    "exa": {
+      "type": "http",
+      "url": "https://mcp.exa.ai/mcp",
+      "includeTools": [
+        "web_search_exa",
+        "web_fetch_exa"
+      ]
+    },
+    "deepwiki": {
+      "type": "http",
+      "url": "https://mcp.deepwiki.com/mcp",
+      "includeTools": [
+        "read_wiki_structure",
+        "read_wiki_contents",
+        "ask_question"
+      ]
     },
     "morph-mcp": {
       "type": "stdio",
