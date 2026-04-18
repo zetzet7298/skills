@@ -1,0 +1,487 @@
+{
+  "metadata": {
+    "skill_name": "setup-khuym",
+    "skill_path": "<path/to/skill>",
+    "executor_model": "<model-name>",
+    "analyzer_model": "<model-name>",
+    "timestamp": "2026-04-18T05:00:12Z",
+    "evals_run": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "runs_per_configuration": 3
+  },
+  "runs": [
+    {
+      "eval_id": 1,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 0.0,
+        "tokens": 1473,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Chooses Codex as the platform for this request.",
+          "passed": true,
+          "evidence": "Found # Chosen platform with Codex."
+        },
+        {
+          "text": "Uses the top-level headings Chosen platform, Chosen scope, Install steps, and Bootstrap next step.",
+          "passed": true,
+          "evidence": "Found all four exact top-level headings."
+        },
+        {
+          "text": "Explicitly states both install scope and repo onboarding scope.",
+          "passed": true,
+          "evidence": "Found both exact phrases."
+        },
+        {
+          "text": "Explains the boundary between platform install and repo onboarding.",
+          "passed": true,
+          "evidence": "Found explicit install/onboarding boundary language."
+        },
+        {
+          "text": "Includes the local Codex marketplace flow or marketplace path.",
+          "passed": true,
+          "evidence": "Found Codex marketplace reference."
+        },
+        {
+          "text": "Tells the user to start with using-khuym after install.",
+          "passed": true,
+          "evidence": "Found using-khuym handoff."
+        }
+      ],
+      "notes": [
+        "Task notification did not expose duration metadata in this environment.",
+        "Token count is approximated from response.md character length.",
+        "Used deterministic heuristic grading against response.md content."
+      ]
+    },
+    {
+      "eval_id": 2,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 0.0,
+        "tokens": 1505,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Recommends Kiro for the single-repo scenario.",
+          "passed": true,
+          "evidence": "Found Kiro recommendation."
+        },
+        {
+          "text": "Uses the top-level headings Chosen platform, Chosen scope, Install steps, and Bootstrap next step.",
+          "passed": true,
+          "evidence": "Found all four exact top-level headings."
+        },
+        {
+          "text": "Explicitly states both install scope and repo onboarding scope.",
+          "passed": true,
+          "evidence": "Found both exact phrases."
+        },
+        {
+          "text": "Explains the difference between workspace and global scope, or project/workspace/global.",
+          "passed": true,
+          "evidence": "Found project/workspace/global scope comparison."
+        },
+        {
+          "text": "Explains the boundary between platform install and repo onboarding.",
+          "passed": true,
+          "evidence": "Found explicit install/onboarding boundary language."
+        },
+        {
+          "text": "Includes the Kiro workspace install command with install_khuym_kiro.mjs.",
+          "passed": true,
+          "evidence": "Found Kiro workspace install command."
+        }
+      ],
+      "notes": [
+        "Task notification did not expose duration metadata in this environment.",
+        "Token count is approximated from response.md character length.",
+        "Used deterministic heuristic grading against response.md content."
+      ]
+    },
+    {
+      "eval_id": 3,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 0.0,
+        "tokens": 2298,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Covers all three platforms: Codex, Factory Droid, and Kiro.",
+          "passed": true,
+          "evidence": "Found Codex, Factory Droid, and Kiro."
+        },
+        {
+          "text": "Uses the top-level headings Chosen platform, Chosen scope, Install steps, and Bootstrap next step.",
+          "passed": true,
+          "evidence": "Found all four exact top-level headings."
+        },
+        {
+          "text": "Uses nested platform sections for Codex, Factory Droid, and Kiro inside Install steps.",
+          "passed": true,
+          "evidence": "Found exact nested platform sections inside # Install steps."
+        },
+        {
+          "text": "Includes concrete install instructions for each platform.",
+          "passed": true,
+          "evidence": "Found concrete Codex, Droid, and Kiro install instructions."
+        },
+        {
+          "text": "Tells the user the next bootstrap step is using-khuym.",
+          "passed": true,
+          "evidence": "Found using-khuym handoff."
+        },
+        {
+          "text": "Mentions the full Khuym workflow chain after bootstrap.",
+          "passed": true,
+          "evidence": "Found the full workflow chain."
+        }
+      ],
+      "notes": [
+        "Task notification did not expose duration metadata in this environment.",
+        "Token count is approximated from response.md character length.",
+        "Used deterministic heuristic grading against response.md content."
+      ]
+    },
+    {
+      "eval_id": 4,
+      "configuration": "with_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 0.0,
+        "tokens": 982,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Recommends Kiro for a single-repo recommendation-only request.",
+          "passed": true,
+          "evidence": "Found Kiro recommendation in recommendation-only mode."
+        },
+        {
+          "text": "Uses the top-level headings Chosen platform and Chosen scope.",
+          "passed": true,
+          "evidence": "Found # Chosen platform and # Chosen scope."
+        },
+        {
+          "text": "Does not include Install steps or Bootstrap next step headings.",
+          "passed": true,
+          "evidence": "No install/bootstrap headings present."
+        },
+        {
+          "text": "Explains workspace/global scope and repo onboarding scope.",
+          "passed": true,
+          "evidence": "Found workspace/global discussion plus repo onboarding scope."
+        },
+        {
+          "text": "Does not include install commands or marketplace commands.",
+          "passed": true,
+          "evidence": "No install or marketplace commands were included."
+        },
+        {
+          "text": "Does not hand off to using-khuym because install was not requested.",
+          "passed": true,
+          "evidence": "No using-khuym handoff present."
+        }
+      ],
+      "notes": [
+        "Task notification did not expose duration metadata in this environment.",
+        "Token count is approximated from response.md character length.",
+        "Used deterministic heuristic grading against response.md content."
+      ]
+    },
+    {
+      "eval_id": 1,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 0.0,
+        "tokens": 1473,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Chooses Codex as the platform for this request.",
+          "passed": true,
+          "evidence": "Found # Chosen platform with Codex."
+        },
+        {
+          "text": "Uses the top-level headings Chosen platform, Chosen scope, Install steps, and Bootstrap next step.",
+          "passed": true,
+          "evidence": "Found all four exact top-level headings."
+        },
+        {
+          "text": "Explicitly states both install scope and repo onboarding scope.",
+          "passed": true,
+          "evidence": "Found both exact phrases."
+        },
+        {
+          "text": "Explains the boundary between platform install and repo onboarding.",
+          "passed": true,
+          "evidence": "Found explicit install/onboarding boundary language."
+        },
+        {
+          "text": "Includes the local Codex marketplace flow or marketplace path.",
+          "passed": true,
+          "evidence": "Found Codex marketplace reference."
+        },
+        {
+          "text": "Tells the user to start with using-khuym after install.",
+          "passed": true,
+          "evidence": "Found using-khuym handoff."
+        }
+      ],
+      "notes": [
+        "Task notification did not expose duration metadata in this environment.",
+        "Token count is approximated from response.md character length.",
+        "Used deterministic heuristic grading against response.md content."
+      ]
+    },
+    {
+      "eval_id": 2,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.8333,
+        "passed": 5,
+        "failed": 1,
+        "total": 6,
+        "time_seconds": 0.0,
+        "tokens": 1644,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Recommends Kiro for the single-repo scenario.",
+          "passed": true,
+          "evidence": "Found Kiro recommendation."
+        },
+        {
+          "text": "Uses the top-level headings Chosen platform, Chosen scope, Install steps, and Bootstrap next step.",
+          "passed": true,
+          "evidence": "Found all four exact top-level headings."
+        },
+        {
+          "text": "Explicitly states both install scope and repo onboarding scope.",
+          "passed": true,
+          "evidence": "Found both exact phrases."
+        },
+        {
+          "text": "Explains the difference between workspace and global scope, or project/workspace/global.",
+          "passed": true,
+          "evidence": "Found project/workspace/global scope comparison."
+        },
+        {
+          "text": "Explains the boundary between platform install and repo onboarding.",
+          "passed": false,
+          "evidence": "Did not find a clear install/onboarding boundary explanation."
+        },
+        {
+          "text": "Includes the Kiro workspace install command with install_khuym_kiro.mjs.",
+          "passed": true,
+          "evidence": "Found Kiro workspace install command."
+        }
+      ],
+      "notes": [
+        "Task notification did not expose duration metadata in this environment.",
+        "Token count is approximated from response.md character length.",
+        "Used deterministic heuristic grading against response.md content."
+      ]
+    },
+    {
+      "eval_id": 3,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 0.0,
+        "tokens": 1823,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Covers all three platforms: Codex, Factory Droid, and Kiro.",
+          "passed": true,
+          "evidence": "Found Codex, Factory Droid, and Kiro."
+        },
+        {
+          "text": "Uses the top-level headings Chosen platform, Chosen scope, Install steps, and Bootstrap next step.",
+          "passed": true,
+          "evidence": "Found all four exact top-level headings."
+        },
+        {
+          "text": "Uses nested platform sections for Codex, Factory Droid, and Kiro inside Install steps.",
+          "passed": true,
+          "evidence": "Found exact nested platform sections inside # Install steps."
+        },
+        {
+          "text": "Includes concrete install instructions for each platform.",
+          "passed": true,
+          "evidence": "Found concrete Codex, Droid, and Kiro install instructions."
+        },
+        {
+          "text": "Tells the user the next bootstrap step is using-khuym.",
+          "passed": true,
+          "evidence": "Found using-khuym handoff."
+        },
+        {
+          "text": "Mentions the full Khuym workflow chain after bootstrap.",
+          "passed": true,
+          "evidence": "Found the full workflow chain."
+        }
+      ],
+      "notes": [
+        "Task notification did not expose duration metadata in this environment.",
+        "Token count is approximated from response.md character length.",
+        "Used deterministic heuristic grading against response.md content."
+      ]
+    },
+    {
+      "eval_id": 4,
+      "configuration": "without_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.5,
+        "passed": 3,
+        "failed": 3,
+        "total": 6,
+        "time_seconds": 0.0,
+        "tokens": 892,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "text": "Recommends Kiro for a single-repo recommendation-only request.",
+          "passed": true,
+          "evidence": "Found Kiro recommendation in recommendation-only mode."
+        },
+        {
+          "text": "Uses the top-level headings Chosen platform and Chosen scope.",
+          "passed": false,
+          "evidence": "Missing one or both recommendation-only headings."
+        },
+        {
+          "text": "Does not include Install steps or Bootstrap next step headings.",
+          "passed": true,
+          "evidence": "No install/bootstrap headings present."
+        },
+        {
+          "text": "Explains workspace/global scope and repo onboarding scope.",
+          "passed": false,
+          "evidence": "Missing workspace/global or repo onboarding explanation."
+        },
+        {
+          "text": "Does not include install commands or marketplace commands.",
+          "passed": false,
+          "evidence": "Recommendation-only output included install or marketplace commands."
+        },
+        {
+          "text": "Does not hand off to using-khuym because install was not requested.",
+          "passed": true,
+          "evidence": "No using-khuym handoff present."
+        }
+      ],
+      "notes": [
+        "Task notification did not expose duration metadata in this environment.",
+        "Token count is approximated from response.md character length.",
+        "Used deterministic heuristic grading against response.md content."
+      ]
+    }
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": {
+        "mean": 1.0,
+        "stddev": 0.0,
+        "min": 1.0,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0.0,
+        "max": 0.0
+      },
+      "tokens": {
+        "mean": 1564.5,
+        "stddev": 544.4389,
+        "min": 982,
+        "max": 2298
+      }
+    },
+    "without_skill": {
+      "pass_rate": {
+        "mean": 0.8333,
+        "stddev": 0.2357,
+        "min": 0.5,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 0.0,
+        "stddev": 0.0,
+        "min": 0.0,
+        "max": 0.0
+      },
+      "tokens": {
+        "mean": 1458.0,
+        "stddev": 403.4856,
+        "min": 892,
+        "max": 1823
+      }
+    },
+    "delta": {
+      "pass_rate": "+0.17",
+      "time_seconds": "+0.0",
+      "tokens": "+106"
+    }
+  },
+  "notes": [
+    "The new recommendation-only eval is strongly discriminating: the skill stays in decision mode, while the baseline drifts into Codex-first advice and misses the repo-onboarding scope explanation.",
+    "Eval 1 is still non-discriminating because both configurations already know how to produce a structured Codex install answer for a direct single-platform request.",
+    "Eval 3 is now non-discriminating as well: both configurations produced the required all-platform install structure and workflow handoff.",
+    "Iteration 3 improved behavioral coverage more than raw delta: it now measures whether the assistant can stop at recommendation-only scope instead of always jumping into installation steps."
+  ]
+}

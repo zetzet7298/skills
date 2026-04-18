@@ -1,0 +1,62 @@
+{
+  "expectations": [
+    {
+      "text": "Recommends Kiro for a single-repo recommendation-only request.",
+      "passed": true,
+      "evidence": "Found Kiro recommendation in recommendation-only mode."
+    },
+    {
+      "text": "Uses the top-level headings Chosen platform and Chosen scope.",
+      "passed": false,
+      "evidence": "Missing one or both recommendation-only headings."
+    },
+    {
+      "text": "Does not include Install steps or Bootstrap next step headings.",
+      "passed": true,
+      "evidence": "No install/bootstrap headings present."
+    },
+    {
+      "text": "Explains workspace/global scope and repo onboarding scope.",
+      "passed": false,
+      "evidence": "Missing workspace/global or repo onboarding explanation."
+    },
+    {
+      "text": "Does not include install commands or marketplace commands.",
+      "passed": false,
+      "evidence": "Recommendation-only output included install or marketplace commands."
+    },
+    {
+      "text": "Does not hand off to using-khuym because install was not requested.",
+      "passed": true,
+      "evidence": "No using-khuym handoff present."
+    }
+  ],
+  "summary": {
+    "passed": 3,
+    "failed": 3,
+    "total": 6,
+    "pass_rate": 0.5
+  },
+  "execution_metrics": {
+    "tool_calls": {},
+    "total_tool_calls": 0,
+    "total_steps": 1,
+    "errors_encountered": 0,
+    "output_chars": 892,
+    "transcript_chars": 0
+  },
+  "timing": {
+    "total_duration_seconds": 0.0
+  },
+  "claims": [],
+  "user_notes_summary": {
+    "uncertainties": [
+      "Task notification did not expose duration metadata in this environment.",
+      "Token count is approximated from response.md character length."
+    ],
+    "needs_review": [],
+    "workarounds": [
+      "Used deterministic heuristic grading against response.md content."
+    ]
+  }
+}

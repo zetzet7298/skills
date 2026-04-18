@@ -1,0 +1,32 @@
+{
+  "eval_id": 1,
+  "eval_name": "codex-single-repo-install",
+  "prompt": "Tôi muốn dùng Khuym trong Codex cho repo này thôi. Hãy cài theo scope hợp lý nhất rồi nói bước tiếp theo để bắt đầu workflow.",
+  "expected_output": "Chọn Codex, dùng template có cấu trúc rõ ràng, giải thích local marketplace flow, tách riêng install scope với repo onboarding scope, rồi handoff sang using-khuym.",
+  "assertions": [
+    {
+      "text": "Chooses Codex as the platform for this request.",
+      "type": "heuristic"
+    },
+    {
+      "text": "Uses the top-level headings Chosen platform, Chosen scope, Install steps, and Bootstrap next step.",
+      "type": "heuristic"
+    },
+    {
+      "text": "Explicitly states both install scope and repo onboarding scope.",
+      "type": "heuristic"
+    },
+    {
+      "text": "Explains the boundary between platform install and repo onboarding.",
+      "type": "heuristic"
+    },
+    {
+      "text": "Includes the local Codex marketplace flow or marketplace path.",
+      "type": "heuristic"
+    },
+    {
+      "text": "Tells the user to start with using-khuym after install.",
+      "type": "heuristic"
+    }
+  ]
+}

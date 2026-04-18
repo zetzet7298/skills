@@ -1,0 +1,24 @@
+{
+  "eval_id": 2,
+  "eval_name": "kiro-vs-droid-single-repo-choice",
+  "prompt": "Mình đang phân vân giữa Kiro và Factory Droid để dùng Khuym cho một repo nội bộ. Hãy chọn platform phù hợp hơn và nói rõ project/workspace/global khác nhau thế nào.",
+  "expected_output": "So sánh Kiro với Factory Droid, đưa ra khuyến nghị rõ ràng cho một repo, giải thích boundary giữa platform install và repo onboarding, và nêu đúng install path cho platform được chọn.",
+  "assertions": [
+    {
+      "text": "Recommends Kiro for the single-repo scenario.",
+      "type": "heuristic"
+    },
+    {
+      "text": "Explains the difference between workspace and global scope, or project/workspace/global.",
+      "type": "heuristic"
+    },
+    {
+      "text": "Explains the boundary between platform install and repo onboarding.",
+      "type": "heuristic"
+    },
+    {
+      "text": "Includes the Kiro workspace install command with install_khuym_kiro.mjs.",
+      "type": "heuristic"
+    }
+  ]
+}

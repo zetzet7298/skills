@@ -1,0 +1,32 @@
+{
+  "eval_id": 3,
+  "eval_name": "all-platforms-full-route",
+  "prompt": "Cài Khuym cho tôi trên cả Codex, Factory Droid và Kiro. Sau đó chỉ luôn bước bootstrap để tôi đi vào full workflow.",
+  "expected_output": "Chia thành 3 phần theo platform dưới Install steps, có top-level template rõ ràng, nêu đúng lệnh hoặc UI path cho từng cái, rồi kết thúc bằng handoff sang using-khuym và full workflow routing.",
+  "assertions": [
+    {
+      "text": "Covers all three platforms: Codex, Factory Droid, and Kiro.",
+      "type": "heuristic"
+    },
+    {
+      "text": "Uses the top-level headings Chosen platform, Chosen scope, Install steps, and Bootstrap next step.",
+      "type": "heuristic"
+    },
+    {
+      "text": "Uses nested platform sections for Codex, Factory Droid, and Kiro inside Install steps.",
+      "type": "heuristic"
+    },
+    {
+      "text": "Includes concrete install instructions for each platform.",
+      "type": "heuristic"
+    },
+    {
+      "text": "Tells the user the next bootstrap step is using-khuym.",
+      "type": "heuristic"
+    },
+    {
+      "text": "Mentions the full Khuym workflow chain after bootstrap.",
+      "type": "heuristic"
+    }
+  ]
+}

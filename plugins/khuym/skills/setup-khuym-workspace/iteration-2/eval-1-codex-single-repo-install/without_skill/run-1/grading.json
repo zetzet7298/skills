@@ -1,0 +1,62 @@
+{
+  "expectations": [
+    {
+      "text": "Chooses Codex as the platform for this request.",
+      "passed": true,
+      "evidence": "Found # Chosen platform with Codex."
+    },
+    {
+      "text": "Uses the top-level headings Chosen platform, Chosen scope, Install steps, and Bootstrap next step.",
+      "passed": true,
+      "evidence": "Found all four exact top-level headings."
+    },
+    {
+      "text": "Explicitly states both install scope and repo onboarding scope.",
+      "passed": true,
+      "evidence": "Found both exact phrases."
+    },
+    {
+      "text": "Explains the boundary between platform install and repo onboarding.",
+      "passed": true,
+      "evidence": "Found explicit install/onboarding boundary language."
+    },
+    {
+      "text": "Includes the local Codex marketplace flow or marketplace path.",
+      "passed": true,
+      "evidence": "Found Codex marketplace reference."
+    },
+    {
+      "text": "Tells the user to start with using-khuym after install.",
+      "passed": true,
+      "evidence": "Found using-khuym handoff."
+    }
+  ],
+  "summary": {
+    "passed": 6,
+    "failed": 0,
+    "total": 6,
+    "pass_rate": 1.0
+  },
+  "execution_metrics": {
+    "tool_calls": {},
+    "total_tool_calls": 0,
+    "total_steps": 1,
+    "errors_encountered": 0,
+    "output_chars": 1345,
+    "transcript_chars": 0
+  },
+  "timing": {
+    "total_duration_seconds": 0.0
+  },
+  "claims": [],
+  "user_notes_summary": {
+    "uncertainties": [
+      "Task notification did not expose duration metadata in this environment.",
+      "Token count is approximated from response.md character length."
+    ],
+    "needs_review": [],
+    "workarounds": [
+      "Used deterministic heuristic grading against response.md content."
+    ]
+  }
+}
