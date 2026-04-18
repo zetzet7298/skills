@@ -1,0 +1,44 @@
+{
+  "skill_name": "project-roadmap",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "INITIATIVE.md và RESEARCH-BRIEF.md đã xong. Có 2 hướng khả thi, nhưng mình không muốn phân tích lan man. Hãy làm bước roadmap trước khi vào Khuym.",
+      "expected_output": "So sánh các hướng đủ ngắn nhưng explicit, chọn lightest credible path, rồi mới viết roadmap.",
+      "files": [],
+      "expectations": [
+        "Compares at least two viable paths before choosing one.",
+        "Names the chosen path and why it won.",
+        "Explains why the next-best alternative lost.",
+        "Writes or proposes ROADMAP.md.",
+        "Does not jump straight into Khuym artifacts."
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Roadmap nhìn khá rõ rồi. Nếu best practice thì làm luôn cho trọn flow giúp mình.",
+      "expected_output": "Vẫn dừng ở ROADMAP.md plus KHUYM-HANDOFF.md và yêu cầu vào Khuym explicit, không tự viết CONTEXT.md.",
+      "files": [],
+      "expectations": [
+        "Stops at ROADMAP.md and KHUYM-HANDOFF.md.",
+        "Explicitly tells the user to invoke khuym:exploring next.",
+        "Does not write or propose CONTEXT.md from this skill.",
+        "Does not write phase-plan.md or beads.",
+        "Keeps the roadmap boundary separate from Khuym."
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Tạo handoff thật rõ để team có thể bắt đầu Khuym ở lát cắt đầu tiên ngay sau đó.",
+      "expected_output": "Sinh handoff nêu rõ first slice, feature slug, repo surfaces, questions for exploring, và risks còn mở.",
+      "files": [],
+      "expectations": [
+        "Writes or proposes KHUYM-HANDOFF.md.",
+        "Names a recommended first slice.",
+        "Includes a suggested feature slug.",
+        "Lists repo surfaces to inspect first.",
+        "Lists questions for khuym:exploring to lock."
+      ]
+    }
+  ]
+}
