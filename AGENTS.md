@@ -1,5 +1,10 @@
 ## MCP Agent Mail — Multi-Agent Coordination
 
+## Repo Upstream Note
+
+This repository is a fork of `https://github.com/hoangnb24/skills`.
+When the user asks to "pull remote changes" or "pull upstream", check that upstream source even if `origin` is already up to date.
+
 A mail-like layer that lets coding agents coordinate asynchronously via MCP tools and resources. Provides identities, inbox/outbox, searchable threads, and advisory file reservations with human-auditable artifacts in Git.
 
 ### Why It's Useful

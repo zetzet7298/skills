@@ -1,0 +1,15 @@
+{
+  "name": "khuym-skills",
+  "description": "Khuym plugins for Factory Droid",
+  "owner": {
+    "name": "hoangnb24"
+  },
+  "plugins": [
+    {
+      "name": "khuym",
+      "description": "Validate-first multi-agent Khuym workflow for Factory Droid",
+      "source": "./plugins/khuym-droid",
+      "category": "Productivity"
+    }
+  ]
+}

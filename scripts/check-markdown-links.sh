@@ -22,6 +22,7 @@ targets = [
 targets.extend(sorted((repo_root / "docs" / "examples").rglob("*.md")))
 targets.extend(sorted((repo_root / "docs" / "legal").rglob("*.md")))
 targets.extend(sorted((repo_root / "plugins" / "khuym").rglob("*.md")))
+targets.extend(sorted((repo_root / "plugins" / "khuym-droid").rglob("*.md")))
 
 link_pattern = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
 abs_local_pattern = re.compile(r"^(?:/Users/|/home/|file://)")
