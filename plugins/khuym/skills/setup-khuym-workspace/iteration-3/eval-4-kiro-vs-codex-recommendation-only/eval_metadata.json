@@ -1,0 +1,32 @@
+{
+  "eval_id": 4,
+  "eval_name": "kiro-vs-codex-recommendation-only",
+  "prompt": "Mình đang chọn giữa Kiro và Codex cho một repo nội bộ. Chưa cần cài gì cả, chỉ chọn giúp platform hợp hơn cho 1 repo và giải thích scope ngắn gọn.",
+  "expected_output": "Khuyến nghị Kiro cho một repo, dùng mode recommendation-only với Chosen platform + Chosen scope, giải thích workspace/global và repo onboarding scope, rồi dừng lại mà không đưa lệnh cài hay handoff bootstrap.",
+  "assertions": [
+    {
+      "text": "Recommends Kiro for a single-repo recommendation-only request.",
+      "type": "heuristic"
+    },
+    {
+      "text": "Uses the top-level headings Chosen platform and Chosen scope.",
+      "type": "heuristic"
+    },
+    {
+      "text": "Does not include Install steps or Bootstrap next step headings.",
+      "type": "heuristic"
+    },
+    {
+      "text": "Explains workspace/global scope and repo onboarding scope.",
+      "type": "heuristic"
+    },
+    {
+      "text": "Does not include install commands or marketplace commands.",
+      "type": "heuristic"
+    },
+    {
+      "text": "Does not hand off to using-khuym because install was not requested.",
+      "type": "heuristic"
+    }
+  ]
+}

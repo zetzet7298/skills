@@ -1,0 +1,1325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eval Review</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600&family=Lora:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js" integrity="sha384-EnyY0/GSHQGSxSgMwaIPzSESbqoOLSexfnSMN2AP+39Ckmn92stwABZynq1JyzdT" crossorigin="anonymous"></script>
+  <style>
+    :root {
+      --bg: #faf9f5;
+      --surface: #ffffff;
+      --border: #e8e6dc;
+      --text: #141413;
+      --text-muted: #b0aea5;
+      --accent: #d97757;
+      --accent-hover: #c4613f;
+      --green: #788c5d;
+      --green-bg: #eef2e8;
+      --red: #c44;
+      --red-bg: #fceaea;
+      --header-bg: #141413;
+      --header-text: #faf9f5;
+      --radius: 6px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Lora', Georgia, serif;
+      background: var(--bg);
+      color: var(--text);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ---- Header ---- */
+    .header {
+      background: var(--header-bg);
+      color: var(--header-text);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .header h1 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+    .header .instructions {
+      font-size: 0.8rem;
+      opacity: 0.7;
+      margin-top: 0.25rem;
+    }
+    .header .progress {
+      font-size: 0.875rem;
+      opacity: 0.8;
+      text-align: right;
+    }
+
+    /* ---- Main content ---- */
+    .main {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    /* ---- Sections ---- */
+    .section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      flex-shrink: 0;
+    }
+    .section-header {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.75rem 1rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+    }
+    .section-body {
+      padding: 1rem;
+    }
+
+    /* ---- Config badge ---- */
+    .config-badge {
+      display: inline-block;
+      padding: 0.2rem 0.625rem;
+      border-radius: 9999px;
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin-left: 0.75rem;
+      vertical-align: middle;
+    }
+    .config-badge.config-primary {
+      background: rgba(33, 150, 243, 0.12);
+      color: #1976d2;
+    }
+    .config-badge.config-baseline {
+      background: rgba(255, 193, 7, 0.15);
+      color: #f57f17;
+    }
+
+    /* ---- Prompt ---- */
+    .prompt-text {
+      white-space: pre-wrap;
+      font-size: 0.9375rem;
+      line-height: 1.6;
+    }
+
+    /* ---- Outputs ---- */
+    .output-file {
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .output-file + .output-file {
+      margin-top: 1rem;
+    }
+    .output-file-header {
+      padding: 0.5rem 0.75rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      font-family: 'SF Mono', SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .output-file-header .dl-btn {
+      font-size: 0.7rem;
+      color: var(--accent);
+      text-decoration: none;
+      cursor: pointer;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-weight: 500;
+      opacity: 0.8;
+    }
+    .output-file-header .dl-btn:hover {
+      opacity: 1;
+      text-decoration: underline;
+    }
+    .output-file-content {
+      padding: 0.75rem;
+      overflow-x: auto;
+    }
+    .output-file-content pre {
+      font-size: 0.8125rem;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-family: 'SF Mono', SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
+    }
+    .output-file-content img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 4px;
+    }
+    .output-file-content iframe {
+      width: 100%;
+      height: 600px;
+      border: none;
+    }
+    .output-file-content table {
+      border-collapse: collapse;
+      font-size: 0.8125rem;
+      width: 100%;
+    }
+    .output-file-content table td,
+    .output-file-content table th {
+      border: 1px solid var(--border);
+      padding: 0.375rem 0.5rem;
+      text-align: left;
+    }
+    .output-file-content table th {
+      background: var(--bg);
+      font-weight: 600;
+    }
+    .output-file-content .download-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 0.875rem;
+      cursor: pointer;
+    }
+    .output-file-content .download-link:hover {
+      background: var(--border);
+    }
+    .empty-state {
+      color: var(--text-muted);
+      font-style: italic;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    /* ---- Feedback ---- */
+    .prev-feedback {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.625rem 0.75rem;
+      margin-top: 0.75rem;
+      font-size: 0.8125rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    .prev-feedback-label {
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.25rem;
+      color: var(--text-muted);
+    }
+    .feedback-textarea {
+      width: 100%;
+      min-height: 100px;
+      padding: 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 0.9375rem;
+      line-height: 1.5;
+      resize: vertical;
+      color: var(--text);
+    }
+    .feedback-textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+    .feedback-status {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+      min-height: 1.1em;
+    }
+
+    /* ---- Grades (collapsible) ---- */
+    .grades-toggle {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      user-select: none;
+    }
+    .grades-toggle:hover {
+      color: var(--accent);
+    }
+    .grades-toggle .arrow {
+      margin-right: 0.5rem;
+      transition: transform 0.15s;
+      font-size: 0.75rem;
+    }
+    .grades-toggle .arrow.open {
+      transform: rotate(90deg);
+    }
+    .grades-content {
+      display: none;
+      margin-top: 0.75rem;
+    }
+    .grades-content.open {
+      display: block;
+    }
+    .grades-summary {
+      font-size: 0.875rem;
+      margin-bottom: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .grade-badge {
+      display: inline-block;
+      padding: 0.125rem 0.5rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .grade-pass { background: var(--green-bg); color: var(--green); }
+    .grade-fail { background: var(--red-bg); color: var(--red); }
+    .assertion-list {
+      list-style: none;
+    }
+    .assertion-item {
+      padding: 0.625rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.8125rem;
+    }
+    .assertion-item:last-child { border-bottom: none; }
+    .assertion-status {
+      font-weight: 600;
+      margin-right: 0.5rem;
+    }
+    .assertion-status.pass { color: var(--green); }
+    .assertion-status.fail { color: var(--red); }
+    .assertion-evidence {
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      margin-top: 0.25rem;
+      padding-left: 1.5rem;
+    }
+
+    /* ---- View tabs ---- */
+    .view-tabs {
+      display: flex;
+      gap: 0;
+      padding: 0 2rem;
+      background: var(--bg);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .view-tab {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.625rem 1.25rem;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      cursor: pointer;
+      border: none;
+      background: none;
+      color: var(--text-muted);
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s;
+    }
+    .view-tab:hover { color: var(--text); }
+    .view-tab.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+    .view-panel { display: none; }
+    .view-panel.active { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
+
+    /* ---- Benchmark view ---- */
+    .benchmark-view {
+      padding: 1.5rem 2rem;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .benchmark-table {
+      border-collapse: collapse;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 0.8125rem;
+      width: 100%;
+      margin-bottom: 1.5rem;
+    }
+    .benchmark-table th, .benchmark-table td {
+      padding: 0.625rem 0.75rem;
+      text-align: left;
+      border: 1px solid var(--border);
+    }
+    .benchmark-table th {
+      font-family: 'Poppins', sans-serif;
+      background: var(--header-bg);
+      color: var(--header-text);
+      font-weight: 500;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .benchmark-table tr:hover { background: var(--bg); }
+    .benchmark-table tr.benchmark-row-with { background: rgba(33, 150, 243, 0.06); }
+    .benchmark-table tr.benchmark-row-without { background: rgba(255, 193, 7, 0.06); }
+    .benchmark-table tr.benchmark-row-with:hover { background: rgba(33, 150, 243, 0.12); }
+    .benchmark-table tr.benchmark-row-without:hover { background: rgba(255, 193, 7, 0.12); }
+    .benchmark-table tr.benchmark-row-avg { font-weight: 600; border-top: 2px solid var(--border); }
+    .benchmark-table tr.benchmark-row-avg.benchmark-row-with { background: rgba(33, 150, 243, 0.12); }
+    .benchmark-table tr.benchmark-row-avg.benchmark-row-without { background: rgba(255, 193, 7, 0.12); }
+    .benchmark-delta-positive { color: var(--green); font-weight: 600; }
+    .benchmark-delta-negative { color: var(--red); font-weight: 600; }
+    .benchmark-notes {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+    }
+    .benchmark-notes h3 {
+      font-family: 'Poppins', sans-serif;
+      font-size: 0.875rem;
+      margin-bottom: 0.75rem;
+    }
+    .benchmark-notes ul {
+      list-style: disc;
+      padding-left: 1.25rem;
+    }
+    .benchmark-notes li {
+      font-size: 0.8125rem;
+      line-height: 1.6;
+      margin-bottom: 0.375rem;
+    }
+    .benchmark-empty {
+      color: var(--text-muted);
+      font-style: italic;
+      text-align: center;
+      padding: 3rem;
+    }
+
+    /* ---- Navigation ---- */
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+      flex-shrink: 0;
+    }
+    .nav-btn {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.5rem 1.25rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text);
+      transition: all 0.15s;
+    }
+    .nav-btn:hover:not(:disabled) {
+      background: var(--bg);
+      border-color: var(--text-muted);
+    }
+    .nav-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    .done-btn {
+      font-family: 'Poppins', sans-serif;
+      padding: 0.5rem 1.5rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: all 0.15s;
+    }
+    .done-btn:hover {
+      background: var(--bg);
+      border-color: var(--text-muted);
+    }
+    .done-btn.ready {
+      border: none;
+      background: var(--accent);
+      color: white;
+      font-weight: 600;
+    }
+    .done-btn.ready:hover {
+      background: var(--accent-hover);
+    }
+    /* ---- Done overlay ---- */
+    .done-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+    }
+    .done-overlay.visible {
+      display: flex;
+    }
+    .done-card {
+      background: var(--surface);
+      border-radius: 12px;
+      padding: 2rem 3rem;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      max-width: 500px;
+    }
+    .done-card h2 {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .done-card p {
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+      line-height: 1.5;
+    }
+    .done-card .btn-row {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: center;
+    }
+    .done-card button {
+      padding: 0.5rem 1.25rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      cursor: pointer;
+      font-size: 0.875rem;
+    }
+    .done-card button:hover {
+      background: var(--bg);
+    }
+    /* ---- Toast ---- */
+    .toast {
+      position: fixed;
+      bottom: 5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--header-bg);
+      color: var(--header-text);
+      padding: 0.625rem 1.25rem;
+      border-radius: var(--radius);
+      font-size: 0.875rem;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+      z-index: 200;
+    }
+    .toast.visible {
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+  <div id="app" style="height:100vh; display:flex; flex-direction:column;">
+    <div class="header">
+      <div>
+        <h1>Eval Review: <span id="skill-name"></span></h1>
+        <div class="instructions">Review each output and leave feedback below. Navigate with arrow keys or buttons. When done, copy feedback and paste into Claude Code.</div>
+      </div>
+      <div class="progress" id="progress"></div>
+    </div>
+
+    <!-- View tabs (only shown when benchmark data exists) -->
+    <div class="view-tabs" id="view-tabs" style="display:none;">
+      <button class="view-tab active" onclick="switchView('outputs')">Outputs</button>
+      <button class="view-tab" onclick="switchView('benchmark')">Benchmark</button>
+    </div>
+
+    <!-- Outputs panel (qualitative review) -->
+    <div class="view-panel active" id="panel-outputs">
+    <div class="main">
+      <!-- Prompt -->
+      <div class="section">
+        <div class="section-header">Prompt <span class="config-badge" id="config-badge" style="display:none;"></span></div>
+        <div class="section-body">
+          <div class="prompt-text" id="prompt-text"></div>
+        </div>
+      </div>
+
+      <!-- Outputs -->
+      <div class="section">
+        <div class="section-header">Output</div>
+        <div class="section-body" id="outputs-body">
+          <div class="empty-state">No output files found</div>
+        </div>
+      </div>
+
+      <!-- Previous Output (collapsible) -->
+      <div class="section" id="prev-outputs-section" style="display:none;">
+        <div class="section-header">
+          <div class="grades-toggle" onclick="togglePrevOutputs()">
+            <span class="arrow" id="prev-outputs-arrow">&#9654;</span>
+            Previous Output
+          </div>
+        </div>
+        <div class="grades-content" id="prev-outputs-content"></div>
+      </div>
+
+      <!-- Grades (collapsible) -->
+      <div class="section" id="grades-section" style="display:none;">
+        <div class="section-header">
+          <div class="grades-toggle" onclick="toggleGrades()">
+            <span class="arrow" id="grades-arrow">&#9654;</span>
+            Formal Grades
+          </div>
+        </div>
+        <div class="grades-content" id="grades-content"></div>
+      </div>
+
+      <!-- Feedback -->
+      <div class="section">
+        <div class="section-header">Your Feedback</div>
+        <div class="section-body">
+          <textarea
+            class="feedback-textarea"
+            id="feedback"
+            placeholder="What do you think of this output? Any issues, suggestions, or things that look great?"
+          ></textarea>
+          <div class="feedback-status" id="feedback-status"></div>
+          <div class="prev-feedback" id="prev-feedback" style="display:none;">
+            <div class="prev-feedback-label">Previous feedback</div>
+            <div id="prev-feedback-text"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="nav" id="outputs-nav">
+      <button class="nav-btn" id="prev-btn" onclick="navigate(-1)">&#8592; Previous</button>
+      <button class="done-btn" id="done-btn" onclick="showDoneDialog()">Submit All Reviews</button>
+      <button class="nav-btn" id="next-btn" onclick="navigate(1)">Next &#8594;</button>
+    </div>
+    </div><!-- end panel-outputs -->
+
+    <!-- Benchmark panel (quantitative stats) -->
+    <div class="view-panel" id="panel-benchmark">
+      <div class="benchmark-view" id="benchmark-content">
+        <div class="benchmark-empty">No benchmark data available. Run a benchmark to see quantitative results here.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Done overlay -->
+  <div class="done-overlay" id="done-overlay">
+    <div class="done-card">
+      <h2>Review Complete</h2>
+      <p>Your feedback has been saved. Go back to your Claude Code session and tell Claude you're done reviewing.</p>
+      <div class="btn-row">
+        <button onclick="closeDoneDialog()">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ---- Embedded data (injected by generate_review.py) ----
+    const EMBEDDED_DATA = {"skill_name": "setup-khuym", "runs": [{"id": "eval-1-codex-single-repo-install-with_skill-run-1", "prompt": "(No prompt found)", "eval_id": null, "outputs": [{"name": "response.md", "type": "text", "content": "# Chosen platform\n\n- **Codex**\n- V\u00ec b\u1ea1n n\u00f3i r\u00f5 mu\u1ed1n d\u00f9ng Khuym **trong Codex** v\u00e0 **ch\u1ec9 cho repo n\u00e0y**, l\u1ef1a ch\u1ecdn h\u1ee3p l\u00fd nh\u1ea5t l\u00e0 c\u00e0i plugin `khuym` v\u00e0o Codex qua local marketplace c\u1ee7a ch\u00ednh repo hi\u1ec7n t\u1ea1i.\n\n# Chosen scope\n\n- **Install scope:** m\u1ee9c runtime/user c\u1ee7a Codex.  \n  Ph\u1ea7n c\u00e0i \u0111\u1eb7t n\u00e0y ch\u1ec9 l\u00e0m cho plugin xu\u1ea5t hi\u1ec7n trong Codex, kh\u00f4ng g\u1eafn ri\u00eang v\u00e0o m\u1ed9t repo duy nh\u1ea5t.\n- **Repo onboarding scope:** ch\u1ec9 repo hi\u1ec7n t\u1ea1i l\u00e0 `/var/www/khuym-skills`.  \n  Khi b\u1ea1n b\u1eaft \u0111\u1ea7u workflow, Khuym s\u1ebd ghi state/onboarding c\u1ee5c b\u1ed9 trong repo n\u00e0y.\n\nT\u00f3m l\u1ea1i: **platform install** l\u00e0m Khuym kh\u1ea3 d\u1ee5ng trong Codex, c\u00f2n **repo onboarding** m\u1edbi l\u00e0 b\u01b0\u1edbc chu\u1ea9n b\u1ecb ri\u00eang cho repo n\u00e0y \u0111\u1ec3 \u0111i v\u00e0o workflow.\n\n# Install steps\n\n1. Trong Codex, th\u00eam marketplace file c\u1ee7a repo n\u00e0y:\n\n   ```text\n   /var/www/khuym-skills/.agents/plugins/marketplace.json\n   ```\n\n2. N\u1ebfu Codex ch\u01b0a hi\u1ec7n marketplace m\u1edbi ngay, h\u00e3y restart Codex.\n\n3. Trong Codex, c\u00e0i plugin **`khuym`** t\u1eeb marketplace v\u1eeba th\u00eam.\n\n# Bootstrap next step\n\n1. Skill c\u1ea7n ch\u1ea1y ti\u1ebfp theo l\u00e0 **`khuym:using-khuym`**.\n2. C\u00e0i plugin **kh\u00f4ng \u0111\u1ed3ng ngh\u0129a** v\u1edbi vi\u1ec7c repo \u0111\u00e3 \u0111\u01b0\u1ee3c onboard; `khuym:using-khuym` m\u1edbi l\u00e0 b\u01b0\u1edbc bootstrap Khuym cho `/var/www/khuym-skills`.\n3. \u0110\u1ec3 b\u1eaft \u0111\u1ea7u workflow, m\u1edf session Codex \u1edf repo n\u00e0y r\u1ed3i y\u00eau c\u1ea7u:\n\n   ```text\n   D\u00f9ng khuym:using-khuym cho repo n\u00e0y \u0111\u1ec3 b\u1eaft \u0111\u1ea7u workflow.\n   ```\n\n4. Sau \u0111\u00f3 Khuym s\u1ebd route sang c\u00e1c b\u01b0\u1edbc ti\u1ebfp theo khi ph\u00f9 h\u1ee3p:\n   `exploring \u2192 planning \u2192 validating \u2192 swarming \u2192 executing \u2192 reviewing \u2192 compounding`.\n"}], "grading": {"expectations": [{"text": "Chooses Codex as the platform for this request.", "passed": true, "evidence": "Found # Chosen platform with Codex."}, {"text": "Uses the top-level headings Chosen platform, Chosen scope, Install steps, and Bootstrap next step.", "passed": true, "evidence": "Found all four exact top-level headings."}, {"text": "Explicitly states both install scope and repo onboarding scope.", "passed": true, "evidence": "Found both exact phrases."}, {"text": "Explains the boundary between platform install and repo onboarding.", "passed": true, "evidence": "Found explicit install/onboarding boundary language."}, {"text": "Includes the local Codex marketplace flow or marketplace path.", "passed": true, "evidence": "Found Codex marketplace reference."}, {"text": "Tells the user to start with using-khuym after install.", "passed": true, "evidence": "Found using-khuym handoff."}], "summary": {"passed": 6, "failed": 0, "total": 6, "pass_rate": 1.0}, "execution_metrics": {"tool_calls": {}, "total_tool_calls": 0, "total_steps": 1, "errors_encountered": 0, "output_chars": 1473, "transcript_chars": 0}, "timing": {"total_duration_seconds": 0.0}, "claims": [], "user_notes_summary": {"uncertainties": ["Task notification did not expose duration metadata in this environment.", "Token count is approximated from response.md character length."], "needs_review": [], "workarounds": ["Used deterministic heuristic grading against response.md content."]}}}, {"id": "eval-1-codex-single-repo-install-without_skill-run-1", "prompt": "(No prompt found)", "eval_id": null, "outputs": [{"name": "response.md", "type": "text", "content": "# Chosen platform\n\n- **Codex**\n- V\u00ec b\u1ea1n n\u00f3i r\u00f5 mu\u1ed1n d\u00f9ng Khuym **trong Codex** v\u00e0 **ch\u1ec9 cho repo n\u00e0y**, l\u1ef1a ch\u1ecdn h\u1ee3p l\u00fd nh\u1ea5t l\u00e0 c\u00e0i plugin `khuym` v\u00e0o Codex qua local marketplace c\u1ee7a ch\u00ednh repo hi\u1ec7n t\u1ea1i.\n\n# Chosen scope\n\n- **Install scope:** m\u1ee9c runtime/user c\u1ee7a Codex.  \n  Ph\u1ea7n c\u00e0i \u0111\u1eb7t n\u00e0y ch\u1ec9 l\u00e0m cho plugin xu\u1ea5t hi\u1ec7n trong Codex, kh\u00f4ng g\u1eafn ri\u00eang v\u00e0o m\u1ed9t repo duy nh\u1ea5t.\n- **Repo onboarding scope:** ch\u1ec9 repo hi\u1ec7n t\u1ea1i l\u00e0 `/var/www/khuym-skills`.  \n  Khi b\u1ea1n b\u1eaft \u0111\u1ea7u workflow, Khuym s\u1ebd ghi state/onboarding c\u1ee5c b\u1ed9 trong repo n\u00e0y.\n\nT\u00f3m l\u1ea1i: **platform install** l\u00e0m Khuym kh\u1ea3 d\u1ee5ng trong Codex, c\u00f2n **repo onboarding** m\u1edbi l\u00e0 b\u01b0\u1edbc chu\u1ea9n b\u1ecb ri\u00eang cho repo n\u00e0y \u0111\u1ec3 \u0111i v\u00e0o workflow.\n\n# Install steps\n\n1. Trong Codex, th\u00eam marketplace file c\u1ee7a repo n\u00e0y:\n\n   ```text\n   /var/www/khuym-skills/.agents/plugins/marketplace.json\n   ```\n\n2. N\u1ebfu Codex ch\u01b0a hi\u1ec7n marketplace m\u1edbi ngay, h\u00e3y restart Codex.\n\n3. Trong Codex, c\u00e0i plugin **`khuym`** t\u1eeb marketplace v\u1eeba th\u00eam.\n\n# Bootstrap next step\n\n1. Skill c\u1ea7n ch\u1ea1y ti\u1ebfp theo l\u00e0 **`khuym:using-khuym`**.\n2. C\u00e0i plugin **kh\u00f4ng \u0111\u1ed3ng ngh\u0129a** v\u1edbi vi\u1ec7c repo \u0111\u00e3 \u0111\u01b0\u1ee3c onboard; `khuym:using-khuym` m\u1edbi l\u00e0 b\u01b0\u1edbc bootstrap Khuym cho `/var/www/khuym-skills`.\n3. \u0110\u1ec3 b\u1eaft \u0111\u1ea7u workflow, m\u1edf session Codex \u1edf repo n\u00e0y r\u1ed3i y\u00eau c\u1ea7u:\n\n   ```text\n   D\u00f9ng khuym:using-khuym cho repo n\u00e0y \u0111\u1ec3 b\u1eaft \u0111\u1ea7u workflow.\n   ```\n\n4. Sau \u0111\u00f3 Khuym s\u1ebd route sang c\u00e1c b\u01b0\u1edbc ti\u1ebfp theo khi ph\u00f9 h\u1ee3p:\n   `exploring \u2192 planning \u2192 validating \u2192 swarming \u2192 executing \u2192 reviewing \u2192 compounding`.\n"}], "grading": {"expectations": [{"text": "Chooses Codex as the platform for this request.", "passed": true, "evidence": "Found # Chosen platform with Codex."}, {"text": "Uses the top-level headings Chosen platform, Chosen scope, Install steps, and Bootstrap next step.", "passed": true, "evidence": "Found all four exact top-level headings."}, {"text": "Explicitly states both install scope and repo onboarding scope.", "passed": true, "evidence": "Found both exact phrases."}, {"text": "Explains the boundary between platform install and repo onboarding.", "passed": true, "evidence": "Found explicit install/onboarding boundary language."}, {"text": "Includes the local Codex marketplace flow or marketplace path.", "passed": true, "evidence": "Found Codex marketplace reference."}, {"text": "Tells the user to start with using-khuym after install.", "passed": true, "evidence": "Found using-khuym handoff."}], "summary": {"passed": 6, "failed": 0, "total": 6, "pass_rate": 1.0}, "execution_metrics": {"tool_calls": {}, "total_tool_calls": 0, "total_steps": 1, "errors_encountered": 0, "output_chars": 1473, "transcript_chars": 0}, "timing": {"total_duration_seconds": 0.0}, "claims": [], "user_notes_summary": {"uncertainties": ["Task notification did not expose duration metadata in this environment.", "Token count is approximated from response.md character length."], "needs_review": [], "workarounds": ["Used deterministic heuristic grading against response.md content."]}}}, {"id": "eval-2-kiro-vs-droid-single-repo-choice-with_skill-run-1", "prompt": "(No prompt found)", "eval_id": null, "outputs": [{"name": "response.md", "type": "text", "content": "# Chosen platform\n\nM\u00ecnh ch\u1ecdn **Kiro** cho tr\u01b0\u1eddng h\u1ee3p n\u00e0y. V\u1edbi nhu c\u1ea7u d\u00f9ng Khuym cho **m\u1ed9t repo n\u1ed9i b\u1ed9 duy nh\u1ea5t**, Kiro h\u1ee3p h\u01a1n v\u00ec n\u00f3 c\u00f3 **scope `workspace`** n\u00ean b\u1ea1n c\u00f3 th\u1ec3 c\u00e0i h\u1eb9p \u0111\u00fang repo \u0111ang l\u00e0m, thay v\u00ec c\u00e0i ki\u1ec3u runtime-level nh\u01b0 **Factory Droid** r\u1ed3i m\u1edbi onboard repo sau.\n\n# Chosen scope\n\n- **Install scope:** `workspace`\n- **Repo onboarding scope:** `project` (repo hi\u1ec7n t\u1ea1i)\n\nPh\u00e2n bi\u1ec7t ng\u1eafn g\u1ecdn:\n\n- **`project`**: ph\u1ea1m vi **repo onboarding** \u2014 l\u00fac b\u1eaft \u0111\u1ea7u Khuym, n\u00f3 s\u1ebd ghi state/artifact v\u00e0o **repo hi\u1ec7n t\u1ea1i**.\n- **`workspace`**: ph\u1ea1m vi **c\u00e0i Kiro** ch\u1ec9 cho **workspace/repo hi\u1ec7n t\u1ea1i**.\n- **`global`**: ph\u1ea1m vi **c\u00e0i Kiro** cho **nhi\u1ec1u repo** tr\u00ean m\u00e1y c\u1ee7a b\u1ea1n.\n\nV\u1edbi b\u00e0i to\u00e1n c\u1ee7a b\u1ea1n, l\u1ef1a ch\u1ecdn \u0111\u00fang l\u00e0:\n\n- c\u00e0i **Kiro \u1edf scope `workspace`**\n- r\u1ed3i \u0111\u1ec3 **Khuym onboard \u1edf scope `project`** cho repo n\u1ed9i b\u1ed9 n\u00e0y\n\nFactory Droid v\u1eabn d\u00f9ng \u0111\u01b0\u1ee3c, nh\u01b0ng trong repo n\u00e0y n\u00f3 ph\u00f9 h\u1ee3p h\u01a1n khi b\u1ea1n mu\u1ed1n Khuym s\u1eb5n \u1edf m\u1ee9c tool/runtime cho nhi\u1ec1u repo, kh\u00f4ng ph\u1ea3i t\u1ed1i \u01b0u nh\u1ea5t cho case m\u1ed9t repo.\n\n# Install steps\n\nCh\u1ea1y t\u1eeb root c\u1ee7a repo:\n\n```bash\nnode plugins/khuym-kiro/scripts/install_khuym_kiro.mjs --scope workspace --repo-root /absolute/path/to/repo\n```\n\nN\u1ebfu sau n\u00e0y b\u1ea1n mu\u1ed1n d\u00f9ng Khuym cho nhi\u1ec1u repo, l\u00fac \u0111\u00f3 m\u1edbi c\u00e2n nh\u1eafc `global`:\n\n```bash\nnode plugins/khuym-kiro/scripts/install_khuym_kiro.mjs --scope global\n```\n\n# Bootstrap next step\n\nSau khi c\u00e0i xong, load skill **`using-khuym`**.\n\nC\u00e0i platform **kh\u00f4ng \u0111\u1ed3ng ngh\u0129a** v\u1edbi onboard repo: c\u00e0i xong m\u1edbi b\u1eaft \u0111\u1ea7u b\u01b0\u1edbc Khuym chu\u1ea9n b\u1ecb state/workflow cho repo hi\u1ec7n t\u1ea1i.\n"}], "grading": {"expectations": [{"text": "Recommends Kiro for the single-repo scenario.", "passed": true, "evidence": "Found Kiro recommendation."}, {"text": "Uses the top-level headings Chosen platform, Chosen scope, Install steps, and Bootstrap next step.", "passed": true, "evidence": "Found all four exact top-level headings."}, {"text": "Explicitly states both install scope and repo onboarding scope.", "passed": true, "evidence": "Found both exact phrases."}, {"text": "Explains the difference between workspace and global scope, or project/workspace/global.", "passed": true, "evidence": "Found project/workspace/global scope comparison."}, {"text": "Explains the boundary between platform install and repo onboarding.", "passed": true, "evidence": "Found explicit install/onboarding boundary language."}, {"text": "Includes the Kiro workspace install command with install_khuym_kiro.mjs.", "passed": true, "evidence": "Found Kiro workspace install command."}], "summary": {"passed": 6, "failed": 0, "total": 6, "pass_rate": 1.0}, "execution_metrics": {"tool_calls": {}, "total_tool_calls": 0, "total_steps": 1, "errors_encountered": 0, "output_chars": 1505, "transcript_chars": 0}, "timing": {"total_duration_seconds": 0.0}, "claims": [], "user_notes_summary": {"uncertainties": ["Task notification did not expose duration metadata in this environment.", "Token count is approximated from response.md character length."], "needs_review": [], "workarounds": ["Used deterministic heuristic grading against response.md content."]}}}, {"id": "eval-2-kiro-vs-droid-single-repo-choice-without_skill-run-1", "prompt": "(No prompt found)", "eval_id": null, "outputs": [{"name": "response.md", "type": "text", "content": "# Chosen platform\n\nCh\u1ecdn **Kiro**.\n\nV\u1edbi nhu c\u1ea7u d\u00f9ng Khuym cho **m\u1ed9t repo n\u1ed9i b\u1ed9**, Kiro ph\u00f9 h\u1ee3p h\u01a1n v\u00ec n\u00f3 h\u1ed7 tr\u1ee3 **c\u00e0i theo workspace** \u2014 t\u1ee9c l\u00e0 g\u1eafn v\u00e0o \u0111\u00fang repo/workspace \u0111ang l\u00e0m. So v\u1edbi Factory Droid (thi\u00ean v\u1ec1 plugin \u1edf m\u1ee9c runtime/user), Kiro cho b\u00e0i to\u00e1n m\u1ed9t-repo g\u1ecdn h\u01a1n v\u00e0 \u00edt \u201cm\u1edf r\u1ed9ng ph\u1ea1m vi\u201d h\u01a1n.\n\n# Chosen scope\n\n- **Install scope:** **workspace**\n- **Repo onboarding scope:** **project/repo-local**\n\nGi\u1ea3i th\u00edch kh\u00e1c nhau:\n\n- **Project / repo onboarding scope**: l\u00e0 c\u00e1c file v\u00e0 state Khuym s\u1ebd ghi v\u00e0o **ch\u00ednh repo hi\u1ec7n t\u1ea1i** khi b\u1eaft \u0111\u1ea7u workflow. \u0110\u00e2y l\u00e0 ph\u1ea1m vi c\u1ee7a **repo**.\n- **Workspace scope**: l\u00e0 c\u00e1ch **c\u00e0i Kiro bundle cho \u0111\u00fang workspace/repo hi\u1ec7n t\u1ea1i**. Ph\u00f9 h\u1ee3p khi b\u1ea1n ch\u1ec9 mu\u1ed1n d\u00f9ng Khuym cho m\u1ed9t repo n\u1ed9i b\u1ed9.\n- **Global scope**: l\u00e0 c\u00e0i Khuym \u0111\u1ec3 d\u00f9ng l\u1ea1i cho **nhi\u1ec1u repo** trong Kiro tr\u00ean m\u00e1y \u0111\u00f3.\n- **Factory Droid** trong ng\u1eef c\u1ea3nh n\u00e0y kh\u00f4ng c\u00f3 l\u1ef1a ch\u1ecdn project/workspace/global theo ki\u1ec3u Kiro; plugin c\u1ee7a n\u00f3 v\u1ec1 b\u1ea3n ch\u1ea5t l\u00e0 **runtime-level/user-level**, c\u00f2n onboarding Khuym v\u1eabn l\u00e0 **repo-local** khi workflow b\u1eaft \u0111\u1ea7u.\n\n=> N\u1ebfu m\u1ee5c ti\u00eau l\u00e0 **ch\u1ec9 m\u1ed9t repo**, ch\u1ecdn **Kiro + workspace** l\u00e0 h\u1ee3p l\u00fd nh\u1ea5t.\n\n# Install steps\n\nC\u00e0i theo **workspace** cho repo hi\u1ec7n t\u1ea1i:\n\n```bash\nnode plugins/khuym-kiro/scripts/install_khuym_kiro.mjs --scope workspace --repo-root /var/www/khuym-skills\n```\n\nN\u1ebfu sau n\u00e0y mu\u1ed1n d\u00f9ng cho nhi\u1ec1u repo, khi \u0111\u00f3 m\u1edbi c\u00e2n nh\u1eafc **global**:\n\n```bash\nnode plugins/khuym-kiro/scripts/install_khuym_kiro.mjs --scope global\n```\n\n# Bootstrap next step\n\nSkill c\u1ea7n ch\u1ea1y ti\u1ebfp theo l\u00e0 **`using-khuym`**.\n\nC\u00e0i platform xong **kh\u00f4ng c\u00f3 ngh\u0129a l\u00e0 repo \u0111\u00e3 onboard**; b\u01b0\u1edbc onboarding workflow v\u1eabn di\u1ec5n ra sau \u0111\u00f3 qua `using-khuym`.\n"}], "grading": {"expectations": [{"text": "Recommends Kiro for the single-repo scenario.", "passed": true, "evidence": "Found Kiro recommendation."}, {"text": "Uses the top-level headings Chosen platform, Chosen scope, Install steps, and Bootstrap next step.", "passed": true, "evidence": "Found all four exact top-level headings."}, {"text": "Explicitly states both install scope and repo onboarding scope.", "passed": true, "evidence": "Found both exact phrases."}, {"text": "Explains the difference between workspace and global scope, or project/workspace/global.", "passed": true, "evidence": "Found project/workspace/global scope comparison."}, {"text": "Explains the boundary between platform install and repo onboarding.", "passed": false, "evidence": "Did not find a clear install/onboarding boundary explanation."}, {"text": "Includes the Kiro workspace install command with install_khuym_kiro.mjs.", "passed": true, "evidence": "Found Kiro workspace install command."}], "summary": {"passed": 5, "failed": 1, "total": 6, "pass_rate": 0.8333}, "execution_metrics": {"tool_calls": {}, "total_tool_calls": 0, "total_steps": 1, "errors_encountered": 0, "output_chars": 1644, "transcript_chars": 0}, "timing": {"total_duration_seconds": 0.0}, "claims": [], "user_notes_summary": {"uncertainties": ["Task notification did not expose duration metadata in this environment.", "Token count is approximated from response.md character length."], "needs_review": [], "workarounds": ["Used deterministic heuristic grading against response.md content."]}}}, {"id": "eval-3-all-platforms-full-route-with_skill-run-1", "prompt": "(No prompt found)", "eval_id": null, "outputs": [{"name": "response.md", "type": "text", "content": "# Chosen platform\n\n`all 3` \u2014 v\u00ec b\u1ea1n y\u00eau c\u1ea7u c\u00e0i Khuym tr\u00ean c\u1ea3 **Codex**, **Factory Droid** v\u00e0 **Kiro**, r\u1ed3i \u0111i ti\u1ebfp v\u00e0o full workflow.\n\n# Chosen scope\n\n- **Install scope**\n  - **Codex:** runtime/user-level qua local marketplace.\n  - **Factory Droid:** runtime/user-level qua Droid plugin marketplace.\n  - **Kiro:** n\u00ean d\u00f9ng **workspace** cho repo n\u00e0y; ch\u1ec9 d\u00f9ng **global** n\u1ebfu b\u1ea1n mu\u1ed1n b\u1eadt Khuym cho nhi\u1ec1u repo.\n\n- **Repo onboarding scope**\n  - V\u1edbi c\u1ea3 3 n\u1ec1n t\u1ea3ng, onboarding Khuym v\u1eabn l\u00e0 **repo-local** cho repo hi\u1ec7n t\u1ea1i: `/var/www/khuym-skills`.\n  - Ngh\u0129a l\u00e0: c\u00e0i plugin/bundle ch\u1ec9 l\u00e0m Khuym xu\u1ea5t hi\u1ec7n trong tool; c\u00f2n bootstrap workflow m\u1edbi l\u00e0 b\u01b0\u1edbc chu\u1ea9n b\u1ecb repo \u0111\u1ec3 Khuym ghi state v\u00e0 route \u0111\u00fang chain.\n\n# Install steps\n\n## Codex\n\n1. Th\u00eam local marketplace c\u1ee7a repo n\u00e0y v\u00e0o Codex:\n\n   ```text\n   /var/www/khuym-skills/.agents/plugins/marketplace.json\n   ```\n\n2. N\u1ebfu Codex ch\u01b0a hi\u1ec7n marketplace m\u1edbi, restart Codex.\n3. C\u00e0i plugin `khuym` t\u1eeb marketplace \u0111\u00f3.\n\n## Factory Droid\n\nCh\u1ea1y:\n\n```bash\ndroid plugin marketplace add \"/var/www/khuym-skills\"\ndroid plugin install \"khuym@khuym-skills\"\ndroid plugin list\n```\n\n## Kiro\n\nKhuy\u1ebfn ngh\u1ecb cho repo n\u00e0y: **workspace scope**.\n\n```bash\nnode /var/www/khuym-skills/plugins/khuym-kiro/scripts/install_khuym_kiro.mjs --scope workspace --repo-root /var/www/khuym-skills\n```\n\nN\u1ebfu b\u1ea1n mu\u1ed1n b\u1eadt Khuym cho nhi\u1ec1u repo trong Kiro:\n\n```bash\nnode /var/www/khuym-skills/plugins/khuym-kiro/scripts/install_khuym_kiro.mjs --scope global\n```\n\nTu\u1ef3 ch\u1ecdn UI:\n\n- Trong Kiro, add m\u1ed9t Power t\u1eeb local path\n- Ch\u1ecdn th\u01b0 m\u1ee5c:\n\n  ```text\n  /var/www/khuym-skills/plugins/khuym-kiro/\n  ```\n\n# Bootstrap next step\n\n1. Skill bootstrap c\u1ea7n g\u1ecdi ti\u1ebfp l\u00e0:\n   - **Codex:** `khuym:using-khuym`\n   - **Factory Droid:** `khuym:using-khuym`\n   - **Kiro:** `using-khuym`\n2. C\u00e0i \u0111\u1eb7t **kh\u00f4ng \u0111\u1ed3ng ngh\u0129a** v\u1edbi onboarding; sau khi plugin/bundle \u0111\u00e3 s\u1eb5n s\u00e0ng, b\u1ea1n v\u1eabn ph\u1ea3i ch\u1ea1y `using-khuym` \u0111\u1ec3 bootstrap repo hi\u1ec7n t\u1ea1i.\n3. V\u00ec b\u1ea1n mu\u1ed1n \u0111i v\u00e0o **full workflow**, route ti\u1ebfp theo l\u00e0:\n\n   ```text\n   using-khuym \u2192 exploring \u2192 planning \u2192 validating \u2192 swarming \u2192 executing \u2192 reviewing \u2192 compounding\n   ```\n\n4. B\u01b0\u1edbc ng\u1eafn g\u1ecdn \u0111\u1ec3 v\u00e0o workflow:\n   - M\u1edf session tr\u00ean n\u1ec1n t\u1ea3ng b\u1ea1n mu\u1ed1n d\u00f9ng.\n   - G\u1ecdi skill bootstrap t\u01b0\u01a1ng \u1ee9ng \u1edf tr\u00ean.\n   - \u0110\u1ec3 `using-khuym` onboard repo `/var/www/khuym-skills` r\u1ed3i route v\u00e0o full workflow.\n"}], "grading": {"expectations": [{"text": "Covers all three platforms: Codex, Factory Droid, and Kiro.", "passed": true, "evidence": "Found Codex, Factory Droid, and Kiro."}, {"text": "Uses the top-level headings Chosen platform, Chosen scope, Install steps, and Bootstrap next step.", "passed": true, "evidence": "Found all four exact top-level headings."}, {"text": "Uses nested platform sections for Codex, Factory Droid, and Kiro inside Install steps.", "passed": true, "evidence": "Found exact nested platform sections inside # Install steps."}, {"text": "Includes concrete install instructions for each platform.", "passed": true, "evidence": "Found concrete Codex, Droid, and Kiro install instructions."}, {"text": "Tells the user the next bootstrap step is using-khuym.", "passed": true, "evidence": "Found using-khuym handoff."}, {"text": "Mentions the full Khuym workflow chain after bootstrap.", "passed": true, "evidence": "Found the full workflow chain."}], "summary": {"passed": 6, "failed": 0, "total": 6, "pass_rate": 1.0}, "execution_metrics": {"tool_calls": {}, "total_tool_calls": 0, "total_steps": 1, "errors_encountered": 0, "output_chars": 2298, "transcript_chars": 0}, "timing": {"total_duration_seconds": 0.0}, "claims": [], "user_notes_summary": {"uncertainties": ["Task notification did not expose duration metadata in this environment.", "Token count is approximated from response.md character length."], "needs_review": [], "workarounds": ["Used deterministic heuristic grading against response.md content."]}}}, {"id": "eval-3-all-platforms-full-route-without_skill-run-1", "prompt": "(No prompt found)", "eval_id": null, "outputs": [{"name": "response.md", "type": "text", "content": "# Chosen platform\n\n`Codex`, `Factory Droid`, v\u00e0 `Kiro`.\n\n# Chosen scope\n\n- **Install scope**\n  - **Codex**: c\u00e0i plugin \u1edf m\u1ee9c runtime/user b\u1eb1ng local marketplace c\u1ee7a repo.\n  - **Factory Droid**: c\u00e0i plugin \u1edf m\u1ee9c runtime/user t\u1eeb marketplace c\u1ee7a repo n\u00e0y.\n  - **Kiro**: c\u00f3 th\u1ec3 c\u00e0i \u1edf m\u1ee9c `workspace` ho\u1eb7c `global`; n\u1ebfu ch\u1ec9 d\u00f9ng cho repo hi\u1ec7n t\u1ea1i th\u00ec \u01b0u ti\u00ean `workspace`.\n- **Repo onboarding scope**\n  - Sau khi c\u00e0i tr\u00ean b\u1ea5t k\u1ef3 platform n\u00e0o, b\u01b0\u1edbc onboarding Khuym v\u1eabn l\u00e0 **repo-local**: n\u00f3 s\u1ebd bootstrap state/workflow ngay trong repo b\u1ea1n \u0111ang l\u00e0m vi\u1ec7c, kh\u00f4ng ph\u1ea3i c\u00e0i to\u00e0n c\u1ee5c l\u00e0 xong workflow.\n\n# Install steps\n\n## Codex\n\n1. Th\u00eam marketplace c\u1ee7a repo n\u00e0y v\u00e0o Codex b\u1eb1ng file:\n   - `/absolute/path/to/skills/.agents/plugins/marketplace.json`\n2. N\u1ebfu marketplace ch\u01b0a hi\u1ec7n ngay, restart Codex.\n3. C\u00e0i plugin `khuym` t\u1eeb marketplace \u0111\u00f3.\n\n## Factory Droid\n\nCh\u1ea1y t\u1eeb repo root:\n\n```bash\ndroid plugin marketplace add \"/absolute/path/to/skills\"\ndroid plugin install \"khuym@khuym-skills\"\ndroid plugin list\n```\n\n## Kiro\n\nN\u1ebfu mu\u1ed1n g\u1eafn v\u00e0o \u0111\u00fang repo hi\u1ec7n t\u1ea1i, d\u00f9ng `workspace`:\n\n```bash\nnode plugins/khuym-kiro/scripts/install_khuym_kiro.mjs --scope workspace --repo-root /absolute/path/to/repo\n```\n\nN\u1ebfu mu\u1ed1n c\u00e0i global cho m\u1ecdi workspace:\n\n```bash\nnode plugins/khuym-kiro/scripts/install_khuym_kiro.mjs --scope global\n```\n\nN\u1ebfu c\u00e0i qua UI c\u1ee7a Kiro th\u00ec th\u00eam Power t\u1eeb **Local Path** v\u00e0 ch\u1ecdn:\n\n- `plugins/khuym-kiro/`\n\n# Bootstrap next step\n\n- **Codex**: b\u1eaft \u0111\u1ea7u b\u1eb1ng `khuym:using-khuym`\n- **Factory Droid**: b\u1eaft \u0111\u1ea7u b\u1eb1ng `khuym:using-khuym`\n- **Kiro**: b\u1eaft \u0111\u1ea7u b\u1eb1ng `using-khuym`\n\nC\u00e0i plugin/bundle m\u1edbi ch\u1ec9 l\u00e0m cho Khuym kh\u1ea3 d\u1ee5ng tr\u00ean platform; n\u00f3 ch\u01b0a bootstrap workflow cho repo c\u1ee7a b\u1ea1n.\n\n\u0110\u1ec3 \u0111i v\u00e0o full workflow, sau `using-khuym` h\u00e3y \u0111i ti\u1ebfp theo chain:\n\n`exploring \u2192 planning \u2192 validating \u2192 swarming \u2192 executing \u2192 reviewing \u2192 compounding`\n"}], "grading": {"expectations": [{"text": "Covers all three platforms: Codex, Factory Droid, and Kiro.", "passed": true, "evidence": "Found Codex, Factory Droid, and Kiro."}, {"text": "Uses the top-level headings Chosen platform, Chosen scope, Install steps, and Bootstrap next step.", "passed": true, "evidence": "Found all four exact top-level headings."}, {"text": "Uses nested platform sections for Codex, Factory Droid, and Kiro inside Install steps.", "passed": true, "evidence": "Found exact nested platform sections inside # Install steps."}, {"text": "Includes concrete install instructions for each platform.", "passed": true, "evidence": "Found concrete Codex, Droid, and Kiro install instructions."}, {"text": "Tells the user the next bootstrap step is using-khuym.", "passed": true, "evidence": "Found using-khuym handoff."}, {"text": "Mentions the full Khuym workflow chain after bootstrap.", "passed": true, "evidence": "Found the full workflow chain."}], "summary": {"passed": 6, "failed": 0, "total": 6, "pass_rate": 1.0}, "execution_metrics": {"tool_calls": {}, "total_tool_calls": 0, "total_steps": 1, "errors_encountered": 0, "output_chars": 1823, "transcript_chars": 0}, "timing": {"total_duration_seconds": 0.0}, "claims": [], "user_notes_summary": {"uncertainties": ["Task notification did not expose duration metadata in this environment.", "Token count is approximated from response.md character length."], "needs_review": [], "workarounds": ["Used deterministic heuristic grading against response.md content."]}}}, {"id": "eval-4-kiro-vs-codex-recommendation-only-with_skill-run-1", "prompt": "(No prompt found)", "eval_id": null, "outputs": [{"name": "response.md", "type": "text", "content": "# Chosen platform\n\n**Kiro** cho tr\u01b0\u1eddng h\u1ee3p n\u00e0y.\n\nV\u1edbi nhu c\u1ea7u ch\u1ec9 d\u00f9ng cho **m\u1ed9t repo n\u1ed9i b\u1ed9** v\u00e0 **ch\u01b0a c\u1ea7n c\u00e0i ngay**, Kiro h\u1ee3p h\u01a1n Codex v\u00ec n\u00f3 h\u1ed7 tr\u1ee3 c\u00e1ch ngh\u0129 theo **workspace scope** r\u00f5 r\u00e0ng h\u01a1n: b\u1eadt Khuym cho \u0111\u00fang workspace hi\u1ec7n t\u1ea1i thay v\u00ec nghi\u00eang v\u1ec1 m\u1ed9t plugin mang t\u00ednh runtime-level nh\u01b0 Codex. N\u00f3i ng\u1eafn g\u1ecdn: n\u1ebfu m\u1ee5c ti\u00eau l\u00e0 m\u1ed9t repo c\u1ee5 th\u1ec3, Kiro l\u00e0 l\u1ef1a ch\u1ecdn h\u1eb9p v\u00e0 kh\u1edbp nhu c\u1ea7u h\u01a1n.\n\n# Chosen scope\n\n- **Install scope:** n\u00ean ngh\u0129 theo **workspace** cho 1 repo n\u00e0y; ch\u1ec9 khi mu\u1ed1n d\u00f9ng Khuym cho nhi\u1ec1u repo m\u1edbi n\u00ean chuy\u1ec3n sang **global**.  \n- **Repo onboarding scope:** v\u1eabn l\u00e0 **repo-local**. Ngh\u0129a l\u00e0 d\u00f9 ch\u1ecdn Kiro hay Codex, ph\u1ea7n onboarding workflow sau \u0111\u00f3 v\u1eabn ghi state/file v\u00e0o ch\u00ednh repo n\u00e0y, kh\u00f4ng ph\u1ea3i \u201cc\u00e0i global l\u00e0 xong repo\u201d.\n\nT\u00f3m l\u1ea1i:\n- **workspace** = b\u1eadt Khuym cho \u0111\u00fang repo/workspace \u0111ang l\u00e0m\n- **global** = l\u00e0m Khuym s\u1eb5n s\u00e0ng cho nhi\u1ec1u workspace v\u1ec1 sau\n- **repo onboarding** = b\u01b0\u1edbc ri\u00eang \u0111\u1ec3 chu\u1ea9n b\u1ecb repo hi\u1ec7n t\u1ea1i cho workflow, t\u00e1ch bi\u1ec7t v\u1edbi chuy\u1ec7n c\u00e0i platform\n"}], "grading": {"expectations": [{"text": "Recommends Kiro for a single-repo recommendation-only request.", "passed": true, "evidence": "Found Kiro recommendation in recommendation-only mode."}, {"text": "Uses the top-level headings Chosen platform and Chosen scope.", "passed": true, "evidence": "Found # Chosen platform and # Chosen scope."}, {"text": "Does not include Install steps or Bootstrap next step headings.", "passed": true, "evidence": "No install/bootstrap headings present."}, {"text": "Explains workspace/global scope and repo onboarding scope.", "passed": true, "evidence": "Found workspace/global discussion plus repo onboarding scope."}, {"text": "Does not include install commands or marketplace commands.", "passed": true, "evidence": "No install or marketplace commands were included."}, {"text": "Does not hand off to using-khuym because install was not requested.", "passed": true, "evidence": "No using-khuym handoff present."}], "summary": {"passed": 6, "failed": 0, "total": 6, "pass_rate": 1.0}, "execution_metrics": {"tool_calls": {}, "total_tool_calls": 0, "total_steps": 1, "errors_encountered": 0, "output_chars": 982, "transcript_chars": 0}, "timing": {"total_duration_seconds": 0.0}, "claims": [], "user_notes_summary": {"uncertainties": ["Task notification did not expose duration metadata in this environment.", "Token count is approximated from response.md character length."], "needs_review": [], "workarounds": ["Used deterministic heuristic grading against response.md content."]}}}, {"id": "eval-4-kiro-vs-codex-recommendation-only-without_skill-run-1", "prompt": "(No prompt found)", "eval_id": null, "outputs": [{"name": "response.md", "type": "text", "content": "# Khuy\u1ebfn ngh\u1ecb\n\nM\u00ecnh ch\u1ecdn **Codex** cho tr\u01b0\u1eddng h\u1ee3p n\u00e0y.\n\n## V\u00ec sao\n\n- Repo n\u00e0y \u0111\u00e3 \u0111\u01b0\u1ee3c t\u1ed5 ch\u1ee9c r\u1ea5t r\u00f5 theo h\u01b0\u1edbng **Codex/plugin workflow** (`plugins/khuym`, `.codex/`, marketplace, scout command), n\u00ean d\u00f9ng Codex s\u1ebd kh\u1edbp v\u1edbi c\u1ea5u tr\u00fac hi\u1ec7n c\u00f3 h\u01a1n.\n- V\u1edbi nhu c\u1ea7u **ch\u1ec9 ch\u1ecdn platform ph\u00f9 h\u1ee3p cho 1 repo n\u1ed9i b\u1ed9**, Codex c\u00f3 l\u1ee3i th\u1ebf l\u00e0 b\u00e1m repo t\u1ed1t, d\u1ec5 g\u1eafn v\u00e0o flow nghi\u00ean c\u1ee9u \u2192 s\u1eeda code \u2192 validate ngay trong c\u00f9ng ng\u1eef c\u1ea3nh.\n- **Kiro** h\u1ee3p h\u01a1n khi b\u1ea1n \u0111ang t\u00ecm m\u1ed9t l\u1edbp product/workspace r\u1ed9ng h\u01a1n ho\u1eb7c tr\u1ea3i nghi\u1ec7m IDE ri\u00eang; c\u00f2n b\u00e0i to\u00e1n hi\u1ec7n t\u1ea1i ch\u1ec9 c\u1ea7n ch\u1ecdn n\u1ec1n t\u1ea3ng h\u1ee3p cho m\u1ed9t repo th\u00ec Codex l\u00e0 l\u1ef1a ch\u1ecdn g\u1ecdn v\u00e0 s\u00e1t nhu c\u1ea7u h\u01a1n.\n\n## Scope ng\u1eafn g\u1ecdn\n\n\u1ede scope n\u00e0y, h\u00e3y xem **Codex l\u00e0 platform l\u00e0m vi\u1ec7c ch\u00ednh cho \u0111\u00fang repo n\u00e0y**: \u0111\u1ecdc codebase, h\u1ed7 tr\u1ee3 planning/implementation/validation trong repo n\u1ed9i b\u1ed9 \u0111\u00f3. Ch\u01b0a c\u1ea7n m\u1edf r\u1ed9ng sang rollout nhi\u1ec1u repo, chu\u1ea9n ho\u00e1 to\u00e0n team, hay c\u00e0i th\u00eam workflow l\u1edbn h\u01a1n.\n"}], "grading": {"expectations": [{"text": "Recommends Kiro for a single-repo recommendation-only request.", "passed": true, "evidence": "Found Kiro recommendation in recommendation-only mode."}, {"text": "Uses the top-level headings Chosen platform and Chosen scope.", "passed": false, "evidence": "Missing one or both recommendation-only headings."}, {"text": "Does not include Install steps or Bootstrap next step headings.", "passed": true, "evidence": "No install/bootstrap headings present."}, {"text": "Explains workspace/global scope and repo onboarding scope.", "passed": false, "evidence": "Missing workspace/global or repo onboarding explanation."}, {"text": "Does not include install commands or marketplace commands.", "passed": false, "evidence": "Recommendation-only output included install or marketplace commands."}, {"text": "Does not hand off to using-khuym because install was not requested.", "passed": true, "evidence": "No using-khuym handoff present."}], "summary": {"passed": 3, "failed": 3, "total": 6, "pass_rate": 0.5}, "execution_metrics": {"tool_calls": {}, "total_tool_calls": 0, "total_steps": 1, "errors_encountered": 0, "output_chars": 892, "transcript_chars": 0}, "timing": {"total_duration_seconds": 0.0}, "claims": [], "user_notes_summary": {"uncertainties": ["Task notification did not expose duration metadata in this environment.", "Token count is approximated from response.md character length."], "needs_review": [], "workarounds": ["Used deterministic heuristic grading against response.md content."]}}}], "previous_feedback": {}, "previous_outputs": {"eval-1-codex-single-repo-install-with_skill-run-1": [{"name": "response.md", "type": "text", "content": "# Chosen platform\n\n- **Codex**\n- V\u00ec b\u1ea1n mu\u1ed1n d\u00f9ng Khuym **trong Codex** v\u00e0 **ch\u1ec9 cho repo n\u00e0y**, l\u1ef1a ch\u1ecdn ph\u00f9 h\u1ee3p nh\u1ea5t l\u00e0 c\u00e0i plugin `khuym` v\u00e0o Codex qua local marketplace c\u1ee7a ch\u00ednh repo hi\u1ec7n t\u1ea1i.\n\n# Chosen scope\n\n- **Install scope:** m\u1ee9c runtime/user c\u1ee7a Codex  \n  Codex c\u00e0i plugin \u1edf m\u1ee9c c\u00f4ng c\u1ee5, kh\u00f4ng g\u1eafn ri\u00eang cho t\u1eebng repo.\n- **Repo onboarding scope:** ch\u1ec9 **repo hi\u1ec7n t\u1ea1i**  \n  Sau khi c\u00e0i plugin, ph\u1ea7n onboarding c\u1ee7a Khuym v\u1eabn s\u1ebd ghi state c\u1ee5c b\u1ed9 trong repo n\u00e0y khi b\u1ea1n b\u1eaft \u0111\u1ea7u workflow.\n\n# Install steps\n\n1. Trong Codex, th\u00eam marketplace file c\u1ee7a repo n\u00e0y:\n\n   ```text\n   /var/www/khuym-skills/.agents/plugins/marketplace.json\n   ```\n\n2. N\u1ebfu Codex ch\u01b0a hi\u1ec7n marketplace m\u1edbi, h\u00e3y restart Codex.\n\n3. Trong Codex, c\u00e0i plugin **`khuym`** t\u1eeb marketplace v\u1eeba th\u00eam.\n\n# Bootstrap next step\n\n1. Skill c\u1ea7n ch\u1ea1y ti\u1ebfp theo l\u00e0 **`khuym:using-khuym`**.\n2. C\u00e0i plugin **kh\u00f4ng \u0111\u1ed3ng ngh\u0129a** v\u1edbi onboarding repo; `using-khuym` m\u1edbi l\u00e0 b\u01b0\u1edbc bootstrap Khuym cho repo n\u00e0y.\n3. \u0110\u1ec3 b\u1eaft \u0111\u1ea7u workflow, v\u00e0o session Codex \u1edf repo n\u00e0y r\u1ed3i y\u00eau c\u1ea7u:\n\n   ```text\n   D\u00f9ng khuym:using-khuym cho repo n\u00e0y \u0111\u1ec3 b\u1eaft \u0111\u1ea7u workflow.\n   ```\n\n4. Sau \u0111\u00f3 `using-khuym` s\u1ebd route sang c\u00e1c b\u01b0\u1edbc ti\u1ebfp theo khi ph\u00f9 h\u1ee3p, th\u01b0\u1eddng l\u00e0:\n   `exploring \u2192 planning \u2192 validating \u2192 swarming \u2192 executing \u2192 reviewing \u2192 compounding`.\n"}], "eval-1-codex-single-repo-install-without_skill-run-1": [{"name": "response.md", "type": "text", "content": "# Chosen platform\n\nM\u00ecnh ch\u1ecdn **Codex** cho y\u00eau c\u1ea7u n\u00e0y.\n\n# Chosen scope\n\n- **Install scope:** ch\u1ec9 c\u00e0i plugin **Khuym** v\u00e0o Codex t\u1eeb local marketplace c\u1ee7a repo n\u00e0y.\n- **Repo onboarding scope:** sau khi c\u00e0i xong, ch\u1ec9 onboard v\u00e0 ch\u1ea1y workflow Khuym cho **repo hi\u1ec7n t\u1ea1i** l\u00e0 `/var/www/khuym-skills`.\n\nRanh gi\u1edbi gi\u1eefa hai ph\u1ea7n l\u00e0:\n- **Install** = l\u00e0m cho Codex nh\u00ecn th\u1ea5y v\u00e0 c\u00e0i \u0111\u01b0\u1ee3c plugin `khuym`.\n- **Onboarding** = b\u1eaft \u0111\u1ea7u d\u00f9ng Khuym b\u00ean trong repo n\u00e0y \u0111\u1ec3 v\u00e0o workflow th\u1eadt.\n\nV\u1edbi nhu c\u1ea7u \u201crepo n\u00e0y th\u00f4i\u201d, scope h\u1ee3p l\u00fd nh\u1ea5t l\u00e0 **c\u00e0i plugin t\u1eeb local marketplace c\u1ee7a ch\u00ednh repo n\u00e0y, r\u1ed3i onboard \u0111\u00fang repo hi\u1ec7n t\u1ea1i**.\n\n# Install steps\n\n1. Trong Codex, th\u00eam marketplace local c\u1ee7a repo n\u00e0y:\n\n   ```text\n   /var/www/khuym-skills/.agents/plugins/marketplace.json\n   ```\n\n2. N\u1ebfu Codex ch\u01b0a hi\u1ec7n marketplace m\u1edbi ngay, h\u00e3y restart Codex.\n\n3. C\u00e0i plugin **`khuym`** t\u1eeb marketplace \u0111\u00f3.\n\n4. Plugin s\u1ebd l\u1ea5y n\u1ed9i dung t\u1eeb package local:\n\n   ```text\n   /var/www/khuym-skills/plugins/khuym\n   ```\n\n5. Sau khi c\u00e0i xong, m\u1edf session Codex m\u1edbi trong ch\u00ednh repo:\n\n   ```text\n   /var/www/khuym-skills\n   ```\n\n# Bootstrap next step\n\nB\u01b0\u1edbc ti\u1ebfp theo \u0111\u1ec3 b\u1eaft \u0111\u1ea7u workflow l\u00e0 n\u00f3i v\u1edbi Codex:\n\n```text\nUse khuym:using-khuym for this repository and bootstrap the workflow.\n```\n\nN\u1ebfu mu\u1ed1n n\u00f3i ng\u1eafn g\u1ecdn h\u01a1n theo \u00fd c\u1ee7a b\u1ea1n:\n\n```text\nD\u00f9ng Khuym cho repo n\u00e0y v\u00e0 b\u1eaft \u0111\u1ea7u t\u1eeb using-khuym.\n```\n"}], "eval-2-kiro-vs-droid-single-repo-choice-with_skill-run-1": [{"name": "response.md", "type": "text", "content": "# Chosen platform\n\nCh\u1ecdn **Kiro**.\n\nV\u1edbi nhu c\u1ea7u d\u00f9ng Khuym cho **m\u1ed9t repo n\u1ed9i b\u1ed9**, Kiro ph\u00f9 h\u1ee3p h\u01a1n v\u00ec n\u00f3 h\u1ed7 tr\u1ee3 **c\u00e0i theo workspace** \u2014 t\u1ee9c l\u00e0 g\u1eafn v\u00e0o \u0111\u00fang repo/workspace \u0111ang l\u00e0m. So v\u1edbi Factory Droid (thi\u00ean v\u1ec1 plugin \u1edf m\u1ee9c runtime/user), Kiro cho b\u00e0i to\u00e1n m\u1ed9t-repo g\u1ecdn h\u01a1n v\u00e0 \u00edt \u201cm\u1edf r\u1ed9ng ph\u1ea1m vi\u201d h\u01a1n.\n\n# Chosen scope\n\n- **Install scope:** **workspace**\n- **Repo onboarding scope:** **project/repo-local**\n\nGi\u1ea3i th\u00edch kh\u00e1c nhau:\n\n- **Project / repo onboarding scope**: l\u00e0 c\u00e1c file Khuym s\u1ebd ghi v\u00e0o **ch\u00ednh repo hi\u1ec7n t\u1ea1i** khi b\u1eaft \u0111\u1ea7u workflow (v\u00ed d\u1ee5 tr\u1ea1ng th\u00e1i, handoff, artifact trong repo). C\u00e1i n\u00e0y l\u00e0 ph\u1ea1m vi c\u1ee7a **repo**.\n- **Workspace scope**: l\u00e0 c\u00e1ch **c\u00e0i Kiro bundle cho \u0111\u00fang workspace/repo hi\u1ec7n t\u1ea1i**. Ph\u00f9 h\u1ee3p khi b\u1ea1n ch\u1ec9 mu\u1ed1n d\u00f9ng Khuym cho m\u1ed9t repo n\u1ed9i b\u1ed9.\n- **Global scope**: l\u00e0 c\u00e0i Khuym \u0111\u1ec3 d\u00f9ng l\u1ea1i cho **nhi\u1ec1u repo** trong Kiro tr\u00ean m\u00e1y \u0111\u00f3.\n- **Factory Droid** trong ng\u1eef c\u1ea3nh n\u00e0y kh\u00f4ng c\u00f3 l\u1ef1a ch\u1ecdn project/workspace/global theo ki\u1ec3u Kiro; plugin c\u1ee7a n\u00f3 v\u1ec1 b\u1ea3n ch\u1ea5t l\u00e0 **runtime-level/user-level**, c\u00f2n onboarding Khuym v\u1eabn l\u00e0 **repo-local** khi workflow b\u1eaft \u0111\u1ea7u.\n\n=> N\u1ebfu m\u1ee5c ti\u00eau l\u00e0 **ch\u1ec9 m\u1ed9t repo**, ch\u1ecdn **Kiro + workspace** l\u00e0 h\u1ee3p l\u00fd nh\u1ea5t.\n\n# Install steps\n\nC\u00e0i theo **workspace** cho repo hi\u1ec7n t\u1ea1i:\n\n```bash\nnode plugins/khuym-kiro/scripts/install_khuym_kiro.mjs --scope workspace --repo-root /var/www/khuym-skills\n```\n\nN\u1ebfu b\u1ea1n mu\u1ed1n d\u00f9ng qua Kiro UI thay v\u00ec ch\u1ec9 installer:\n\n- Trong Kiro, th\u00eam m\u1ed9t Power t\u1eeb local path\n- Ch\u1ecdn th\u01b0 m\u1ee5c: `plugins/khuym-kiro/`\n\nN\u1ebfu sau n\u00e0y mu\u1ed1n m\u1edf r\u1ed9ng cho nhi\u1ec1u repo, khi \u0111\u00f3 m\u1edbi c\u00e2n nh\u1eafc **global**:\n\n```bash\nnode plugins/khuym-kiro/scripts/install_khuym_kiro.mjs --scope global\n```\n\n# Bootstrap next step\n\nSkill c\u1ea7n ch\u1ea1y ti\u1ebfp theo l\u00e0 **`using-khuym`**.\n\nC\u00e0i platform xong **kh\u00f4ng c\u00f3 ngh\u0129a l\u00e0 repo \u0111\u00e3 \u0111\u01b0\u1ee3c onboard**; b\u01b0\u1edbc onboarding workflow v\u1eabn di\u1ec5n ra sau \u0111\u00f3 qua `using-khuym`.\n"}], "eval-2-kiro-vs-droid-single-repo-choice-without_skill-run-1": [{"name": "response.md", "type": "text", "content": "# Ch\u1ecdn platform\n\nM\u00ecnh khuy\u1ebfn ngh\u1ecb **Kiro** thay v\u00ec Factory Droid n\u1ebfu m\u1ee5c ti\u00eau l\u00e0 d\u00f9ng Khuym cho **\u0111\u00fang 1 repo n\u1ed9i b\u1ed9**.\n\n## V\u00ec sao?\n\n- **Fit h\u01a1n v\u1edbi ph\u1ea1m vi 1 repo**: Kiro c\u00f3 scope `workspace`, t\u1ee9c l\u00e0 c\u00e0i theo \u0111\u00fang repo/workspace hi\u1ec7n t\u1ea1i.\n- **Boundary r\u00f5 h\u01a1n**: b\u1ea1n t\u00e1ch \u0111\u01b0\u1ee3c r\u1ea5t r\u00f5 ph\u1ea7n n\u00e0o l\u00e0 **c\u00e0i platform**, ph\u1ea7n n\u00e0o l\u00e0 **onboard repo Khuym**.\n- **\u00cdt \u201ctr\u00e0n\u201d ra m\u00f4i tr\u01b0\u1eddng chung** h\u01a1n so v\u1edbi Factory Droid, v\u00ec Factory Droid trong repo n\u00e0y l\u00e0 ki\u1ec3u c\u00e0i \u1edf m\u1ee9c runtime/user, kh\u00f4ng ph\u1ea3i ri\u00eang t\u1eebng repo.\n\n## Ch\u1ecdn scope\n\nV\u1edbi case n\u00e0y, scope ph\u00f9 h\u1ee3p nh\u1ea5t l\u00e0 **`workspace`**.\n\n- **M\u1ed9t repo n\u1ed9i b\u1ed9 duy nh\u1ea5t** \u2192 ch\u1ecdn **Kiro + `workspace`**.\n- **Nhi\u1ec1u repo / mu\u1ed1n d\u00f9ng r\u1ed9ng tr\u00ean m\u00e1y** \u2192 m\u1edbi c\u00e2n nh\u1eafc **Kiro `global`** ho\u1eb7c chu\u1ea9n h\u00f3a sang **Factory Droid**.\n\n## Kiro vs Factory Droid trong b\u00e0i to\u00e1n n\u00e0y\n\n### Kiro\n- H\u1ed7 tr\u1ee3 **`workspace`** v\u00e0 **`global`**.\n- V\u1edbi **1 repo**, b\u1ea1n ch\u1ecdn `workspace` l\u00e0 g\u1ecdn nh\u1ea5t.\n- C\u00e0i xong Kiro bundle xong th\u00ec **repo v\u1eabn c\u1ea7n onboarding Khuym ri\u00eang** khi b\u1eaft \u0111\u1ea7u workflow.\n\n### Factory Droid\n- Ph\u00f9 h\u1ee3p n\u1ebfu b\u1ea1n \u0111\u00e3 x\u00e1c \u0111\u1ecbnh d\u00f9ng Factory Droid nh\u01b0 platform ch\u00ednh l\u00e2u d\u00e0i.\n- Nh\u01b0ng trong repo n\u00e0y, plugin install c\u1ee7a Droid l\u00e0 **runtime-level** h\u01a1n l\u00e0 repo-level.\n- Ngh\u0129a l\u00e0 v\u1edbi nhu c\u1ea7u **ch\u1ec9 1 repo**, n\u00f3 kh\u00f4ng \u201ckh\u00edt scope\u201d b\u1eb1ng Kiro `workspace`.\n\n## `project` / `workspace` / `global` kh\u00e1c nhau th\u1ebf n\u00e0o?\n\n### `project`\n\u0110\u00e2y l\u00e0 **ph\u1ea1m vi c\u1ee7a ch\u00ednh repo \u0111ang ch\u1ea1y Khuym**.\n\nN\u00f3i \u0111\u01a1n gi\u1ea3n: sau khi b\u1ea1n \u0111\u00e3 c\u00e0i platform, l\u00fac b\u1eaft \u0111\u1ea7u d\u00f9ng Khuym th\u00ec repo s\u1ebd \u0111\u01b0\u1ee3c onboard v\u00e0 sinh ra c\u00e1c file/state **n\u1eb1m trong repo** (v\u00ed d\u1ee5 `.khuym/`, `AGENTS.md`, v\u00e0 c\u00e1c file support theo platform).\n\n=> **`project` l\u00e0 ph\u1ea1m vi d\u1eef li\u1ec7u/tr\u1ea1ng th\u00e1i c\u1ee7a repo**, kh\u00f4ng ph\u1ea3i n\u01a1i c\u00e0i plugin/platform.\n\n### `workspace`\n\u0110\u00e2y l\u00e0 **scope c\u00e0i \u0111\u1eb7t c\u1ee7a Kiro cho repo hi\u1ec7n t\u1ea1i**.\n\nV\u1edbi Kiro, `workspace` ngh\u0129a l\u00e0 bundle \u0111\u01b0\u1ee3c c\u00e0i v\u00e0o `.kiro/` c\u1ee7a repo \u0111ang l\u00e0m vi\u1ec7c, n\u00ean ch\u1ec9 workspace \u0111\u00f3 d\u00f9ng Khuym theo c\u1ea5u h\u00ecnh n\u00e0y.\n\n=> **D\u00f9ng khi b\u1ea1n ch\u1ec9 mu\u1ed1n Khuym cho m\u1ed9t repo c\u1ee5 th\u1ec3.**\n\n### `global`\n\u0110\u00e2y l\u00e0 **scope c\u00e0i \u0111\u1eb7t d\u00f9ng chung cho nhi\u1ec1u repo**.\n\nV\u1edbi Kiro, `global` ngh\u0129a l\u00e0 c\u00e0i v\u00e0o `~/.kiro/`, \u0111\u1ec3 nhi\u1ec1u workspace/repo tr\u00ean m\u00e1y \u0111\u1ec1u c\u00f3 th\u1ec3 d\u00f9ng chung bundle \u0111\u00f3.\n\n=> **D\u00f9ng khi b\u1ea1n mu\u1ed1n b\u1eadt Khuym m\u1eb7c \u0111\u1ecbnh cho nhi\u1ec1u repo**, kh\u00f4ng ch\u1ec9 m\u1ed9t repo.\n\n## Boundary \u0111\u00fang n\u00ean hi\u1ec3u l\u00e0 g\u00ec?\n\nC\u00f3 2 l\u1edbp t\u00e1ch bi\u1ec7t:\n\n1. **Platform install**\n   - Kiro: c\u00e0i bundle v\u00e0o `workspace` ho\u1eb7c `global`\n   - Factory Droid: c\u00e0i plugin v\u00e0o Droid runtime\n\n2. **Repo onboarding**\n   - Sau khi platform \u0111\u00e3 c\u00f3 Khuym, repo c\u1ee5 th\u1ec3 v\u1eabn c\u1ea7n \u0111i qua b\u01b0\u1edbc bootstrap/onboarding \u0111\u1ec3 t\u1ea1o state Khuym trong repo.\n   - T\u1ee9c l\u00e0: **c\u00e0i platform xong ch\u01b0a c\u00f3 ngh\u0129a l\u00e0 repo \u0111\u00e3 onboard xong**.\n\n## C\u00e1c b\u01b0\u1edbc c\u00e0i\n\nN\u1ebfu repo n\u1ed9i b\u1ed9 c\u1ee7a b\u1ea1n n\u1eb1m \u1edf `/absolute/path/to/repo`, l\u1ec7nh ph\u00f9 h\u1ee3p l\u00e0:\n\n```bash\nnode plugins/khuym-kiro/scripts/install_khuym_kiro.mjs --scope workspace --repo-root /absolute/path/to/repo\n```\n\nN\u1ebfu sau n\u00e0y b\u1ea1n mu\u1ed1n d\u00f9ng cho nhi\u1ec1u repo tr\u00ean c\u00f9ng m\u00e1y th\u00ec m\u1edbi chuy\u1ec3n sang:\n\n```bash\nnode plugins/khuym-kiro/scripts/install_khuym_kiro.mjs --scope global\n```\n\n## B\u01b0\u1edbc bootstrap ti\u1ebfp theo\n\nSau khi c\u00e0i xong, b\u01b0\u1edbc ti\u1ebfp theo v\u1eabn l\u00e0 **onboard repo** ch\u1ee9 ch\u01b0a ph\u1ea3i workflow \u0111\u00e3 s\u1eb5n s\u00e0ng ngay. B\u1eaft \u0111\u1ea7u b\u1eb1ng:\n\n```text\nusing-khuym\n```\n\nT\u00f3m l\u1ea1i:\n\n- **Platform install** = l\u00e0m Khuym xu\u1ea5t hi\u1ec7n trong Kiro\n- **Repo onboarding** = bootstrap repo c\u1ee5 th\u1ec3 \u0111\u1ec3 t\u1ea1o state Khuym trong repo\n"}], "eval-3-all-platforms-full-route-with_skill-run-1": [{"name": "response.md", "type": "text", "content": "# Chosen platform\n\n`all 3` \u2014 v\u00ec b\u1ea1n n\u00f3i r\u00f5 mu\u1ed1n c\u00e0i Khuym tr\u00ean c\u1ea3 `Codex`, `Factory Droid` v\u00e0 `Kiro`, r\u1ed3i \u0111i ti\u1ebfp v\u00e0o full workflow.\n\n# Chosen scope\n\n- **Install scope**\n  - **Codex:** c\u00e0i \u1edf m\u1ee9c runtime/user th\u00f4ng qua local marketplace.\n  - **Factory Droid:** c\u00e0i \u1edf m\u1ee9c runtime/user th\u00f4ng qua plugin marketplace c\u1ee7a Droid.\n  - **Kiro:** n\u00ean d\u00f9ng **workspace scope** cho repo hi\u1ec7n t\u1ea1i, v\u00ec b\u1ea1n mu\u1ed1n \u0111i bootstrap ngay cho repo n\u00e0y; ch\u1ec9 d\u00f9ng global n\u1ebfu mu\u1ed1n b\u1eadt Khuym cho nhi\u1ec1u repo.\n\n- **Repo onboarding scope**\n  - V\u1edbi c\u1ea3 3 n\u1ec1n t\u1ea3ng, onboarding Khuym v\u1eabn l\u00e0 **repo-local**.\n  - Ngh\u0129a l\u00e0: c\u00e0i plugin/bundle ch\u1ec9 l\u00e0m Khuym xu\u1ea5t hi\u1ec7n trong c\u00f4ng c\u1ee5; c\u00f2n bootstrap workflow s\u1ebd ghi state/onboarding v\u00e0o ch\u00ednh repo hi\u1ec7n t\u1ea1i.\n\n# Install steps\n\n## Codex\n\n1. Th\u00eam marketplace local c\u1ee7a repo n\u00e0y v\u00e0o Codex:\n\n   ```text\n   /var/www/khuym-skills/.agents/plugins/marketplace.json\n   ```\n\n2. N\u1ebfu Codex ch\u01b0a hi\u1ec7n marketplace m\u1edbi, restart Codex.\n3. Trong Codex, c\u00e0i plugin `khuym` t\u1eeb marketplace \u0111\u00f3.\n\n## Factory Droid\n\nCh\u1ea1y t\u1eeb b\u1ea5t k\u1ef3 \u0111\u00e2u v\u1edbi \u0111\u01b0\u1eddng d\u1eabn repo n\u00e0y:\n\n```bash\ndroid plugin marketplace add \"/var/www/khuym-skills\"\ndroid plugin install \"khuym@khuym-skills\"\ndroid plugin list\n```\n\n## Kiro\n\nKhuy\u1ebfn ngh\u1ecb cho repo hi\u1ec7n t\u1ea1i: **workspace scope**.\n\n```bash\nnode /var/www/khuym-skills/plugins/khuym-kiro/scripts/install_khuym_kiro.mjs --scope workspace --repo-root /var/www/khuym-skills\n```\n\nN\u1ebfu b\u1ea1n mu\u1ed1n b\u1eadt Khuym cho m\u1ecdi repo trong Kiro, d\u00f9ng global:\n\n```bash\nnode /var/www/khuym-skills/plugins/khuym-kiro/scripts/install_khuym_kiro.mjs --scope global\n```\n\nTu\u1ef3 ch\u1ecdn UI trong Kiro:\n\n- Add a Power from local path\n- Ch\u1ecdn th\u01b0 m\u1ee5c:\n\n```text\n/var/www/khuym-skills/plugins/khuym-kiro/\n```\n\n# Bootstrap next step\n\n- Skill c\u1ea7n load ti\u1ebfp theo tr\u00ean c\u1ea3 3 n\u1ec1n t\u1ea3ng l\u00e0: **`using-khuym`**.\n- C\u00e0i \u0111\u1eb7t **kh\u00f4ng \u0111\u1ed3ng ngh\u0129a** v\u1edbi onboarding: sau khi plugin/bundle \u0111\u00e3 c\u00f3 m\u1eb7t, b\u1ea1n v\u1eabn ph\u1ea3i ch\u1ea1y `using-khuym` \u0111\u1ec3 bootstrap repo hi\u1ec7n t\u1ea1i.\n- V\u00ec b\u1ea1n mu\u1ed1n v\u00e0o **full workflow**, route ti\u1ebfp theo l\u00e0:\n\n```text\nusing-khuym \u2192 exploring \u2192 planning \u2192 validating \u2192 swarming \u2192 executing \u2192 reviewing \u2192 compounding\n```\n\n- B\u01b0\u1edbc bootstrap ng\u1eafn g\u1ecdn:\n  1. M\u1edf session tr\u00ean n\u1ec1n t\u1ea3ng b\u1ea1n mu\u1ed1n d\u00f9ng.\n  2. Load skill `using-khuym`.\n  3. \u0110\u1ec3 `using-khuym` th\u1ef1c hi\u1ec7n onboarding repo v\u00e0 route v\u00e0o full workflow \u1edf tr\u00ean.\n"}], "eval-3-all-platforms-full-route-without_skill-run-1": [{"name": "response.md", "type": "text", "content": "# C\u00e0i Khuym tr\u00ean c\u1ea3 Codex, Factory Droid v\u00e0 Kiro\n\n## Ph\u1ea1m vi\n- **C\u00e0i plugin/bundle \u1edf c\u1ea3 3 runtime**: Codex, Factory Droid, Kiro.\n- **Bootstrap workflow cho repo hi\u1ec7n t\u1ea1i** l\u00e0 b\u01b0\u1edbc ri\u00eang, l\u00e0m **sau khi c\u00e0i xong**.\n\n## C\u00e1c b\u01b0\u1edbc c\u00e0i \u0111\u1eb7t\n\n### 1) Codex\n1. Clone repo n\u00e0y v\u1ec1 m\u00e1y n\u1ebfu b\u1ea1n ch\u01b0a c\u00f3:\n   ```bash\n   git clone https://github.com/hoangnb24/skills.git\n   cd skills\n   ```\n2. Trong Codex, th\u00eam marketplace c\u1ee7a repo n\u00e0y:\n   ```text\n   /absolute/path/to/skills/.agents/plugins/marketplace.json\n   ```\n3. N\u1ebfu Codex ch\u01b0a hi\u1ec7n marketplace m\u1edbi, restart Codex.\n4. C\u00e0i plugin **`khuym`** t\u1eeb marketplace \u0111\u00f3.\n\n### 2) Factory Droid\nT\u1eeb root c\u1ee7a repo:\n\n```bash\ndroid plugin marketplace add \"/absolute/path/to/skills\"\ndroid plugin install \"khuym@khuym-skills\"\ndroid plugin list\n```\n\n### 3) Kiro\nRepo n\u00e0y h\u1ed7 tr\u1ee3 Kiro qua **bundled installer** ho\u1eb7c **Local Path Power**.\n\n#### C\u00e0i theo workspace\n```bash\nnode plugins/khuym-kiro/scripts/install_khuym_kiro.mjs --scope workspace --repo-root /absolute/path/to/repo\n```\n\n#### Ho\u1eb7c c\u00e0i global\n```bash\nnode plugins/khuym-kiro/scripts/install_khuym_kiro.mjs --scope global\n```\n\n#### Ho\u1eb7c qua Kiro UI\n- Trong Kiro, th\u00eam Power t\u1eeb **Local Path**\n- Ch\u1ecdn th\u01b0 m\u1ee5c:\n  ```text\n  /absolute/path/to/skills/plugins/khuym-kiro\n  ```\n\n## B\u01b0\u1edbc bootstrap \u0111\u1ec3 v\u00e0o full workflow\nSau khi c\u00e0i xong tr\u00ean c\u00e1c runtime, b\u01b0\u1edbc ti\u1ebfp theo l\u00e0:\n\n### Bootstrap\n- **Codex / Factory Droid:** load skill **`khuym:using-khuym`**\n- **Kiro:** load skill **`using-khuym`**\n\nSkill n\u00e0y s\u1ebd:\n1. ki\u1ec3m tra repo \u0111\u00e3 onboard Khuym ch\u01b0a,\n2. ch\u1ea1y bootstrap/onboarding n\u1ebfu c\u00f2n thi\u1ebfu,\n3. d\u1ef1ng c\u00e1c file tr\u1ea1ng th\u00e1i nh\u01b0 `.khuym/`, `AGENTS.md`, v\u00e0 script h\u1ed7 tr\u1ee3 runtime.\n\n## Route full workflow sau bootstrap\nSau `using-khuym`, Khuym s\u1ebd \u0111i v\u00e0o full workflow:\n\n```text\nexploring \u2192 planning \u2192 validating \u2192 swarming \u2192 executing \u2192 reviewing \u2192 compounding\n```\n\n## T\u00f3m t\u1eaft ng\u1eafn\n- **C\u00e0i tr\u01b0\u1edbc**: Codex plugin, Factory Droid plugin, Kiro bundle/Power.\n- **Bootstrap sau**: ch\u1ea1y **`using-khuym`**.\n- **Full workflow** b\u1eaft \u0111\u1ea7u t\u1eeb bootstrap r\u1ed3i route sang chu\u1ed7i Khuym \u0111\u1ea7y \u0111\u1ee7.\n"}]}, "benchmark": {"metadata": {"skill_name": "setup-khuym", "skill_path": "<path/to/skill>", "executor_model": "<model-name>", "analyzer_model": "<model-name>", "timestamp": "2026-04-18T05:00:12Z", "evals_run": [1, 2, 3, 4], "runs_per_configuration": 3}, "runs": [{"eval_id": 1, "configuration": "with_skill", "run_number": 1, "result": {"pass_rate": 1.0, "passed": 6, "failed": 0, "total": 6, "time_seconds": 0.0, "tokens": 1473, "tool_calls": 0, "errors": 0}, "expectations": [{"text": "Chooses Codex as the platform for this request.", "passed": true, "evidence": "Found # Chosen platform with Codex."}, {"text": "Uses the top-level headings Chosen platform, Chosen scope, Install steps, and Bootstrap next step.", "passed": true, "evidence": "Found all four exact top-level headings."}, {"text": "Explicitly states both install scope and repo onboarding scope.", "passed": true, "evidence": "Found both exact phrases."}, {"text": "Explains the boundary between platform install and repo onboarding.", "passed": true, "evidence": "Found explicit install/onboarding boundary language."}, {"text": "Includes the local Codex marketplace flow or marketplace path.", "passed": true, "evidence": "Found Codex marketplace reference."}, {"text": "Tells the user to start with using-khuym after install.", "passed": true, "evidence": "Found using-khuym handoff."}], "notes": ["Task notification did not expose duration metadata in this environment.", "Token count is approximated from response.md character length.", "Used deterministic heuristic grading against response.md content."]}, {"eval_id": 2, "configuration": "with_skill", "run_number": 1, "result": {"pass_rate": 1.0, "passed": 6, "failed": 0, "total": 6, "time_seconds": 0.0, "tokens": 1505, "tool_calls": 0, "errors": 0}, "expectations": [{"text": "Recommends Kiro for the single-repo scenario.", "passed": true, "evidence": "Found Kiro recommendation."}, {"text": "Uses the top-level headings Chosen platform, Chosen scope, Install steps, and Bootstrap next step.", "passed": true, "evidence": "Found all four exact top-level headings."}, {"text": "Explicitly states both install scope and repo onboarding scope.", "passed": true, "evidence": "Found both exact phrases."}, {"text": "Explains the difference between workspace and global scope, or project/workspace/global.", "passed": true, "evidence": "Found project/workspace/global scope comparison."}, {"text": "Explains the boundary between platform install and repo onboarding.", "passed": true, "evidence": "Found explicit install/onboarding boundary language."}, {"text": "Includes the Kiro workspace install command with install_khuym_kiro.mjs.", "passed": true, "evidence": "Found Kiro workspace install command."}], "notes": ["Task notification did not expose duration metadata in this environment.", "Token count is approximated from response.md character length.", "Used deterministic heuristic grading against response.md content."]}, {"eval_id": 3, "configuration": "with_skill", "run_number": 1, "result": {"pass_rate": 1.0, "passed": 6, "failed": 0, "total": 6, "time_seconds": 0.0, "tokens": 2298, "tool_calls": 0, "errors": 0}, "expectations": [{"text": "Covers all three platforms: Codex, Factory Droid, and Kiro.", "passed": true, "evidence": "Found Codex, Factory Droid, and Kiro."}, {"text": "Uses the top-level headings Chosen platform, Chosen scope, Install steps, and Bootstrap next step.", "passed": true, "evidence": "Found all four exact top-level headings."}, {"text": "Uses nested platform sections for Codex, Factory Droid, and Kiro inside Install steps.", "passed": true, "evidence": "Found exact nested platform sections inside # Install steps."}, {"text": "Includes concrete install instructions for each platform.", "passed": true, "evidence": "Found concrete Codex, Droid, and Kiro install instructions."}, {"text": "Tells the user the next bootstrap step is using-khuym.", "passed": true, "evidence": "Found using-khuym handoff."}, {"text": "Mentions the full Khuym workflow chain after bootstrap.", "passed": true, "evidence": "Found the full workflow chain."}], "notes": ["Task notification did not expose duration metadata in this environment.", "Token count is approximated from response.md character length.", "Used deterministic heuristic grading against response.md content."]}, {"eval_id": 4, "configuration": "with_skill", "run_number": 1, "result": {"pass_rate": 1.0, "passed": 6, "failed": 0, "total": 6, "time_seconds": 0.0, "tokens": 982, "tool_calls": 0, "errors": 0}, "expectations": [{"text": "Recommends Kiro for a single-repo recommendation-only request.", "passed": true, "evidence": "Found Kiro recommendation in recommendation-only mode."}, {"text": "Uses the top-level headings Chosen platform and Chosen scope.", "passed": true, "evidence": "Found # Chosen platform and # Chosen scope."}, {"text": "Does not include Install steps or Bootstrap next step headings.", "passed": true, "evidence": "No install/bootstrap headings present."}, {"text": "Explains workspace/global scope and repo onboarding scope.", "passed": true, "evidence": "Found workspace/global discussion plus repo onboarding scope."}, {"text": "Does not include install commands or marketplace commands.", "passed": true, "evidence": "No install or marketplace commands were included."}, {"text": "Does not hand off to using-khuym because install was not requested.", "passed": true, "evidence": "No using-khuym handoff present."}], "notes": ["Task notification did not expose duration metadata in this environment.", "Token count is approximated from response.md character length.", "Used deterministic heuristic grading against response.md content."]}, {"eval_id": 1, "configuration": "without_skill", "run_number": 1, "result": {"pass_rate": 1.0, "passed": 6, "failed": 0, "total": 6, "time_seconds": 0.0, "tokens": 1473, "tool_calls": 0, "errors": 0}, "expectations": [{"text": "Chooses Codex as the platform for this request.", "passed": true, "evidence": "Found # Chosen platform with Codex."}, {"text": "Uses the top-level headings Chosen platform, Chosen scope, Install steps, and Bootstrap next step.", "passed": true, "evidence": "Found all four exact top-level headings."}, {"text": "Explicitly states both install scope and repo onboarding scope.", "passed": true, "evidence": "Found both exact phrases."}, {"text": "Explains the boundary between platform install and repo onboarding.", "passed": true, "evidence": "Found explicit install/onboarding boundary language."}, {"text": "Includes the local Codex marketplace flow or marketplace path.", "passed": true, "evidence": "Found Codex marketplace reference."}, {"text": "Tells the user to start with using-khuym after install.", "passed": true, "evidence": "Found using-khuym handoff."}], "notes": ["Task notification did not expose duration metadata in this environment.", "Token count is approximated from response.md character length.", "Used deterministic heuristic grading against response.md content."]}, {"eval_id": 2, "configuration": "without_skill", "run_number": 1, "result": {"pass_rate": 0.8333, "passed": 5, "failed": 1, "total": 6, "time_seconds": 0.0, "tokens": 1644, "tool_calls": 0, "errors": 0}, "expectations": [{"text": "Recommends Kiro for the single-repo scenario.", "passed": true, "evidence": "Found Kiro recommendation."}, {"text": "Uses the top-level headings Chosen platform, Chosen scope, Install steps, and Bootstrap next step.", "passed": true, "evidence": "Found all four exact top-level headings."}, {"text": "Explicitly states both install scope and repo onboarding scope.", "passed": true, "evidence": "Found both exact phrases."}, {"text": "Explains the difference between workspace and global scope, or project/workspace/global.", "passed": true, "evidence": "Found project/workspace/global scope comparison."}, {"text": "Explains the boundary between platform install and repo onboarding.", "passed": false, "evidence": "Did not find a clear install/onboarding boundary explanation."}, {"text": "Includes the Kiro workspace install command with install_khuym_kiro.mjs.", "passed": true, "evidence": "Found Kiro workspace install command."}], "notes": ["Task notification did not expose duration metadata in this environment.", "Token count is approximated from response.md character length.", "Used deterministic heuristic grading against response.md content."]}, {"eval_id": 3, "configuration": "without_skill", "run_number": 1, "result": {"pass_rate": 1.0, "passed": 6, "failed": 0, "total": 6, "time_seconds": 0.0, "tokens": 1823, "tool_calls": 0, "errors": 0}, "expectations": [{"text": "Covers all three platforms: Codex, Factory Droid, and Kiro.", "passed": true, "evidence": "Found Codex, Factory Droid, and Kiro."}, {"text": "Uses the top-level headings Chosen platform, Chosen scope, Install steps, and Bootstrap next step.", "passed": true, "evidence": "Found all four exact top-level headings."}, {"text": "Uses nested platform sections for Codex, Factory Droid, and Kiro inside Install steps.", "passed": true, "evidence": "Found exact nested platform sections inside # Install steps."}, {"text": "Includes concrete install instructions for each platform.", "passed": true, "evidence": "Found concrete Codex, Droid, and Kiro install instructions."}, {"text": "Tells the user the next bootstrap step is using-khuym.", "passed": true, "evidence": "Found using-khuym handoff."}, {"text": "Mentions the full Khuym workflow chain after bootstrap.", "passed": true, "evidence": "Found the full workflow chain."}], "notes": ["Task notification did not expose duration metadata in this environment.", "Token count is approximated from response.md character length.", "Used deterministic heuristic grading against response.md content."]}, {"eval_id": 4, "configuration": "without_skill", "run_number": 1, "result": {"pass_rate": 0.5, "passed": 3, "failed": 3, "total": 6, "time_seconds": 0.0, "tokens": 892, "tool_calls": 0, "errors": 0}, "expectations": [{"text": "Recommends Kiro for a single-repo recommendation-only request.", "passed": true, "evidence": "Found Kiro recommendation in recommendation-only mode."}, {"text": "Uses the top-level headings Chosen platform and Chosen scope.", "passed": false, "evidence": "Missing one or both recommendation-only headings."}, {"text": "Does not include Install steps or Bootstrap next step headings.", "passed": true, "evidence": "No install/bootstrap headings present."}, {"text": "Explains workspace/global scope and repo onboarding scope.", "passed": false, "evidence": "Missing workspace/global or repo onboarding explanation."}, {"text": "Does not include install commands or marketplace commands.", "passed": false, "evidence": "Recommendation-only output included install or marketplace commands."}, {"text": "Does not hand off to using-khuym because install was not requested.", "passed": true, "evidence": "No using-khuym handoff present."}], "notes": ["Task notification did not expose duration metadata in this environment.", "Token count is approximated from response.md character length.", "Used deterministic heuristic grading against response.md content."]}], "run_summary": {"with_skill": {"pass_rate": {"mean": 1.0, "stddev": 0.0, "min": 1.0, "max": 1.0}, "time_seconds": {"mean": 0.0, "stddev": 0.0, "min": 0.0, "max": 0.0}, "tokens": {"mean": 1564.5, "stddev": 544.4389, "min": 982, "max": 2298}}, "without_skill": {"pass_rate": {"mean": 0.8333, "stddev": 0.2357, "min": 0.5, "max": 1.0}, "time_seconds": {"mean": 0.0, "stddev": 0.0, "min": 0.0, "max": 0.0}, "tokens": {"mean": 1458.0, "stddev": 403.4856, "min": 892, "max": 1823}}, "delta": {"pass_rate": "+0.17", "time_seconds": "+0.0", "tokens": "+106"}}, "notes": ["The new recommendation-only eval is strongly discriminating: the skill stays in decision mode, while the baseline drifts into Codex-first advice and misses the repo-onboarding scope explanation.", "Eval 1 is still non-discriminating because both configurations already know how to produce a structured Codex install answer for a direct single-platform request.", "Eval 3 is now non-discriminating as well: both configurations produced the required all-platform install structure and workflow handoff.", "Iteration 3 improved behavioral coverage more than raw delta: it now measures whether the assistant can stop at recommendation-only scope instead of always jumping into installation steps."]}};
+
+    // ---- State ----
+    let feedbackMap = {};  // run_id -> feedback text
+    let currentIndex = 0;
+    let visitedRuns = new Set();
+
+    // ---- Init ----
+    async function init() {
+      // Load saved feedback from server — but only if this isn't a fresh
+      // iteration (indicated by previous_feedback being present). When
+      // previous feedback exists, the feedback.json on disk is stale from
+      // the prior iteration and should not pre-fill the textareas.
+      const hasPrevious = Object.keys(EMBEDDED_DATA.previous_feedback || {}).length > 0
+        || Object.keys(EMBEDDED_DATA.previous_outputs || {}).length > 0;
+      if (!hasPrevious) {
+        try {
+          const resp = await fetch("/api/feedback");
+          const data = await resp.json();
+          if (data.reviews) {
+            for (const r of data.reviews) feedbackMap[r.run_id] = r.feedback;
+          }
+        } catch { /* first run, no feedback yet */ }
+      }
+
+      document.getElementById("skill-name").textContent = EMBEDDED_DATA.skill_name;
+      showRun(0);
+
+      // Wire up feedback auto-save
+      const textarea = document.getElementById("feedback");
+      let saveTimeout = null;
+      textarea.addEventListener("input", () => {
+        clearTimeout(saveTimeout);
+        document.getElementById("feedback-status").textContent = "";
+        saveTimeout = setTimeout(() => saveCurrentFeedback(), 800);
+      });
+    }
+
+    // ---- Navigation ----
+    function navigate(delta) {
+      const newIndex = currentIndex + delta;
+      if (newIndex >= 0 && newIndex < EMBEDDED_DATA.runs.length) {
+        saveCurrentFeedback();
+        showRun(newIndex);
+      }
+    }
+
+    function updateNavButtons() {
+      document.getElementById("prev-btn").disabled = currentIndex === 0;
+      document.getElementById("next-btn").disabled =
+        currentIndex === EMBEDDED_DATA.runs.length - 1;
+    }
+
+    // ---- Show a run ----
+    function showRun(index) {
+      currentIndex = index;
+      const run = EMBEDDED_DATA.runs[index];
+
+      // Progress
+      document.getElementById("progress").textContent =
+        `${index + 1} of ${EMBEDDED_DATA.runs.length}`;
+
+      // Prompt
+      document.getElementById("prompt-text").textContent = run.prompt;
+
+      // Config badge
+      const badge = document.getElementById("config-badge");
+      const configMatch = run.id.match(/(with_skill|without_skill|new_skill|old_skill)/);
+      if (configMatch) {
+        const config = configMatch[1];
+        const isBaseline = config === "without_skill" || config === "old_skill";
+        badge.textContent = config.replace(/_/g, " ");
+        badge.className = "config-badge " + (isBaseline ? "config-baseline" : "config-primary");
+        badge.style.display = "inline-block";
+      } else {
+        badge.style.display = "none";
+      }
+
+      // Outputs
+      renderOutputs(run);
+
+      // Previous outputs
+      renderPrevOutputs(run);
+
+      // Grades
+      renderGrades(run);
+
+      // Previous feedback
+      const prevFb = (EMBEDDED_DATA.previous_feedback || {})[run.id];
+      const prevEl = document.getElementById("prev-feedback");
+      if (prevFb) {
+        document.getElementById("prev-feedback-text").textContent = prevFb;
+        prevEl.style.display = "block";
+      } else {
+        prevEl.style.display = "none";
+      }
+
+      // Feedback
+      document.getElementById("feedback").value = feedbackMap[run.id] || "";
+      document.getElementById("feedback-status").textContent = "";
+
+      updateNavButtons();
+
+      // Track visited runs and promote done button when all visited
+      visitedRuns.add(index);
+      const doneBtn = document.getElementById("done-btn");
+      if (visitedRuns.size >= EMBEDDED_DATA.runs.length) {
+        doneBtn.classList.add("ready");
+      }
+
+      // Scroll main content to top
+      document.querySelector(".main").scrollTop = 0;
+    }
+
+    // ---- Render outputs ----
+    function renderOutputs(run) {
+      const container = document.getElementById("outputs-body");
+      container.innerHTML = "";
+
+      const outputs = run.outputs || [];
+      if (outputs.length === 0) {
+        container.innerHTML = '<div class="empty-state">No output files</div>';
+        return;
+      }
+
+      for (const file of outputs) {
+        const fileDiv = document.createElement("div");
+        fileDiv.className = "output-file";
+
+        // Always show file header with download link
+        const header = document.createElement("div");
+        header.className = "output-file-header";
+        const nameSpan = document.createElement("span");
+        nameSpan.textContent = file.name;
+        header.appendChild(nameSpan);
+        const dlBtn = document.createElement("a");
+        dlBtn.className = "dl-btn";
+        dlBtn.textContent = "Download";
+        dlBtn.download = file.name;
+        dlBtn.href = getDownloadUri(file);
+        header.appendChild(dlBtn);
+        fileDiv.appendChild(header);
+
+        const content = document.createElement("div");
+        content.className = "output-file-content";
+
+        if (file.type === "text") {
+          const pre = document.createElement("pre");
+          pre.textContent = file.content;
+          content.appendChild(pre);
+        } else if (file.type === "image") {
+          const img = document.createElement("img");
+          img.src = file.data_uri;
+          img.alt = file.name;
+          content.appendChild(img);
+        } else if (file.type === "pdf") {
+          const iframe = document.createElement("iframe");
+          iframe.src = file.data_uri;
+          content.appendChild(iframe);
+        } else if (file.type === "xlsx") {
+          renderXlsx(content, file.data_b64);
+        } else if (file.type === "binary") {
+          const a = document.createElement("a");
+          a.className = "download-link";
+          a.href = file.data_uri;
+          a.download = file.name;
+          a.textContent = "Download " + file.name;
+          content.appendChild(a);
+        } else if (file.type === "error") {
+          const pre = document.createElement("pre");
+          pre.textContent = file.content;
+          pre.style.color = "var(--red)";
+          content.appendChild(pre);
+        }
+
+        fileDiv.appendChild(content);
+        container.appendChild(fileDiv);
+      }
+    }
+
+    // ---- XLSX rendering via SheetJS ----
+    function renderXlsx(container, b64Data) {
+      try {
+        const raw = Uint8Array.from(atob(b64Data), c => c.charCodeAt(0));
+        const wb = XLSX.read(raw, { type: "array" });
+
+        for (let i = 0; i < wb.SheetNames.length; i++) {
+          const sheetName = wb.SheetNames[i];
+          const ws = wb.Sheets[sheetName];
+
+          if (wb.SheetNames.length > 1) {
+            const sheetLabel = document.createElement("div");
+            sheetLabel.style.cssText =
+              "font-weight:600; font-size:0.8rem; color:#b0aea5; margin-top:0.5rem; margin-bottom:0.25rem;";
+            sheetLabel.textContent = "Sheet: " + sheetName;
+            container.appendChild(sheetLabel);
+          }
+
+          const htmlStr = XLSX.utils.sheet_to_html(ws, { editable: false });
+          const wrapper = document.createElement("div");
+          wrapper.innerHTML = htmlStr;
+          container.appendChild(wrapper);
+        }
+      } catch (err) {
+        container.textContent = "Error rendering spreadsheet: " + err.message;
+      }
+    }
+
+    // ---- Grades ----
+    function renderGrades(run) {
+      const section = document.getElementById("grades-section");
+      const content = document.getElementById("grades-content");
+
+      if (!run.grading) {
+        section.style.display = "none";
+        return;
+      }
+
+      const grading = run.grading;
+      section.style.display = "block";
+      // Reset to collapsed
+      content.classList.remove("open");
+      document.getElementById("grades-arrow").classList.remove("open");
+
+      const summary = grading.summary || {};
+      const expectations = grading.expectations || [];
+
+      let html = '<div style="padding: 1rem;">';
+
+      // Summary line
+      const passRate = summary.pass_rate != null
+        ? Math.round(summary.pass_rate * 100) + "%"
+        : "?";
+      const badgeClass = summary.pass_rate >= 0.8 ? "grade-pass" : summary.pass_rate >= 0.5 ? "" : "grade-fail";
+      html += '<div class="grades-summary">';
+      html += '<span class="grade-badge ' + badgeClass + '">' + passRate + '</span>';
+      html += '<span>' + (summary.passed || 0) + ' passed, ' + (summary.failed || 0) + ' failed of ' + (summary.total || 0) + '</span>';
+      html += '</div>';
+
+      // Assertions list
+      html += '<ul class="assertion-list">';
+      for (const exp of expectations) {
+        const statusClass = exp.passed ? "pass" : "fail";
+        const statusIcon = exp.passed ? "\u2713" : "\u2717";
+        html += '<li class="assertion-item">';
+        html += '<span class="assertion-status ' + statusClass + '">' + statusIcon + '</span>';
+        html += '<span>' + escapeHtml(exp.text) + '</span>';
+        if (exp.evidence) {
+          html += '<div class="assertion-evidence">' + escapeHtml(exp.evidence) + '</div>';
+        }
+        html += '</li>';
+      }
+      html += '</ul>';
+
+      html += '</div>';
+      content.innerHTML = html;
+    }
+
+    function toggleGrades() {
+      const content = document.getElementById("grades-content");
+      const arrow = document.getElementById("grades-arrow");
+      content.classList.toggle("open");
+      arrow.classList.toggle("open");
+    }
+
+    // ---- Previous outputs (collapsible) ----
+    function renderPrevOutputs(run) {
+      const section = document.getElementById("prev-outputs-section");
+      const content = document.getElementById("prev-outputs-content");
+      const prevOutputs = (EMBEDDED_DATA.previous_outputs || {})[run.id];
+
+      if (!prevOutputs || prevOutputs.length === 0) {
+        section.style.display = "none";
+        return;
+      }
+
+      section.style.display = "block";
+      // Reset to collapsed
+      content.classList.remove("open");
+      document.getElementById("prev-outputs-arrow").classList.remove("open");
+
+      // Render the files into the content area
+      content.innerHTML = "";
+      const wrapper = document.createElement("div");
+      wrapper.style.padding = "1rem";
+
+      for (const file of prevOutputs) {
+        const fileDiv = document.createElement("div");
+        fileDiv.className = "output-file";
+
+        const header = document.createElement("div");
+        header.className = "output-file-header";
+        const nameSpan = document.createElement("span");
+        nameSpan.textContent = file.name;
+        header.appendChild(nameSpan);
+        const dlBtn = document.createElement("a");
+        dlBtn.className = "dl-btn";
+        dlBtn.textContent = "Download";
+        dlBtn.download = file.name;
+        dlBtn.href = getDownloadUri(file);
+        header.appendChild(dlBtn);
+        fileDiv.appendChild(header);
+
+        const fc = document.createElement("div");
+        fc.className = "output-file-content";
+
+        if (file.type === "text") {
+          const pre = document.createElement("pre");
+          pre.textContent = file.content;
+          fc.appendChild(pre);
+        } else if (file.type === "image") {
+          const img = document.createElement("img");
+          img.src = file.data_uri;
+          img.alt = file.name;
+          fc.appendChild(img);
+        } else if (file.type === "pdf") {
+          const iframe = document.createElement("iframe");
+          iframe.src = file.data_uri;
+          fc.appendChild(iframe);
+        } else if (file.type === "xlsx") {
+          renderXlsx(fc, file.data_b64);
+        } else if (file.type === "binary") {
+          const a = document.createElement("a");
+          a.className = "download-link";
+          a.href = file.data_uri;
+          a.download = file.name;
+          a.textContent = "Download " + file.name;
+          fc.appendChild(a);
+        }
+
+        fileDiv.appendChild(fc);
+        wrapper.appendChild(fileDiv);
+      }
+
+      content.appendChild(wrapper);
+    }
+
+    function togglePrevOutputs() {
+      const content = document.getElementById("prev-outputs-content");
+      const arrow = document.getElementById("prev-outputs-arrow");
+      content.classList.toggle("open");
+      arrow.classList.toggle("open");
+    }
+
+    // ---- Feedback (saved to server -> feedback.json) ----
+    function saveCurrentFeedback() {
+      const run = EMBEDDED_DATA.runs[currentIndex];
+      const text = document.getElementById("feedback").value;
+
+      if (text.trim() === "") {
+        delete feedbackMap[run.id];
+      } else {
+        feedbackMap[run.id] = text;
+      }
+
+      // Build reviews array from map
+      const reviews = [];
+      for (const [run_id, feedback] of Object.entries(feedbackMap)) {
+        if (feedback.trim()) {
+          reviews.push({ run_id, feedback, timestamp: new Date().toISOString() });
+        }
+      }
+
+      fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reviews, status: "in_progress" }),
+      }).then(() => {
+        document.getElementById("feedback-status").textContent = "Saved";
+      }).catch(() => {
+        // Static mode or server unavailable — no-op on auto-save,
+        // feedback will be downloaded on final submit
+        document.getElementById("feedback-status").textContent = "Will download on submit";
+      });
+    }
+
+    // ---- Done ----
+    function showDoneDialog() {
+      // Save current textarea to feedbackMap (but don't POST yet)
+      const run = EMBEDDED_DATA.runs[currentIndex];
+      const text = document.getElementById("feedback").value;
+      if (text.trim() === "") {
+        delete feedbackMap[run.id];
+      } else {
+        feedbackMap[run.id] = text;
+      }
+
+      // POST once with status: complete — include ALL runs so the model
+      // can distinguish "no feedback" (looks good) from "not reviewed"
+      const reviews = [];
+      const ts = new Date().toISOString();
+      for (const r of EMBEDDED_DATA.runs) {
+        reviews.push({ run_id: r.id, feedback: feedbackMap[r.id] || "", timestamp: ts });
+      }
+      const payload = JSON.stringify({ reviews, status: "complete" }, null, 2);
+      fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: payload,
+      }).then(() => {
+        document.getElementById("done-overlay").classList.add("visible");
+      }).catch(() => {
+        // Server not available (static mode) — download as file
+        const blob = new Blob([payload], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "feedback.json";
+        a.click();
+        URL.revokeObjectURL(url);
+        document.getElementById("done-overlay").classList.add("visible");
+      });
+    }
+
+    function closeDoneDialog() {
+      // Reset status back to in_progress
+      saveCurrentFeedback();
+      document.getElementById("done-overlay").classList.remove("visible");
+    }
+
+    // ---- Toast ----
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.classList.add("visible");
+      setTimeout(() => toast.classList.remove("visible"), 2000);
+    }
+
+    // ---- Keyboard nav ----
+    document.addEventListener("keydown", (e) => {
+      // Don't capture when typing in textarea
+      if (e.target.tagName === "TEXTAREA") return;
+
+      if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+        e.preventDefault();
+        navigate(-1);
+      } else if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+        e.preventDefault();
+        navigate(1);
+      }
+    });
+
+    // ---- Util ----
+    function getDownloadUri(file) {
+      if (file.data_uri) return file.data_uri;
+      if (file.data_b64) return "data:application/octet-stream;base64," + file.data_b64;
+      if (file.type === "text") return "data:text/plain;charset=utf-8," + encodeURIComponent(file.content);
+      return "#";
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement("div");
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // ---- View switching ----
+    function switchView(view) {
+      document.querySelectorAll(".view-tab").forEach(t => t.classList.remove("active"));
+      document.querySelectorAll(".view-panel").forEach(p => p.classList.remove("active"));
+      document.querySelector(`[onclick="switchView('${view}')"]`).classList.add("active");
+      document.getElementById("panel-" + view).classList.add("active");
+    }
+
+    // ---- Benchmark rendering ----
+    function renderBenchmark() {
+      const data = EMBEDDED_DATA.benchmark;
+      if (!data) return;
+
+      // Show the tabs
+      document.getElementById("view-tabs").style.display = "flex";
+
+      const container = document.getElementById("benchmark-content");
+      const summary = data.run_summary || {};
+      const metadata = data.metadata || {};
+      const notes = data.notes || [];
+
+      let html = "";
+
+      // Header
+      html += "<h2 style='font-family: Poppins, sans-serif; margin-bottom: 0.5rem;'>Benchmark Results</h2>";
+      html += "<p style='color: var(--text-muted); font-size: 0.875rem; margin-bottom: 1.25rem;'>";
+      if (metadata.skill_name) html += "<strong>" + escapeHtml(metadata.skill_name) + "</strong> &mdash; ";
+      if (metadata.timestamp) html += metadata.timestamp + " &mdash; ";
+      if (metadata.evals_run) html += "Evals: " + metadata.evals_run.join(", ") + " &mdash; ";
+      html += (metadata.runs_per_configuration || "?") + " runs per configuration";
+      html += "</p>";
+
+      // Summary table
+      html += '<table class="benchmark-table">';
+
+      function fmtStat(stat, pct) {
+        if (!stat) return "—";
+        const suffix = pct ? "%" : "";
+        const m = pct ? (stat.mean * 100).toFixed(0) : stat.mean.toFixed(1);
+        const s = pct ? (stat.stddev * 100).toFixed(0) : stat.stddev.toFixed(1);
+        return m + suffix + " ± " + s + suffix;
+      }
+
+      function deltaClass(val) {
+        if (!val) return "";
+        const n = parseFloat(val);
+        if (n > 0) return "benchmark-delta-positive";
+        if (n < 0) return "benchmark-delta-negative";
+        return "";
+      }
+
+      // Discover config names dynamically (everything except "delta")
+      const configs = Object.keys(summary).filter(k => k !== "delta");
+      const configA = configs[0] || "config_a";
+      const configB = configs[1] || "config_b";
+      const labelA = configA.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+      const labelB = configB.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+      const a = summary[configA] || {};
+      const b = summary[configB] || {};
+      const delta = summary.delta || {};
+
+      html += "<thead><tr><th>Metric</th><th>" + escapeHtml(labelA) + "</th><th>" + escapeHtml(labelB) + "</th><th>Delta</th></tr></thead>";
+      html += "<tbody>";
+
+      html += "<tr><td><strong>Pass Rate</strong></td>";
+      html += "<td>" + fmtStat(a.pass_rate, true) + "</td>";
+      html += "<td>" + fmtStat(b.pass_rate, true) + "</td>";
+      html += '<td class="' + deltaClass(delta.pass_rate) + '">' + (delta.pass_rate || "—") + "</td></tr>";
+
+      // Time (only show row if data exists)
+      if (a.time_seconds || b.time_seconds) {
+        html += "<tr><td><strong>Time (s)</strong></td>";
+        html += "<td>" + fmtStat(a.time_seconds, false) + "</td>";
+        html += "<td>" + fmtStat(b.time_seconds, false) + "</td>";
+        html += '<td class="' + deltaClass(delta.time_seconds) + '">' + (delta.time_seconds ? delta.time_seconds + "s" : "—") + "</td></tr>";
+      }
+
+      // Tokens (only show row if data exists)
+      if (a.tokens || b.tokens) {
+        html += "<tr><td><strong>Tokens</strong></td>";
+        html += "<td>" + fmtStat(a.tokens, false) + "</td>";
+        html += "<td>" + fmtStat(b.tokens, false) + "</td>";
+        html += '<td class="' + deltaClass(delta.tokens) + '">' + (delta.tokens || "—") + "</td></tr>";
+      }
+
+      html += "</tbody></table>";
+
+      // Per-eval breakdown (if runs data available)
+      const runs = data.runs || [];
+      if (runs.length > 0) {
+        const evalIds = [...new Set(runs.map(r => r.eval_id))].sort((a, b) => a - b);
+
+        html += "<h3 style='font-family: Poppins, sans-serif; margin-bottom: 0.75rem;'>Per-Eval Breakdown</h3>";
+
+        const hasTime = runs.some(r => r.result && r.result.time_seconds != null);
+        const hasErrors = runs.some(r => r.result && r.result.errors > 0);
+
+        for (const evalId of evalIds) {
+          const evalRuns = runs.filter(r => r.eval_id === evalId);
+          const evalName = evalRuns[0] && evalRuns[0].eval_name ? evalRuns[0].eval_name : "Eval " + evalId;
+
+          html += "<h4 style='font-family: Poppins, sans-serif; margin: 1rem 0 0.5rem; color: var(--text);'>" + escapeHtml(evalName) + "</h4>";
+          html += '<table class="benchmark-table">';
+          html += "<thead><tr><th>Config</th><th>Run</th><th>Pass Rate</th>";
+          if (hasTime) html += "<th>Time (s)</th>";
+          if (hasErrors) html += "<th>Crashes During Execution</th>";
+          html += "</tr></thead>";
+          html += "<tbody>";
+
+          // Group by config and render with average rows
+          const configGroups = [...new Set(evalRuns.map(r => r.configuration))];
+          for (let ci = 0; ci < configGroups.length; ci++) {
+            const config = configGroups[ci];
+            const configRuns = evalRuns.filter(r => r.configuration === config);
+            if (configRuns.length === 0) continue;
+
+            const rowClass = ci === 0 ? "benchmark-row-with" : "benchmark-row-without";
+            const configLabel = config.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+
+            for (const run of configRuns) {
+              const r = run.result || {};
+              const prClass = r.pass_rate >= 0.8 ? "benchmark-delta-positive" : r.pass_rate < 0.5 ? "benchmark-delta-negative" : "";
+              html += '<tr class="' + rowClass + '">';
+              html += "<td>" + configLabel + "</td>";
+              html += "<td>" + run.run_number + "</td>";
+              html += '<td class="' + prClass + '">' + ((r.pass_rate || 0) * 100).toFixed(0) + "% (" + (r.passed || 0) + "/" + (r.total || 0) + ")</td>";
+              if (hasTime) html += "<td>" + (r.time_seconds != null ? r.time_seconds.toFixed(1) : "—") + "</td>";
+              if (hasErrors) html += "<td>" + (r.errors || 0) + "</td>";
+              html += "</tr>";
+            }
+
+            // Average row
+            const rates = configRuns.map(r => (r.result || {}).pass_rate || 0);
+            const avgRate = rates.reduce((a, b) => a + b, 0) / rates.length;
+            const avgPrClass = avgRate >= 0.8 ? "benchmark-delta-positive" : avgRate < 0.5 ? "benchmark-delta-negative" : "";
+            html += '<tr class="benchmark-row-avg ' + rowClass + '">';
+            html += "<td>" + configLabel + "</td>";
+            html += "<td>Avg</td>";
+            html += '<td class="' + avgPrClass + '">' + (avgRate * 100).toFixed(0) + "%</td>";
+            if (hasTime) {
+              const times = configRuns.map(r => (r.result || {}).time_seconds).filter(t => t != null);
+              html += "<td>" + (times.length ? (times.reduce((a, b) => a + b, 0) / times.length).toFixed(1) : "—") + "</td>";
+            }
+            if (hasErrors) html += "<td></td>";
+            html += "</tr>";
+          }
+          html += "</tbody></table>";
+
+          // Per-assertion detail for this eval
+          const runsWithExpectations = {};
+          for (const config of configGroups) {
+            runsWithExpectations[config] = evalRuns.filter(r => r.configuration === config && r.expectations && r.expectations.length > 0);
+          }
+          const hasAnyExpectations = Object.values(runsWithExpectations).some(runs => runs.length > 0);
+          if (hasAnyExpectations) {
+            // Collect all unique assertion texts across all configs
+            const allAssertions = [];
+            const seen = new Set();
+            for (const config of configGroups) {
+              for (const run of runsWithExpectations[config]) {
+                for (const exp of (run.expectations || [])) {
+                  if (!seen.has(exp.text)) {
+                    seen.add(exp.text);
+                    allAssertions.push(exp.text);
+                  }
+                }
+              }
+            }
+
+            html += '<table class="benchmark-table" style="margin-top: 0.5rem;">';
+            html += "<thead><tr><th>Assertion</th>";
+            for (const config of configGroups) {
+              const label = config.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+              html += "<th>" + escapeHtml(label) + "</th>";
+            }
+            html += "</tr></thead><tbody>";
+
+            for (const assertionText of allAssertions) {
+              html += "<tr><td>" + escapeHtml(assertionText) + "</td>";
+
+              for (const config of configGroups) {
+                html += "<td>";
+                for (const run of runsWithExpectations[config]) {
+                  const exp = (run.expectations || []).find(e => e.text === assertionText);
+                  if (exp) {
+                    const cls = exp.passed ? "benchmark-delta-positive" : "benchmark-delta-negative";
+                    const icon = exp.passed ? "\u2713" : "\u2717";
+                    html += '<span class="' + cls + '" title="Run ' + run.run_number + ': ' + escapeHtml(exp.evidence || "") + '">' + icon + "</span> ";
+                  } else {
+                    html += "— ";
+                  }
+                }
+                html += "</td>";
+              }
+              html += "</tr>";
+            }
+            html += "</tbody></table>";
+          }
+        }
+      }
+
+      // Notes
+      if (notes.length > 0) {
+        html += '<div class="benchmark-notes">';
+        html += "<h3>Analysis Notes</h3>";
+        html += "<ul>";
+        for (const note of notes) {
+          html += "<li>" + escapeHtml(note) + "</li>";
+        }
+        html += "</ul></div>";
+      }
+
+      container.innerHTML = html;
+    }
+
+    // ---- Start ----
+    init();
+    renderBenchmark();
+  </script>
+</body>
+</html>

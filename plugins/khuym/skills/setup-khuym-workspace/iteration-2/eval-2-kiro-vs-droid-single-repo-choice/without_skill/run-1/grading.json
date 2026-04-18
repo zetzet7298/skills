@@ -1,0 +1,62 @@
+{
+  "expectations": [
+    {
+      "text": "Recommends Kiro for the single-repo scenario.",
+      "passed": true,
+      "evidence": "Found Kiro recommendation."
+    },
+    {
+      "text": "Uses the top-level headings Chosen platform, Chosen scope, Install steps, and Bootstrap next step.",
+      "passed": false,
+      "evidence": "Missing one or more exact top-level headings."
+    },
+    {
+      "text": "Explicitly states both install scope and repo onboarding scope.",
+      "passed": false,
+      "evidence": "Did not find both exact phrases Install scope and Repo onboarding scope."
+    },
+    {
+      "text": "Explains the difference between workspace and global scope, or project/workspace/global.",
+      "passed": true,
+      "evidence": "Found project/workspace/global scope comparison."
+    },
+    {
+      "text": "Explains the boundary between platform install and repo onboarding.",
+      "passed": true,
+      "evidence": "Found explicit install/onboarding boundary language."
+    },
+    {
+      "text": "Includes the Kiro workspace install command with install_khuym_kiro.mjs.",
+      "passed": true,
+      "evidence": "Found Kiro workspace install command."
+    }
+  ],
+  "summary": {
+    "passed": 4,
+    "failed": 2,
+    "total": 6,
+    "pass_rate": 0.6667
+  },
+  "execution_metrics": {
+    "tool_calls": {},
+    "total_tool_calls": 0,
+    "total_steps": 1,
+    "errors_encountered": 0,
+    "output_chars": 3290,
+    "transcript_chars": 0
+  },
+  "timing": {
+    "total_duration_seconds": 0.0
+  },
+  "claims": [],
+  "user_notes_summary": {
+    "uncertainties": [
+      "Task notification did not expose duration metadata in this environment.",
+      "Token count is approximated from response.md character length."
+    ],
+    "needs_review": [],
+    "workarounds": [
+      "Used deterministic heuristic grading against response.md content."
+    ]
+  }
+}
