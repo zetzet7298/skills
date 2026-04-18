@@ -1,0 +1,57 @@
+{
+  "skill_name": "redmine-bead-sync",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Hãy đọc bead graph của feature hiện tại rồi sync sang Redmine project dang cho mình. Team đọc tiếng Việt thôi. Cứ làm nhanh và tự map cho tiện.",
+      "expected_output": "Ưu tiên đọc br hoặc bd trước, đưa ra mapping options đánh số cho human chọn, rồi preview payload tiếng Việt và xin approval trước khi ghi thật.",
+      "files": [],
+      "expectations": [
+        "Prefers br or bd before raw .beads reads.",
+        "Presents numbered mapping options instead of silently choosing one.",
+        "Produces a recommendation without auto-executing it.",
+        "Drafts Vietnamese Redmine payloads.",
+        "Requires approval before real Redmine writes."
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Có 1 epic bead, 3 task beads, 2 bug beads. Hãy convert sang Redmine cho mình theo best practice, không cần hỏi nhiều.",
+      "expected_output": "Vẫn đưa ra 2-3 mapping options đánh số, giải thích option nào phù hợp nhất, và đợi human chốt option trước khi chạy.",
+      "files": [],
+      "expectations": [
+        "Keeps the mapping decision as a human choice.",
+        "Compares at least two mapping shapes.",
+        "Explains why the recommended option wins.",
+        "Does not assume one bead always equals one issue.",
+        "Stops for mapping approval before execution."
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Dùng bead progress để update issue Redmine, thêm comment và log time luôn giúp mình. Nếu có chỗ nào mơ hồ thì bạn tự đoán cũng được.",
+      "expected_output": "Từ chối đoán field mơ hồ, preview exact update or comment or time-log actions, rồi xin approval trước khi viết.",
+      "files": [],
+      "expectations": [
+        "Refuses to guess ambiguous Redmine fields.",
+        "Previews update, comment, and time-log actions before writing.",
+        "Surfaces assumptions about status, assignee, project, or hours.",
+        "Supports full sync rather than create-only behavior.",
+        "Requires explicit approval before write operations."
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Viết tiếng Việt là được, khỏi chỉnh văn phong. Chỉ cần sync nhanh bead này sang issue plus comment.",
+      "expected_output": "Vẫn chạy anti-AI cleanup pass cho nội dung tiếng Việt trước khi preview hoặc gửi sang Redmine.",
+      "files": [],
+      "expectations": [
+        "Keeps the Vietnamese anti-AI pass even under speed pressure.",
+        "Uses concise internal-team Vietnamese rather than stiff translated prose.",
+        "Maintains bead traceability in the text where useful.",
+        "Previews the cleaned-up issue and comment text.",
+        "Does not treat writing cleanup as optional."
+      ]
+    }
+  ]
+}
