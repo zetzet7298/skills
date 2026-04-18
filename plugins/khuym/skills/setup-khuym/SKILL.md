@@ -11,7 +11,8 @@ metadata:
 
 Use this skill before `using-khuym` when the user still needs help deciding or installing the runtime surface for Khuym.
 
-`using-khuym` starts the workflow after the platform is ready.
+`project-bootstrap` and `project-roadmap` are the new front stage for fresh initiatives before Khuym proper.
+`using-khuym` starts the Khuym workflow after the platform is ready and the work is ready to enter Khuym.
 `setup-khuym` gets the platform ready.
 
 ## What success looks like
@@ -21,7 +22,7 @@ By the end of this skill, the user should have:
 1. the correct target platform chosen: `Codex`, `Factory Droid`, `Kiro`, `Antigravity`, `Pi`, `OpenCode`, `Gemini CLI`, or `all 7`
 2. the correct install scope chosen: repo/workspace/project-local vs global where that distinction exists
 3. exact install commands or UI steps for that platform
-4. the next bootstrap step: load `using-khuym`
+4. the next startup step: either `project-bootstrap` -> `project-roadmap` -> `using-khuym`, or direct `using-khuym` when the work is already framed
 5. if requested, the next workflow step after bootstrap
 
 ## Decision model
@@ -59,7 +60,11 @@ Always explain this boundary clearly:
 - **platform install** makes the Khuym skills available in the tool
 - **repo onboarding** prepares the current repository for the Khuym workflow
 
-After install, the next step is still to load `using-khuym`.
+After install, the next step depends on whether the user still needs the new pre-Khuym front stage.
+
+- **platform install** makes the Khuym and pre-Khuym skills available in the tool
+- **front-stage bootstrap** (`project-bootstrap` -> `project-roadmap`) frames a fresh greenfield or brownfield initiative before Khuym
+- **repo onboarding** starts when `using-khuym` begins Khuym on the chosen slice
 
 ## Installation matrix
 
@@ -93,8 +98,8 @@ When helping the user, answer in this order:
 - repo path placeholders if needed
 
 ### Bootstrap next step
-- tell them to load `using-khuym`
-- if they asked for the full workflow, say that `using-khuym` should then route into the rest of the chain
+- tell them whether the next step is the pre-Khuym front stage or direct `using-khuym`
+- if they asked for the full workflow, say how that startup path routes into the rest of the chain
 
 If the user explicitly says they only want a recommendation, comparison, or platform choice for now, stop after `Chosen platform` and `Chosen scope`. Do not volunteer install commands, bootstrap instructions, or the workflow chain unless they asked for setup.
 
@@ -175,13 +180,19 @@ For Gemini CLI responses, explicitly mention the actual install surfaces and fol
 
 Inside `# Bootstrap next step`, always include:
 
-1. the exact skill name to start with for that platform
-2. one short sentence explaining that install does not equal onboarding
+1. the exact skill name(s) to start with for that platform
+2. one short sentence explaining that install does not equal front-stage framing or repo onboarding
 3. if the user asked for the full workflow, the routed chain after `using-khuym`
 
-For Codex and Factory Droid requests, prefer the explicit bootstrap skill name `khuym:using-khuym`.
+When the user is starting a fresh initiative, a greenfield project, or a brownfield repo that still needs framing:
 
-For Kiro, Antigravity, Pi, OpenCode, and Gemini CLI requests, prefer the bootstrap skill name `using-khuym`.
+- Codex / Factory Droid: prefer `khuym:project-bootstrap` -> `khuym:project-roadmap` -> `khuym:using-khuym`
+- Kiro / Antigravity / Pi / OpenCode / Gemini CLI: prefer `project-bootstrap` -> `project-roadmap` -> `using-khuym`
+
+When the work is already framed and ready to enter Khuym:
+
+- Codex / Factory Droid: prefer `khuym:using-khuym`
+- Kiro / Antigravity / Pi / OpenCode / Gemini CLI: prefer `using-khuym`
 
 ## Specific quality bar
 
@@ -199,10 +210,12 @@ For recommendation-only requests, do not add install commands "just in case". Sc
 
 Once install is complete:
 
-- if the user asked to begin working immediately, hand off to `using-khuym`
+- if the user asked to begin a fresh initiative or wants best-practice startup, hand off to `project-bootstrap`, then `project-roadmap`, then `using-khuym`
+- if the work is already framed and they asked to begin working immediately, hand off to `using-khuym`
 - if they only asked for install/setup, stop after confirming the platform is ready
 - if they asked for the full workflow, explicitly say:
-  - first `using-khuym`
+  - first the front stage if needed: `project-bootstrap` -> `project-roadmap`
+  - then `using-khuym`
   - then follow its routing into `exploring`, `planning`, `validating`, `swarming`, `executing`, `reviewing`, and `compounding` as needed
 
 ## Guardrails
