@@ -22,6 +22,7 @@ docs/architecture/*
 !docs/examples/
 docs/examples/*
 !docs/examples/golden-path.md
+!docs/examples/khuym-skills-vi.md
 !docs/legal/
 !docs/legal/privacy.md
 !docs/legal/terms.md

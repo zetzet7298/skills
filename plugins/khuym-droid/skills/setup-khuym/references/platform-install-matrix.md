@@ -242,8 +242,24 @@ Use this order:
 
 ## Bootstrap handoff
 
-After any platform install, the next Khuym step is:
+After any platform install, choose the next step based on how much startup work remains:
+
+### Fresh initiative or best-practice startup
+
+- Codex / Factory Droid:
+  - `khuym:project-bootstrap`
+  - `khuym:project-roadmap`
+  - `khuym:using-khuym`
+- Kiro / Antigravity / Pi / OpenCode / Gemini CLI:
+  - `project-bootstrap`
+  - `project-roadmap`
+  - `using-khuym`
+
+Use this path when the repo or initiative still needs framing, research, or roadmap setup before entering Khuym proper.
+
+### Already framed work, ready for Khuym
 
 - Codex / Factory Droid: load `khuym:using-khuym`
 - Kiro / Antigravity / Pi / OpenCode / Gemini CLI: load `using-khuym`
-- if the user wants immediate work, continue into that skill's onboarding/bootstrap flow
+
+Use this shorter path when the initiative is already framed and the chosen slice is ready to enter Khuym directly.

@@ -2,6 +2,14 @@
 
 This is the shortest concrete example of what a normal Khuym run is supposed to feel like.
 
+If you are starting a brand-new initiative or a brownfield change that still needs framing, run the front stage first:
+
+1. `project-bootstrap`
+2. `project-roadmap`
+3. then continue with the Khuym flow below
+
+The sequence below starts at the point where the work is ready to enter Khuym proper.
+
 ## Example Request
 
 > Add inbound email support for the agent inbox.

@@ -33,6 +33,31 @@ Khuym presents three user-facing modes over the same core workflow:
 
 Modes change the amount of ceremony, not the core contract. `validating` still gates execution in every mode.
 
+## Front Stage Before Khuym
+
+For new initiatives, Khuym now has an additive front stage that happens **before** the main Khuym chain:
+
+```text
+project-bootstrap
+  -> project-roadmap
+  -> using-khuym
+  -> exploring
+  -> planning
+  -> validating
+  -> swarming
+  -> executing
+  -> reviewing
+  -> compounding
+```
+
+Purpose:
+
+- `project-bootstrap` frames the initiative, classifies greenfield vs brownfield work, and writes bootstrap artifacts under `history/bootstrap/<initiative>/`
+- `project-roadmap` chooses the lightest credible path, writes the roadmap, and prepares a clean handoff into Khuym proper
+- `using-khuym` still starts the main Khuym workflow and keeps the execution chain unchanged
+
+This front stage does not replace the Khuym chain below. It improves the input to the chain.
+
 ## Main Chain
 
 ```text
