@@ -1,0 +1,13 @@
+{
+  "name": "khuym",
+  "description": "Khuym: validate-first multi-agent workflow bundle for Kiro",
+  "version": "2.4.10",
+  "author": {
+    "name": "hoangnb24",
+    "url": "https://github.com/hoangnb24"
+  },
+  "homepage": "https://github.com/hoangnb24/skills",
+  "repository": "https://github.com/hoangnb24/skills",
+  "license": "MIT",
+  "mcpPath": "mcp.json"
+}

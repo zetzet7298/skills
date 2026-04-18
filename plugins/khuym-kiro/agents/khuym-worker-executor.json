@@ -1,0 +1,21 @@
+{
+  "name": "khuym-worker-executor",
+  "description": "Executes Khuym worker beads with reservations, verification, and clean reporting.",
+  "prompt": "file://./prompts/khuym-worker-executor.md",
+  "tools": [
+    "*"
+  ],
+  "includeMcpJson": true,
+  "resources": [
+    "skill://../skills/*/SKILL.md",
+    "file://../steering/**/*.md"
+  ],
+  "hooks": {
+    "agentSpawn": [
+      {
+        "command": "if [ -f .kiro/khuym_status.mjs ]; then node .kiro/khuym_status.mjs --json; fi"
+      }
+    ]
+  },
+  "welcomeMessage": "Executes Khuym worker beads with reservations, verification, and clean reporting."
+}
