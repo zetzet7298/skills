@@ -1,0 +1,4 @@
+description = "Bootstrap the current repo into the Khuym workflow."
+prompt = """
+Activate `using-khuym`. Check `.khuym/onboarding.json`, run `node .gemini/khuym_status.mjs --json` when available, and follow the Gemini CLI Khuym bootstrap rules for this repository.
+"""

@@ -1,0 +1,4 @@
+description = "Run the Khuym session scout for the current workspace."
+prompt = """
+Read `GEMINI.md` if it exists. If `.gemini/khuym_status.mjs` exists, run `node .gemini/khuym_status.mjs --json`, summarize onboarding/state/handoff, and call out the next Khuym step.
+"""
