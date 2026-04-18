@@ -1,0 +1,4 @@
+description = "Route the current request through the full Khuym workflow."
+prompt = """
+Activate `using-khuym`, then follow its routing to the next Khuym skill. If the user wants the full pipeline, stay inside the validate-first chain and respect the required approval gates.
+"""

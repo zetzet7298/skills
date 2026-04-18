@@ -12,7 +12,7 @@
         "Explicitly states both install scope and repo onboarding scope.",
         "Explains the boundary between platform install and repo onboarding.",
         "Includes the local Codex marketplace flow or marketplace path.",
-        "Tells the user to start with using-khuym after install."
+        "Tells the user to start with khuym:using-khuym after install."
       ]
     },
     {
@@ -31,15 +31,15 @@
     },
     {
       "id": 3,
-      "prompt": "Cài Khuym cho tôi trên cả Codex, Factory Droid và Kiro. Sau đó chỉ luôn bước bootstrap để tôi đi vào full workflow.",
-      "expected_output": "Chia thành 3 phần theo platform dưới Install steps, có top-level template rõ ràng, nêu đúng lệnh hoặc UI path cho từng cái, rồi kết thúc bằng handoff sang using-khuym và full workflow routing.",
+      "prompt": "Cài Khuym cho tôi trên cả Codex, Factory Droid, Kiro, Antigravity, Pi, OpenCode, và Gemini CLI. Sau đó chỉ luôn bước bootstrap để tôi đi vào full workflow.",
+      "expected_output": "Chia thành 7 phần theo platform dưới Install steps, có top-level template rõ ràng, nêu đúng lệnh hoặc UI path cho từng cái, rồi kết thúc bằng handoff sang using-khuym và full workflow routing.",
       "files": [],
       "expectations": [
-        "Covers all three platforms: Codex, Factory Droid, and Kiro.",
+        "Covers all seven platforms: Codex, Factory Droid, Kiro, Antigravity, Pi, OpenCode, and Gemini CLI.",
         "Uses the top-level headings Chosen platform, Chosen scope, Install steps, and Bootstrap next step.",
-        "Uses nested platform sections for Codex, Factory Droid, and Kiro inside Install steps.",
+        "Uses nested platform sections for Codex, Factory Droid, Kiro, Antigravity, Pi, OpenCode, and Gemini CLI inside Install steps.",
         "Includes concrete install instructions for each platform.",
-        "Tells the user the next bootstrap step is using-khuym.",
+        "Tells the user the next bootstrap step is using-khuym or khuym:using-khuym as appropriate.",
         "Mentions the full Khuym workflow chain after bootstrap."
       ]
     },
@@ -55,6 +55,70 @@
         "Explains workspace/global scope and repo onboarding scope.",
         "Does not include install commands or marketplace commands.",
         "Does not hand off to using-khuym because install was not requested."
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Cài Khuym vào Antigravity cho repo này thôi và nói luôn bước bootstrap tiếp theo.",
+      "expected_output": "Chọn Antigravity, dùng template có cấu trúc rõ ràng, giải thích workspace install cho repo hiện tại, nêu riêng install scope với repo onboarding scope, rồi handoff sang using-khuym.",
+      "files": [],
+      "expectations": [
+        "Chooses Antigravity as the platform for this request.",
+        "Uses the top-level headings Chosen platform, Chosen scope, Install steps, and Bootstrap next step.",
+        "Explicitly states both install scope and repo onboarding scope.",
+        "Includes the Antigravity workspace install command with install_khuym_antigravity.mjs.",
+        "Mentions that workspace install writes to <repo>/.agents/skills.",
+        "Mentions that the installer merges MCP servers into ~/.gemini/antigravity/mcp_config.json.",
+        "Explains that Antigravity can also install globally.",
+        "Tells the user to start with using-khuym after install."
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "Cài Khuym vào Pi cho repo này thôi và nói luôn bước bootstrap tiếp theo.",
+      "expected_output": "Chọn Pi, dùng template có cấu trúc rõ ràng, giải thích project-local install cho repo hiện tại, nêu riêng install scope với repo onboarding scope, rồi handoff sang using-khuym.",
+      "files": [],
+      "expectations": [
+        "Chooses Pi as the platform for this request.",
+        "Uses the top-level headings Chosen platform, Chosen scope, Install steps, and Bootstrap next step.",
+        "Explicitly states both install scope and repo onboarding scope.",
+        "Includes the Pi project-local install command with pi install /absolute/path/to/plugins/khuym-pi -l.",
+        "Mentions that project-local install writes to .pi/settings.json.",
+        "Mentions the package path /absolute/path/to/plugins/khuym-pi.",
+        "Explains that Pi can also install globally via ~/.pi/agent/settings.json.",
+        "Tells the user to start with using-khuym after install."
+      ]
+    },
+    {
+      "id": 7,
+      "prompt": "Cài Khuym vào OpenCode cho repo này thôi và nói luôn bước bootstrap tiếp theo.",
+      "expected_output": "Chọn OpenCode, dùng template có cấu trúc rõ ràng, giải thích workspace install cho repo hiện tại, nêu riêng install scope với repo onboarding scope, rồi handoff sang using-khuym.",
+      "files": [],
+      "expectations": [
+        "Chooses OpenCode as the platform for this request.",
+        "Uses the top-level headings Chosen platform, Chosen scope, Install steps, and Bootstrap next step.",
+        "Explicitly states both install scope and repo onboarding scope.",
+        "Includes the OpenCode workspace install command with install_khuym_opencode.mjs.",
+        "Mentions that workspace install writes to <repo>/.opencode/skills, <repo>/.opencode/agents, and <repo>/.opencode/plugins.",
+        "Mentions that workspace install merges <repo>/opencode.json.",
+        "Explains that OpenCode can also install globally via ~/.config/opencode/opencode.json.",
+        "Tells the user to start with using-khuym after install."
+      ]
+    },
+    {
+      "id": 8,
+      "prompt": "Cài Khuym vào Gemini CLI cho repo này thôi và nói luôn bước bootstrap tiếp theo.",
+      "expected_output": "Chọn Gemini CLI, dùng template có cấu trúc rõ ràng, giải thích extension install theo local path, tách riêng install scope với repo onboarding scope, rồi handoff sang using-khuym.",
+      "files": [],
+      "expectations": [
+        "Chooses Gemini CLI as the platform for this request.",
+        "Uses the top-level headings Chosen platform, Chosen scope, Install steps, and Bootstrap next step.",
+        "Explicitly states both install scope and repo onboarding scope.",
+        "Includes the Gemini CLI local-path extension install command with gemini extensions install /absolute/path/to/plugins/khuym-gemini-cli.",
+        "Mentions the optional gemini extensions link /absolute/path/to/plugins/khuym-gemini-cli command for local development.",
+        "Mentions the installed extension root ~/.gemini/extensions/khuym-gemini-cli.",
+        "Mentions bundled extension files such as GEMINI.md, gemini-extension.json, hooks/hooks.json, commands/, and skills/.",
+        "Tells the user to start with using-khuym after install."
       ]
     }
   ]

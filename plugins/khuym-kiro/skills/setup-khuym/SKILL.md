@@ -1,9 +1,10 @@
 ---
 name: setup-khuym
-description: Install, bootstrap, or route Khuym on Codex, Factory Droid, Kiro, or all three. Use this whenever the user wants to use Khuym skills but the platform choice, install scope, or bootstrap path is still unsettled. Trigger even when they only say things like "install Khuym here", "set up Khuym", "use Khuym skills in this repo", "which platform should I pick", or "set it up globally/project-wide".
+description: Install, bootstrap, or route Khuym on Codex, Factory Droid, Kiro, Antigravity, Pi, OpenCode, Gemini CLI, or all 7. Use this whenever the user wants to use Khuym skills but the platform choice, install scope, or bootstrap path is still unsettled. Trigger even when they only say things like "install Khuym here", "set up Khuym", "use Khuym skills in this repo", "which platform should I pick", or "set it up globally/project-wide".
 metadata:
   version: '1.0'
   ecosystem: khuym
+  dependencies: []
 ---
 
 # setup-khuym
@@ -17,8 +18,8 @@ Use this skill before `using-khuym` when the user still needs help deciding or i
 
 By the end of this skill, the user should have:
 
-1. the correct target platform chosen: `Codex`, `Factory Droid`, `Kiro`, or `all 3`
-2. the correct install scope chosen: repo/workspace vs global where that distinction exists
+1. the correct target platform chosen: `Codex`, `Factory Droid`, `Kiro`, `Antigravity`, `Pi`, `OpenCode`, `Gemini CLI`, or `all 7`
+2. the correct install scope chosen: repo/workspace/project-local vs global where that distinction exists
 3. exact install commands or UI steps for that platform
 4. the next bootstrap step: load `using-khuym`
 5. if requested, the next workflow step after bootstrap
@@ -29,10 +30,10 @@ Treat this as a two-part decision:
 
 ### 1) Platform choice
 
-- If the user explicitly names `Codex`, `Factory`, `Factory Droid`, `Droid`, or `Kiro`, use that.
+- If the user explicitly names `Codex`, `Factory`, `Factory Droid`, `Droid`, `Kiro`, `Antigravity`, `Pi`, `OpenCode`, or `Gemini CLI`, use that.
 - If the user asks for comparison, recommend the smallest set that satisfies their workflow.
-- If the user wants maximum portability or explicitly asks for multiple runtimes, support `all 3`.
-- If the platform is ambiguous, ask the user to choose from `Codex`, `Factory Droid`, `Kiro`, or `all 3`.
+- If the user wants maximum portability or explicitly asks for multiple runtimes, support `all 7`.
+- If the platform is ambiguous, ask the user to choose from `Codex`, `Factory Droid`, `Kiro`, `Antigravity`, `Pi`, `OpenCode`, `Gemini CLI`, or `all 7`.
 
 ### 2) Scope choice
 
@@ -41,10 +42,14 @@ Do not blur install scope with repo onboarding.
 - **Codex**: plugin install is effectively user/runtime level; Khuym onboarding still writes repo-local files.
 - **Factory Droid**: plugin install is effectively user/runtime level; Khuym onboarding still writes repo-local files.
 - **Kiro**: bundle install can be `workspace` or `global`; Khuym onboarding still writes repo-local state when the workflow begins.
+- **Antigravity**: skill install can be `workspace` or `global`; workspace goes under `<repo>/.agents/skills`, global goes under `~/.gemini/antigravity/skills`, and the installer merges Khuym MCP servers into `~/.gemini/antigravity/mcp_config.json` before repo onboarding begins.
+- **Pi**: package install can be project-local or global; project-local writes package references to `.pi/settings.json`, global writes to `~/.pi/agent/settings.json`, and repo onboarding still writes `.khuym/` plus repo-local `.pi/khuym_*.mjs` support files.
+- **OpenCode**: bundle install can be `workspace` or `global`; workspace copies Khuym assets into `<repo>/.opencode/{skills,agents,plugins}` and merges `<repo>/opencode.json`, global copies them into `~/.config/opencode/{skills,agents,plugins}` and merges `~/.config/opencode/opencode.json`, and repo onboarding still writes `.khuym/` plus repo-local `.opencode/khuym_*.mjs` support files.
+- **Gemini CLI**: extension install is runtime/user level through `gemini extensions install /absolute/path/to/plugins/khuym-gemini-cli`; for local development you can use `gemini extensions link /absolute/path/to/plugins/khuym-gemini-cli` so edits are reflected immediately; repo onboarding still writes `.khuym/` plus repo-local `.gemini/khuym_*.mjs` support files.
 
 Default recommendation:
 
-- if the user wants Khuym only for the current repo, recommend the narrowest repo/workspace-shaped option
+- if the user wants Khuym only for the current repo, recommend the narrowest repo/workspace/project-local option
 - if the user wants Khuym available across many repos, recommend global where the platform supports it
 
 ## Required explanation
@@ -65,7 +70,11 @@ Use it to produce exact steps for:
 - Codex local marketplace install
 - Factory Droid local marketplace install
 - Kiro workspace/global installer flow
-- all-3 setup order
+- Antigravity workspace/global installer flow with the native skill roots and MCP config merge
+- Pi project-local/global package install via `pi install`
+- OpenCode workspace/global installer flow with native `.opencode/` assets and `opencode.json` merge
+- Gemini CLI local-path extension install with bundled `GEMINI.md`, hooks, commands, skills, and `gemini-extension.json`
+- all-7 setup order
 
 ## Response contract
 
@@ -111,7 +120,7 @@ For recommendation-only requests where the user explicitly does **not** want ins
 
 Then stop. Do not add `# Install steps` or `# Bootstrap next step`.
 
-For `all 3` requests, use exactly these top-level sections:
+For `all 7` requests, use exactly these top-level sections:
 
 ```markdown
 # Chosen platform
@@ -120,6 +129,10 @@ For `all 3` requests, use exactly these top-level sections:
 ## Codex
 ## Factory Droid
 ## Kiro
+## Antigravity
+## Pi
+## OpenCode
+## Gemini CLI
 # Bootstrap next step
 ```
 
@@ -130,6 +143,36 @@ Inside `# Chosen scope`, explicitly state both:
 
 That distinction is one of the main reasons this skill exists, so do not leave it implicit.
 
+For Antigravity responses, explicitly mention the actual install surface the chosen scope writes to:
+
+- workspace: `<repo>/.agents/skills`
+- global: `~/.gemini/antigravity/skills`
+- MCP merge target: `~/.gemini/antigravity/mcp_config.json`
+
+For Pi responses, explicitly mention the actual config/install surfaces the chosen scope writes to:
+
+- project-local: `.pi/settings.json`
+- global: `~/.pi/agent/settings.json`
+- package path: `/absolute/path/to/plugins/khuym-pi`
+- repo onboarding support files: `.pi/khuym_status.mjs`, `.pi/khuym_state.mjs`, `.pi/khuym_dependencies.mjs`
+
+For OpenCode responses, explicitly mention the actual config/install surfaces the chosen scope writes to:
+
+- workspace: `<repo>/.opencode/skills`, `<repo>/.opencode/agents`, `<repo>/.opencode/plugins`
+- workspace config merge target: `<repo>/opencode.json`
+- global: `~/.config/opencode/skills`, `~/.config/opencode/agents`, `~/.config/opencode/plugins`
+- global config merge target: `~/.config/opencode/opencode.json`
+- installer path: `/absolute/path/to/plugins/khuym-opencode`
+- repo onboarding support files: `.opencode/khuym_status.mjs`, `.opencode/khuym_state.mjs`, `.opencode/khuym_dependencies.mjs`
+
+For Gemini CLI responses, explicitly mention the actual install surfaces and follow-up repo surfaces:
+
+- extension install command: `gemini extensions install /absolute/path/to/plugins/khuym-gemini-cli`
+- local-dev link command: `gemini extensions link /absolute/path/to/plugins/khuym-gemini-cli`
+- installed extension root: `~/.gemini/extensions/khuym-gemini-cli`
+- bundled extension files: `GEMINI.md`, `gemini-extension.json`, `hooks/hooks.json`, `commands/`, `skills/`
+- repo onboarding support files: `.gemini/khuym_status.mjs`, `.gemini/khuym_state.mjs`, `.gemini/khuym_dependencies.mjs`
+
 Inside `# Bootstrap next step`, always include:
 
 1. the exact skill name to start with for that platform
@@ -138,7 +181,7 @@ Inside `# Bootstrap next step`, always include:
 
 For Codex and Factory Droid requests, prefer the explicit bootstrap skill name `khuym:using-khuym`.
 
-For Kiro requests, prefer the bootstrap skill name `using-khuym`.
+For Kiro, Antigravity, Pi, OpenCode, and Gemini CLI requests, prefer the bootstrap skill name `using-khuym`.
 
 ## Specific quality bar
 
@@ -165,9 +208,14 @@ Once install is complete:
 ## Guardrails
 
 - Never claim Kiro supports the same marketplace model as Droid/Codex here; it does not in this repo layout.
+- Never claim Antigravity uses the Kiro Power model; it does not in this repo layout.
+- Never describe Antigravity as a plugin marketplace flow in this repo; it is a native skills + MCP-config flow.
+- Never describe Pi as a plugin marketplace or MCP-config flow in this repo; it is a Pi package + skills flow.
+- Never describe OpenCode as a Pi package flow in this repo; it uses the bundled OpenCode installer plus native `.opencode/` skills, agents, plugins, and config merge.
+- Never describe Gemini CLI as an OpenCode-style workspace/global installer or a `.gemini/settings.json` merge flow in this repo; it uses `gemini extensions install` or `gemini extensions link` against the bundled extension directory.
 - Never suggest one-click GitHub Kiro Power install from this repo. This repo supports Kiro via local-path install and the bundled installer.
 - Never skip the `using-khuym` handoff after install.
-- If the user asks for `all 3`, do not compress the answer into vague prose. Give one section per platform.
+- If the user asks for `all 7`, do not compress the answer into vague prose. Give one section per platform.
 - If the user only wants to choose a platform but not install yet, give the recommendation and stop there.
 
 ## Quick examples
@@ -178,7 +226,7 @@ User: `Install Khuym in Codex for this repo`
 You should:
 - choose `Codex`
 - explain the local marketplace flow
-- tell them the next step is `using-khuym`
+- tell them the next step is `khuym:using-khuym`
 
 ### Example 2
 User: `Should I use Kiro or Factory for Khuym in one repo?`
@@ -189,9 +237,45 @@ You should:
 - explain the scope difference
 
 ### Example 3
-User: `Set me up on all three and then route the workflow`
+User: `Set me up on all seven and then route the workflow`
 
 You should:
-- provide all 3 install sections
+- provide all 7 install sections
 - keep commands/platform boundaries explicit
 - end by handing off to `using-khuym`
+
+### Example 4
+User: `Install Khuym in Antigravity for this repo`
+
+You should:
+- choose `Antigravity`
+- explain that workspace install writes to `<repo>/.agents/skills`
+- mention the MCP merge target `~/.gemini/antigravity/mcp_config.json`
+- tell them the next step is `using-khuym`
+
+### Example 5
+User: `Install Khuym in Pi for this repo`
+
+You should:
+- choose `Pi`
+- explain that project-local install writes to `.pi/settings.json`
+- mention the package path `/absolute/path/to/plugins/khuym-pi`
+- tell them the next step is `using-khuym`
+
+### Example 6
+User: `Install Khuym in OpenCode for this repo`
+
+You should:
+- choose `OpenCode`
+- explain that workspace install writes into `<repo>/.opencode/skills`, `<repo>/.opencode/agents`, and `<repo>/.opencode/plugins`
+- mention the config merge target `<repo>/opencode.json`
+- tell them the next step is `using-khuym`
+
+### Example 7
+User: `Install Khuym in Gemini CLI for this repo`
+
+You should:
+- choose `Gemini CLI`
+- explain that install happens through `gemini extensions install /absolute/path/to/plugins/khuym-gemini-cli`
+- mention the installed extension root `~/.gemini/extensions/khuym-gemini-cli`
+- tell them the next step is `using-khuym`

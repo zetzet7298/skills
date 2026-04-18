@@ -1,0 +1,49 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "name": "khuym-session-start",
+            "type": "command",
+            "command": "node \"${extensionPath}${/}skills${/}using-khuym${/}templates${/}khuym_session_start.mjs\""
+          }
+        ]
+      }
+    ],
+    "BeforeTool": [
+      {
+        "matcher": "run_shell_command",
+        "hooks": [
+          {
+            "name": "khuym-before-tool",
+            "type": "command",
+            "command": "node \"${extensionPath}${/}skills${/}using-khuym${/}templates${/}khuym_pre_tool_use.mjs\""
+          }
+        ]
+      }
+    ],
+    "PreCompress": [
+      {
+        "hooks": [
+          {
+            "name": "khuym-pre-compress",
+            "type": "command",
+            "command": "node \"${extensionPath}${/}skills${/}using-khuym${/}templates${/}khuym_pre_compress.mjs\""
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "name": "khuym-session-end",
+            "type": "command",
+            "command": "node \"${extensionPath}${/}skills${/}using-khuym${/}templates${/}khuym_stop.mjs\""
+          }
+        ]
+      }
+    ]
+  }
+}
