@@ -19,7 +19,7 @@ Khuym keeps these invariants:
 
 - `CONTEXT.md` is the source of truth for locked decisions.
 - `validating` is a real execution gate, not an optional review step.
-- beads + `bv` + Agent Mail are the coordination substrate.
+- beads + `bv` + Codex subagents + local reservations are the coordination substrate.
 - `swarming` is the orchestrator role and `executing` is the worker role.
 - `reviewing` and `compounding` are first-class phases, not cleanup afterthoughts.
 
@@ -52,8 +52,8 @@ Behavioral summary:
 - `exploring` extracts decisions and writes `history/<feature>/CONTEXT.md`
 - `planning` turns those decisions into discovery, approach, phase planning, current-phase contracts, story maps, and beads
 - `validating` proves the current phase is ready before execution starts
-- `swarming` launches and tends workers through Agent Mail and the live bead graph
-- `executing` is the per-worker loop: claim, reserve, implement, verify, close, report
+- `swarming` launches and tends workers through Codex subagents, the parent thread, and the live bead graph
+- `executing` is the per-worker loop: claim, reserve locally, implement, verify, close, report
 - `reviewing` performs specialist review, artifact verification, and the merge gate
 - `compounding` records durable learnings in `history/learnings/`
 
@@ -67,6 +67,12 @@ Khuym uses paired human-readable and machine-readable runtime state:
   state.json        -> machine-readable routing/status mirror
   STATE.md          -> human-readable narrative state
   HANDOFF.json      -> pause/resume artifact
+  reservations.json -> local file reservations for same-session Codex swarms
+
+.codex/
+  khuym_status.mjs -> read-only scout command
+  khuym_state.mjs -> shared scout/state helpers
+  khuym_reservations.mjs -> local reservation helper used by swarming, executing, and hooks
 ```
 
 Rules:

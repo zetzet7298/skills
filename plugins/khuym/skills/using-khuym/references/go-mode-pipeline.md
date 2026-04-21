@@ -229,7 +229,7 @@ If user says `no` or `revise`, return to planning or validating. If user says `y
 
 **The khuym:swarming skill will:**
 
-- initialize Agent Mail
+- initialize local reservation state
 - spawn workers for the current phase bead set
 - monitor current-phase execution
 - verify current-phase beads closed

@@ -47,13 +47,13 @@ Khuym keeps one core workflow but presents it in three user-facing modes:
 The core contract does not change across modes:
 - `CONTEXT.md` is still the source of truth
 - `validating` still gates execution
-- beads + `bv` + Agent Mail still drive coordination
+- beads + `bv` + Codex subagents + local reservations drive coordination
 
 ## Current Situation
 
 Khuym is not a greenfield framework. It sits downstream of several strong agentic-development systems and distills the parts that fit this repo owner's actual workflow.
 
-- **[Flywheel](https://agent-flywheel.com/complete-guide)** contributes the operational backbone: beads, `bv`, Agent Mail, swarm execution, and the habit of turning plans into live work graphs instead of loose TODO lists.
+- **[Flywheel](https://agent-flywheel.com/complete-guide)** contributes the operational backbone: beads, `bv`, swarm execution, and the habit of turning plans into live work graphs instead of loose TODO lists. Khuym keeps that structure but now uses Codex subagents plus repo-local reservations instead of Agent Mail for the default same-session path.
 - **[GSD](https://github.com/gsd-build/get-shit-done)** contributes the philosophy: discuss first, research second, plan third, and do not execute until the plan has been verified.
 - **[Compound Engineering](https://github.com/EveryInc/compound-engineering-plugin)** contributes parallel review, severity-based findings, and the compound-learning loop that feeds future work.
 - **[Superpowers](https://github.com/obra/superpowers)** contributes skill design patterns, Socratic extraction, and the idea that skills should be strong enough to shape agent behavior consistently.
@@ -67,7 +67,7 @@ Khuym turns upstream ideas into a custom workflow contract rather than a loose b
 
 1. It makes `CONTEXT.md` the source of truth so downstream skills execute against locked decisions rather than reinterpreting intent at every step.
 2. It promotes validation into its own first-class skill, `khuym:validating`, because the GSD lesson is structural: phases should not execute until their contract, stories, and beads pass verification.
-3. It keeps Flywheel's swarm and bead infrastructure, but reshapes it into explicit Khuym skill boundaries: `exploring`, `planning`, `validating`, `swarming`, `executing`, `reviewing`, and `compounding`.
+3. It keeps Flywheel's swarm and bead infrastructure, but reshapes it into explicit Khuym skill boundaries and a local-first execution contract: `exploring`, `planning`, `validating`, `swarming`, `executing`, `reviewing`, and `compounding`.
 4. It absorbs review, finish, and learning capture into one continuous workflow so the system does not stop at "code was written"; it closes only after verification and compounding.
 
 ## Workflow First
@@ -115,6 +115,14 @@ node .codex/khuym_status.mjs --json
 ```
 
 It summarizes onboarding health plus `.khuym/state.json`, `.khuym/STATE.md`, and `.khuym/HANDOFF.json` so humans and agents can orient quickly before opening deeper artifacts.
+
+For same-session swarm work, the paired runtime surface is:
+
+```bash
+node .codex/khuym_reservations.mjs list --active-only --json
+```
+
+That helper manages `.khuym/reservations.json`, which is Khuym's local file-ownership layer for Codex subagents.
 
 ## Human Gates
 
@@ -204,7 +212,7 @@ These are the core delivery stages in the Khuym workflow:
 | `khuym:exploring` | Socratic dialogue → locked decisions in CONTEXT.md |
 | `khuym:planning` | Research + synthesis → approach.md + phase-contract.md + story-map.md + beads |
 | `khuym:validating` | Phase/story/bead verification (8 dims) + spikes + bead polishing — **THE GATE** |
-| `khuym:swarming` | Launch + tend parallel worker agents via Agent Mail |
+| `khuym:swarming` | Launch + tend parallel Codex subagents with local reservations |
 | `khuym:executing` | Per-agent worker loop: priority → reserve → implement → close |
 | `khuym:reviewing` | Specialist review passes + 3-level verification + UAT |
 | `khuym:compounding` | Capture learnings → history/learnings/ |
@@ -237,7 +245,7 @@ Standalone skills remain available, but they are intentionally secondary to the 
 
 ## Requirements
 
-- **Core tools:** `br` (beads CLI), `bv` (bead viewer), Agent Mail MCP server
+- **Core tools:** `br` (beads CLI), `bv` (bead viewer), Node.js for the local reservation helper
 - **Optional:** `gkg` (codebase intelligence), CASS/CM (session search)
 
 ## Documentation Checks

@@ -1,352 +1,127 @@
-# Agent Mail Message Templates
+# Swarm Thread Templates
 
-Standard message formats for swarm coordination. All messages post to the epic thread (`thread_id=<EPIC_ID>`) unless noted otherwise.
-Use a shared epic topic tag in all messages (recommended: `topic="epic-<EPIC_ID>"`).
-Use `<COORDINATOR_AGENT_NAME>` for the coordinator identity, and keep it a valid Agent Mail adjective+noun name.
+Standard result formats for same-session Codex swarming. Workers return these summaries to the parent thread when their subagent run ends.
 
 ---
 
-## 1. Spawn Notification
+## 1. Worker Completion
 
-**Posted by:** Swarm coordinator (`<COORDINATOR_AGENT_NAME>`)  
-**When:** After Agent Mail setup is complete, before spawning workers
-**Purpose:** Announces the swarm start and the self-routing execution model
-
-Runtime call:
-`send_message(project_key=..., sender_name="<COORDINATOR_AGENT_NAME>", to=["<COORDINATOR_AGENT_NAME>"], thread_id="<EPIC_ID>", topic="epic-<EPIC_ID>", ...)`
-
-```
-Subject: [SWARM START] <feature-name>
-Thread: <EPIC_ID>
-Topic: epic-<EPIC_ID>
-Importance: NORMAL
-
-Swarm initialized for epic <EPIC_ID>.
-
-Execution model:
-- Workers are self-routing via `bv --robot-priority`
-- File coordination happens through Agent Mail reservations
-- Blockers and course corrections happen in this thread
-
-Workers spawning now:
-- Codex: <CODEX_NICKNAME_1> / Agent Mail: pending
-- Codex: <CODEX_NICKNAME_2> / Agent Mail: pending
-- Codex: <CODEX_NICKNAME_3> / Agent Mail: pending
-
-All workers: join this thread, post startup acknowledgment, then load the khuym:executing skill.
-Coordinator: do not idle after this message. Keep polling `fetch_inbox(...)` and `fetch_topic(...)` until the swarm is complete.
-```
-
----
-
-## 2. Worker Spawn Acknowledgment
-
-**Posted by:** Worker
-**When:** Immediately on startup  
-**Purpose:** Confirms the worker is live and following the expected loop
-
-Runtime call:
-`send_message(project_key=..., sender_name="<AGENT_MAIL_NAME>", to=["<COORDINATOR_AGENT_NAME>"], thread_id="<EPIC_ID>", topic="epic-<EPIC_ID>", ...)`
-
-```
-Subject: [ONLINE] <CODEX_NICKNAME> / <AGENT_MAIL_NAME> ready
-Thread: <EPIC_ID>
-Topic: epic-<EPIC_ID>
-Importance: NORMAL
+```text
+[DONE] <bead-id>: <bead-title>
 
 Codex nickname: <CODEX_NICKNAME>
-Agent Mail name: <AGENT_MAIL_NAME>
-AGENTS.md: read
-Status: Loading khuym:executing skill.
-Next step: fetch inbox, then run `bv --robot-priority`, then claim the top executable bead.
-```
-
----
-
-## 3. Completion Report
-
-**Posted by:** Worker  
-**When:** After each bead is closed with `br close`  
-**Purpose:** Notifies orchestrator of progress
-
-Runtime call:
-`send_message(project_key=..., sender_name="<AGENT_MAIL_NAME>", to=["<COORDINATOR_AGENT_NAME>"], thread_id="<EPIC_ID>", topic="epic-<EPIC_ID>", ...)`
-
-```
-Subject: [DONE] <bead-id>: <bead-title>
-Thread: <EPIC_ID>
-Topic: epic-<EPIC_ID>
-Importance: NORMAL
-
-Bead closed: <bead-id>
-Title: <bead-title>
-Worker:
-- Codex nickname: <CODEX_NICKNAME>
-- Agent Mail name: <AGENT_MAIL_NAME>
-Commit: <git-commit-hash>
-
-Summary of changes:
-<2-3 sentence description of what was implemented>
+Agent ID: <AGENT_ID>
+Epic: <EPIC_ID>
 
 Files modified:
 - <path/to/file1>
 - <path/to/file2>
 
+Reservation:
+- reserved: <paths>
+- released: yes
+
 Verification:
-- <command/result summary>
+- <command/result>
 
-Context budget: ~<XX>% used
-Next action: fetch inbox, then return to `bv --robot-priority`
+Commit:
+- <git-commit-hash>
+
+Next action:
+- Ready for another bead
 ```
 
 ---
 
-## 4. Blocker Alert
+## 2. Worker Blocker
 
-**Posted by:** Worker  
-**When:** Immediately upon discovering a blocking issue  
-**Purpose:** Requests orchestrator intervention
+```text
+[BLOCKED] <bead-id> — <one-line summary>
 
-Runtime call:
-`send_message(project_key=..., sender_name="<AGENT_MAIL_NAME>", to=["<COORDINATOR_AGENT_NAME>"], thread_id="<EPIC_ID>", topic="epic-<EPIC_ID>", ...)`
+Codex nickname: <CODEX_NICKNAME>
+Agent ID: <AGENT_ID>
+Epic: <EPIC_ID>
 
-```
-Subject: [BLOCKED] <bead-id> — <one-line description>
-Thread: <EPIC_ID>
-Topic: epic-<EPIC_ID>
-Importance: HIGH
+Requested files:
+- <path or glob>
 
-BLOCKED:
-- Codex nickname: <CODEX_NICKNAME>
-- Agent Mail name: <AGENT_MAIL_NAME>
-- Bead: <bead-id>
+Reservation conflict or blocker:
+- <holder or failing condition>
 
-Blocker type: [MISSING_CONTEXT | DEPENDENCY_NOT_MET | TECHNICAL_FAILURE | AMBIGUITY]
+What happened:
+<clear description>
 
-Description:
-<Clear description of what is blocking. Include errors, file names, and relevant details.>
-
-What I need to proceed:
-<Specific ask: information, release of a file reservation, user decision, etc.>
-
-I am paused on this bead and waiting for a reply on this thread.
-Until a reply arrives, I will keep polling `fetch_inbox(...)` on this topic.
+What I need next:
+<specific decision, release, or context>
 ```
 
 ---
 
-## 5. File Conflict Request
+## 3. Worker Handoff
 
-**Posted by:** Worker  
-**When:** Worker needs a file another worker currently holds
-**Purpose:** Coordinates file access without preassigned worker scopes
+```text
+[HANDOFF] <bead-id or none>
 
-Runtime call:
-`send_message(project_key=..., sender_name="<AGENT_MAIL_NAME>", to=["<COORDINATOR_AGENT_NAME>"], thread_id="<EPIC_ID>", topic="epic-<EPIC_ID>", ...)`
+Codex nickname: <CODEX_NICKNAME>
+Agent ID: <AGENT_ID>
+Epic: <EPIC_ID>
 
-```
-Subject: [FILE CONFLICT] <path/to/file>
-Thread: <EPIC_ID>
-Topic: epic-<EPIC_ID>
-Importance: HIGH
+Reason:
+- context high
 
-File conflict:
-- Codex nickname: <CODEX_NICKNAME>
-- Agent Mail name: <AGENT_MAIL_NAME>
-- Needs a file that is currently reserved.
+Progress so far:
+- <what is already done>
 
-Requested file: <path/to/file>
-Currently reserved by: <AGENT_NAME_holder or "unknown">
-My bead: <bead-id>
-Reason needed: <Why this file is required for this bead>
+Reservations:
+- still active: <paths or none>
 
-Awaiting orchestrator decision:
-1. Request holder release at a safe checkpoint
-2. Ask me to wait
-3. Ask me to defer and create a follow-up bead
-
-Until a decision arrives, I will keep polling `fetch_inbox(...)` on this topic.
+Resume point:
+- Read `.khuym/HANDOFF.json`
+- Re-check `bv --robot-priority`
+- Reclaim or release reservations as needed
 ```
 
 ---
 
-## 6. File Conflict Resolution
+## 4. Worker No-Op
 
-**Posted by:** Swarm coordinator (`<COORDINATOR_AGENT_NAME>`)  
-**When:** Replying to a File Conflict Request
+```text
+[NOOP] No safe bead available
 
-Runtime call:
-`reply_message(project_key=..., message_id=<file-conflict-message-id>, sender_name="<COORDINATOR_AGENT_NAME>", body_md="...")`
+Codex nickname: <CODEX_NICKNAME>
+Agent ID: <AGENT_ID>
+Epic: <EPIC_ID>
 
-```
-Subject: Re: [FILE CONFLICT] <path/to/file>
-Thread: <EPIC_ID>
-Topic: epic-<EPIC_ID>
-Importance: NORMAL
+Reason:
+- <dependency not met, no ready bead, or conflicting reservation surface>
 
-Decision on file conflict for <path/to/file>:
-
-[Choose one:]
-
-OPTION A — Wait:
-<AGENT_NAME_requester>: wait for <AGENT_NAME_holder> to release the reservation.
-
-OPTION B — Release requested:
-<AGENT_NAME_holder>: please release <path/to/file> when you reach a safe checkpoint.
-<AGENT_NAME_requester>: stand by until release is confirmed.
-
-OPTION C — Defer:
-<AGENT_NAME_requester>: defer this change. Create a follow-up bead and continue with the next executable bead.
+Suggested next action:
+- <rerun triage, clear blocker, or respawn later>
 ```
 
 ---
 
-## 7. Overseer Broadcast
+## 5. Status Request From Orchestrator
 
-**Posted by:** Swarm coordinator (`<COORDINATOR_AGENT_NAME>`)  
-**When:** Shared correction or reminder is needed across the swarm
+Use with `send_input(...)` when a worker has been quiet for too long.
 
-Runtime call:
-`send_message(project_key=..., sender_name="<COORDINATOR_AGENT_NAME>", to=[<worker-list>], thread_id="<EPIC_ID>", topic="epic-<EPIC_ID>", ...)`
+```text
+Status check for epic <EPIC_ID>.
 
-```
-Subject: [OVERSEER] <short instruction>
-Thread: <EPIC_ID>
-Topic: epic-<EPIC_ID>
-Importance: HIGH
+Reply by finishing your current run with one of:
+- [DONE]
+- [BLOCKED]
+- [HANDOFF]
+- [NOOP]
 
-Broadcast to all workers:
-
-<Instruction or correction>
-
-Examples:
-- Re-read AGENTS.md before continuing
-- Fetch inbox before claiming new work
-- Do not touch <file/path> until blocker <id> is resolved
-- Decision D7 is now locked; honor it in all remaining work
+If you still hold reservations, include them explicitly.
 ```
 
 ---
 
-## 8. Missing Startup Reminder
+## 6. Handoff JSON Template
 
-**Posted by:** Swarm coordinator (`<COORDINATOR_AGENT_NAME>`)
-**When:** A spawned worker has not posted `[ONLINE]` after 2 poll cycles
-**Purpose:** Forces the worker back onto the thread and back through `AGENTS.md`
-
-Runtime call:
-`send_message(project_key=..., sender_name="<COORDINATOR_AGENT_NAME>", to=["<AGENT_MAIL_NAME-or-codex-target>"], thread_id="<EPIC_ID>", topic="epic-<EPIC_ID>", ...)`
-
-```
-Subject: [OVERSEER] Startup acknowledgment missing
-Thread: <EPIC_ID>
-Topic: epic-<EPIC_ID>
-Importance: HIGH
-
-You were spawned for epic <EPIC_ID>, but you have not posted your startup acknowledgment yet.
-
-Do this now, in order:
-1. Re-read `AGENTS.md`
-2. Post `[ONLINE]` with your Codex nickname and Agent Mail name
-3. Confirm `AGENTS.md: read`
-4. Run `fetch_inbox(...)`
-5. Only then continue into `bv --robot-priority`
-```
-
----
-
-## 9. Silent Worker Reminder
-
-**Posted by:** Swarm coordinator (`<COORDINATOR_AGENT_NAME>`)
-**When:** An active worker has gone quiet for 3 poll cycles
-**Purpose:** Pulls an off-thread or drifting worker back into the coordination loop
-
-Runtime call:
-`send_message(project_key=..., sender_name="<COORDINATOR_AGENT_NAME>", to=["<AGENT_MAIL_NAME>"], thread_id="<EPIC_ID>", topic="epic-<EPIC_ID>", ...)`
-
-```
-Subject: [OVERSEER] Status update required
-Thread: <EPIC_ID>
-Topic: epic-<EPIC_ID>
-Importance: HIGH
-
-You have gone quiet while the swarm is still active.
-
-Reply on this thread with one of:
-- `[DONE] <bead-id>` if the bead is complete
-- `[BLOCKED] <bead-id>` if you need help
-- `[FILE CONFLICT] <path>` if you are waiting on a reservation
-- `Status: still working on <bead-id>` if you are actively progressing
-
-Before replying, re-read `AGENTS.md` if you compacted or drifted, then run `fetch_inbox(...)`.
-```
-
----
-
-## 10. Coordinator Context Warning
-
-**Posted by:** Swarm coordinator (`<COORDINATOR_AGENT_NAME>`)  
-**When:** Swarm coordinator detects its own context is approaching 65%  
-**Purpose:** Warns workers and records the pause
-
-Runtime call:
-`send_message(project_key=..., sender_name="<COORDINATOR_AGENT_NAME>", to=[<worker-list>], thread_id="<EPIC_ID>", topic="epic-<EPIC_ID>", ...)`
-
-```
-Subject: [CONTEXT WARNING] Coordinator approaching capacity
-Thread: <EPIC_ID>
-Topic: epic-<EPIC_ID>
-Importance: HIGH
-
-Coordinator context at ~<XX>%. Writing HANDOFF.json now.
-
-Current status:
-- Open beads: <count>
-- In-progress beads: <count>
-- Known blockers: <count>
-
-Workers: continue current bead safely, then report status to this thread.
-
-Resume artifacts:
-- .khuym/HANDOFF.json
-- .khuym/STATE.md
-- bv --robot-triage --graph-root <EPIC_ID>
-```
-
----
-
-## 11. Swarm Completion Announcement
-
-**Posted by:** Swarm coordinator (`<COORDINATOR_AGENT_NAME>`)  
-**When:** All beads are verified closed
-
-Runtime call:
-`send_message(project_key=..., sender_name="<COORDINATOR_AGENT_NAME>", to=[<worker-list>], thread_id="<EPIC_ID>", topic="epic-<EPIC_ID>", ...)`
-
-```
-Subject: [SWARM COMPLETE] <feature-name> — all beads closed
-Thread: <EPIC_ID>
-Topic: epic-<EPIC_ID>
-Importance: NORMAL
-
-Swarm complete for epic <EPIC_ID>.
-
-Summary:
-- Beads implemented: <N>
-- Workers used: <K>
-- Build status: PASS
-- Test status: PASS
-
-All workers: your work is complete.
-
-Next step: Invoke the khuym:reviewing skill.
-```
-
----
-
-## Handoff JSON Template
-
-Write to `.khuym/HANDOFF.json` when the swarm coordinator context exceeds 65%:
+Write to `.khuym/HANDOFF.json` when either the orchestrator or a worker must pause cleanly:
 
 ```json
 {
@@ -356,47 +131,30 @@ Write to `.khuym/HANDOFF.json` when the swarm coordinator context exceeds 65%:
     "id": "khuym-swarm-<YYYYMMDD-HHMMSS>",
     "paused_at": "<ISO-8601 timestamp>",
     "reason_for_pause": "context_critical",
-    "agent": "<COORDINATOR_AGENT_NAME>"
+    "codex_name": "<CODEX_NICKNAME>",
+    "agent_id": "<AGENT_ID>"
   },
   "swarm": {
     "epic_id": "<EPIC_ID>",
     "feature_name": "<feature-name>",
     "project_key": "<project-root-path>"
   },
-  "graph_status": {
-    "open_beads": ["<bead-id-1>", "<bead-id-2>"],
-    "in_progress_beads": ["<bead-id-3>"],
-    "blocked_beads": ["<bead-id-4>"]
+  "active_work": {
+    "current_bead": "<bead-id or null>",
+    "status": "<spawned|busy|blocked|handoff>"
   },
-  "active_workers": [
-    {
-      "codex_nickname": "<CODEX_NICKNAME>",
-      "agent_mail_name": "<AGENT_MAIL_NAME>",
-      "current_bead": "<bead-id-3>",
-      "status": "in_progress"
-    }
-  ],
-  "open_blockers": [
-    {
-      "bead_id": "<bead-id>",
-      "worker": {
-        "codex_nickname": "<CODEX_NICKNAME>",
-        "agent_mail_name": "<AGENT_MAIL_NAME>"
-      },
-      "description": "<blocker description>",
-      "thread_message_id": "<mail-id>"
-    }
-  ],
+  "reservations": {
+    "active": [
+      {
+        "id": "<reservation-id>",
+        "paths": ["<glob>"]
+      }
+    ]
+  },
   "resume_instructions": {
-    "priority_next": "Poll epic thread, then inspect the live graph",
     "read_first": [".khuym/STATE.md", ".khuym/HANDOFF.json"],
-    "check_mail": true,
     "bead_check": "bv --robot-triage --graph-root <EPIC_ID>",
-    "restore_confirmation": "Confirm open/in-progress/blocked counts still match before resuming"
-  },
-  "context_at_pause": {
-    "tokens_used_pct": 0.67,
-    "agent_mail_thread": "<EPIC_ID>"
+    "reservation_check": "node .codex/khuym_reservations.mjs list --active-only --json"
   }
 }
 ```
