@@ -326,9 +326,9 @@ Only after `phase-plan.md` is approved, prepare the current phase.
 
 ### Select the current phase
 
-- Default to the first phase not yet prepared or completed in `.khuym/STATE.md`
+- Default to the first phase not yet prepared or completed in `.khuym/state.json`
 - If no state exists, start with Phase 1
-- If the user explicitly chooses a later phase, honor that and record it in `.khuym/STATE.md`
+- If the user explicitly chooses a later phase, honor that and record it in `.khuym/state.json`
 
 Write:
 
@@ -510,36 +510,20 @@ The validator must be able to trace:
 
 ---
 
-## Update STATE.md
+## Update state.json
 
-After major planning transitions, update `.khuym/STATE.md`:
+After major planning transitions, update `.khuym/state.json`:
 
-```markdown
-## Current State
-
-Skill: planning
-Feature: <feature-name>
-Plan Gate: pending | approved
-Approved Phase Plan: yes | no
-Current Phase: Phase <n> - <phase name>
-
-## Artifacts Written
-
-- history/<feature>/discovery.md
-- history/<feature>/approach.md
-- history/<feature>/phase-plan.md
-- history/<feature>/phase-<n>-contract.md
-- history/<feature>/phase-<n>-story-map.md
-- .beads/*.md
-
-## Story Summary
-
-Stories: <N>
-Current Phase Beads: <br-id>, <br-id>
-
-## Risk Summary
-
-HIGH-risk components in current phase: [list] -> flagged for validating to spike
+```json
+{
+  "active_skill": "planning",
+  "feature_slug": "<feature-name>",
+  "phase": "planning",
+  "phase_number": <n>,
+  "summary": "Phase <n> prepared and waiting for validation.",
+  "next_action": "Invoke khuym:validating for Phase <n>.",
+  "active_beads": ["<br-id>", "<br-id>"]
+}
 ```
 
 ---

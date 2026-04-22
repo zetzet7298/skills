@@ -50,7 +50,7 @@ If a finding makes sense only to someone who already read the diff carefully, it
 Read before starting:
 - `history/<feature>/CONTEXT.md` — locked decisions (D1, D2...) and testable deliverables
 - `history/<feature>/approach.md` — planned approach and risk map from planning
-- `.khuym/STATE.md` — current epic state
+- `.khuym/state.json` — current epic state
 
 ## Phase 1: Automated Review (5 Specialist Agents)
 
@@ -209,7 +209,7 @@ Can you navigate to /forgot-password, enter an email, and confirm the reset emai
 4. Re-verify the specific UAT item
 5. Do not proceed until the item passes or user explicitly accepts the failure
 
-**On skip:** Record in `.khuym/STATE.md` with reason. Do not count as pass.
+**On skip:** Record in `.khuym/state.json` with reason. Do not count as pass.
 
 ## Phase 4: Finishing
 
@@ -239,8 +239,8 @@ You are the last step before compounding. Close the loop completely.
     → br close <epic-id> --reason "Feature complete: <summary>"
 
 [ ] Clear working state
-    → Archive STATE.md: cp .khuym/STATE.md history/<feature>/STATE-final.md
-    → Clear: echo "" > .khuym/STATE.md
+    → Archive state snapshot: cp .khuym/state.json history/<feature>/state-final.json
+    → Reset the active feature fields in .khuym/state.json for the next run
 ```
 
 ### Merge Options Detail
@@ -264,12 +264,17 @@ After Phase 4 completes:
 > "Feature complete. Epic [id] closed. [N] learnings flagged by learnings-synthesizer.
 > Invoke `khuym:compounding` skill to capture patterns, decisions, and failures for future planning cycles."
 
-Update `.khuym/STATE.md`:
-```
-STATUS: reviewing-complete
-EPIC: <id>
-HANDOFF: compounding
-FLAGGED_LEARNINGS: <count> (see .khuym/findings/learnings-candidates.md)
+Update `.khuym/state.json`:
+```json
+{
+  "active_skill": "reviewing",
+  "phase": "reviewing-complete",
+  "epic_id": "<id>",
+  "summary": "Review complete. Ready to run compounding.",
+  "next_action": "Invoke khuym:compounding.",
+  "focus": "compounding",
+  "blockers": []
+}
 ```
 
 ## Red Flags
@@ -291,7 +296,7 @@ Stop and surface to user immediately if you see:
 .khuym/findings/
   learnings-candidates.md              ← Session-level compounding suggestions only
 history/<feature>/
-  STATE-final.md                       ← Archived state at close
+  state-final.json                     ← Archived state at close
 ```
 
 ## References

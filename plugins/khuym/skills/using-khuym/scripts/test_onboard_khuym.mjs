@@ -109,14 +109,30 @@ test("applyRepo creates full repo onboarding with node-based hooks", () => {
     assert.ok(fs.existsSync(path.join(root, ".codex", "khuym_state.mjs")));
     assert.ok(fs.existsSync(path.join(root, ".codex", "khuym_dependencies.mjs")));
     assert.ok(fs.existsSync(path.join(root, ".codex", "khuym_reservations.mjs")));
+    assert.equal(fs.existsSync(path.join(root, ".khuym", "STATE.md")), false);
     assert.match(
       fs.readFileSync(path.join(root, ".codex", "hooks.json"), "utf8"),
       /node \.codex\/hooks\/khuym_session_start\.mjs/,
     );
-    assert.equal(
-      JSON.parse(fs.readFileSync(path.join(root, ".khuym", "state.json"), "utf8")).phase,
-      "idle",
-    );
+    const state = JSON.parse(fs.readFileSync(path.join(root, ".khuym", "state.json"), "utf8"));
+    assert.equal(state.schema_version, "1.1");
+    assert.equal(state.phase, "idle");
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("applyRepo removes legacy STATE.md when present", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "khuym-onboard-"));
+
+  try {
+    fs.mkdirSync(path.join(root, ".khuym"), { recursive: true });
+    fs.writeFileSync(path.join(root, ".khuym", "STATE.md"), "focus: legacy\nphase: old\n", "utf8");
+
+    const result = applyRepo(root, false);
+
+    assert.equal(result.status, "up_to_date");
+    assert.equal(fs.existsSync(path.join(root, ".khuym", "STATE.md")), false);
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
   }
@@ -216,9 +232,11 @@ test("installed khuym_status script reports onboarding and state", () => {
     assert.equal(status.onboarding.exists, true);
     assert.equal(status.state_json.exists, true);
     assert.equal(status.state_json.phase, "idle");
+    assert.equal("state_markdown" in status, false);
     assert.ok(status.dependency_health);
     assert.ok(typeof status.dependency_health.summary.missing_dependencies === "number");
     assert.ok(status.next_reads.includes("AGENTS.md"));
+    assert.equal(status.next_reads.includes(".khuym/STATE.md"), false);
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
   }

@@ -53,7 +53,7 @@ If scope is unclear, ask ONE disambiguation question before continuing.
 ```
 Read (if exists):
 - history/learnings/critical-patterns.md   ← promoted critical learnings
-- .khuym/STATE.md                          ← any prior feature context
+- .khuym/state.json                        ← any prior feature context
 ```
 
 Build an internal summary of prior decisions. Use it to skip already-answered questions
@@ -190,12 +190,16 @@ Issues (if any): [section] — [issue] — [why it matters for planning]
 
 After CONTEXT.md passes review:
 
-1. Update `.khuym/STATE.md`:
-   ```
-   Current: exploring complete for <feature>
-   CONTEXT.md: history/<feature>/CONTEXT.md
-   Locked decisions: D1...D_N
-   Next: invoke khuym:planning skill
+1. Update `.khuym/state.json`:
+   ```json
+   {
+     "active_skill": "exploring",
+     "feature_slug": "<feature>",
+     "phase": "exploring-complete",
+     "summary": "Exploring complete. CONTEXT.md is ready for planning.",
+     "next_action": "Invoke khuym:planning.",
+     "focus": "history/<feature>/CONTEXT.md"
+   }
    ```
 
 2. Present to user:

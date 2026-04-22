@@ -114,7 +114,7 @@ On onboarded repos, Khuym installs a read-only scout command:
 node .codex/khuym_status.mjs --json
 ```
 
-It summarizes onboarding health plus `.khuym/state.json`, `.khuym/STATE.md`, and `.khuym/HANDOFF.json` so humans and agents can orient quickly before opening deeper artifacts.
+It summarizes onboarding health plus `.khuym/state.json` and `.khuym/HANDOFF.json` so humans and agents can orient quickly before opening deeper artifacts.
 
 For same-session swarm work, the paired runtime surface is:
 

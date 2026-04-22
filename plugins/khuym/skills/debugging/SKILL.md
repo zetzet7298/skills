@@ -108,11 +108,11 @@ Look for:
 - leaked reservations from a finished worker
 - a worker that still holds files after a blocker or timeout
 
-Also inspect `.khuym/state.json` and `.khuym/STATE.md` for the active worker list.
+Also inspect `.khuym/state.json` for the active worker list.
 
 ### 3f. Check recent worker results in the parent thread
 
-If this debugging pass was spawned from swarming, use the parent-thread context and the saved worker status in `.khuym/STATE.md` as the coordination surface. Do not assume an external inbox exists.
+If this debugging pass was spawned from swarming, use the parent-thread context and the saved worker status in `.khuym/state.json` as the coordination surface. Do not assume an external inbox exists.
 
 ### 3g. Write the root cause sentence
 

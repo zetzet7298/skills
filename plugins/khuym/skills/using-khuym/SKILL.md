@@ -98,7 +98,6 @@ The scout is read-only. It summarizes:
 - onboarding health
 - gkg readiness for this repo
 - `.khuym/state.json`
-- `.khuym/STATE.md`
 - `.khuym/HANDOFF.json`
 - recommended next reads/actions
 
@@ -220,7 +219,7 @@ On every session start, before doing anything else:
 2. Check .khuym/state.json
    → If missing: create with defaults:
      {
-       "schema_version": "1.0",
+       "schema_version": "1.1",
        "phase": "idle",
        "approved_gates": {
          "context": false,
@@ -230,21 +229,14 @@ On every session start, before doing anything else:
        }
      }
 
-3. Check .khuym/STATE.md
-   → If missing: create with template:
-     # STATE
-     focus: (none)
-     phase: idle
-     last_updated: <date>
-   
-4. Check .khuym/HANDOFF.json
+3. Check .khuym/HANDOFF.json
    → If exists → go to Resume Logic below
    → If missing → proceed normally
    
-5. Check .khuym/config.json
+4. Check .khuym/config.json
    → If missing: create {} (all features enabled by default — absent=enabled)
 
-6. Check for history/learnings/critical-patterns.md
+5. Check for history/learnings/critical-patterns.md
    → If exists: read it now. These are mandatory context for all subsequent skills.
 ```
 
@@ -450,7 +442,7 @@ Watch for these violations. Pause and surface them immediately when detected:
 - Context >65% but no HANDOFF.json written
 - Session resumed without reading HANDOFF.json
 - `state.json` missing or stale after a phase transition
-- STATE.md not updated after a phase transition
+- state.json not updated after a phase transition
 
 ---
 
@@ -459,8 +451,7 @@ Watch for these violations. Pause and surface them immediately when detected:
 ```
 .khuym/
   onboarding.json   ← Khuym plugin onboarding status + managed asset versions
-  state.json        ← Machine-readable routing snapshot used by agents and tools
-  STATE.md          ← Current phase, focus, blockers (update at every phase transition)
+  state.json        ← Single runtime state file used by agents, tools, and humans
   config.json       ← Feature toggles (absent=enabled)
   HANDOFF.json      ← Session resume data (write when pausing)
   reservations.json ← Local same-session file reservations for Codex subagents
@@ -498,7 +489,7 @@ Each skill reads from upstream artifacts and writes for downstream:
 | exploring | (user conversation) | history/\<feature>/CONTEXT.md |
 | planning | CONTEXT.md, critical-patterns.md | discovery.md, approach.md, phase-plan.md, current-phase contract/story map, current-phase beads |
 | validating | phase-plan.md, current-phase contract/story map, current-phase beads, approach.md, CONTEXT.md | validated current phase, .spikes/ results |
-| swarming | validated beads, state.json, STATE.md, local reservations | spawned subagent state, HANDOFF.json, updated state.json, updated STATE.md |
+| swarming | validated beads, state.json, local reservations | spawned subagent state, HANDOFF.json, updated state.json |
 | executing | bead file, local reservations, CONTEXT.md | implementation commits, `br close`, structured worker result |
 | reviewing | diff, CONTEXT.md, approach.md, beads | P1/P2/P3 findings |
 | compounding | review findings, full feature history | history/learnings/YYYYMMDD-\<slug>.md, critical-patterns.md |

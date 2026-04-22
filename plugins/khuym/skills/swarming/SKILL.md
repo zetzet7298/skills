@@ -50,7 +50,7 @@ If workers are spawned, busy, blocked, or expected to finish soon, you are not i
 While the swarm is active, keep looping through:
 
 - the live bead graph
-- worker statuses in `.khuym/state.json` and `.khuym/STATE.md`
+- worker statuses in `.khuym/state.json`
 - local reservation state via `node .codex/khuym_reservations.mjs`
 - spawned-agent results via `wait_agent(...)`, `send_input(...)`, and `close_agent(...)` when needed
 
@@ -69,7 +69,7 @@ Invoke after the `khuym:validating` skill issues: _"Validation complete. Current
 Prerequisites:
 
 - current-phase beads are in `open` status and approved for execution
-- `EPIC_ID` is known from `.khuym/state.json`, `.khuym/STATE.md`, or the validated phase contract
+- `EPIC_ID` is known from `.khuym/state.json` or the validated phase contract
 - if `.codex/khuym_status.mjs` exists, run `node .codex/khuym_status.mjs --json` first
 - if `history/learnings/critical-patterns.md` exists, read it before you spawn workers
 
@@ -77,7 +77,7 @@ Prerequisites:
 
 ## Phase 1: Confirm Swarm Readiness
 
-1. Get `EPIC_ID`: prefer `.khuym/state.json`, then `.khuym/STATE.md`, then the validated phase artifacts.
+1. Get `EPIC_ID`: prefer `.khuym/state.json`, then the validated phase artifacts.
 2. Check live bead status:
    ```bash
    bv --robot-triage --graph-root <EPIC_ID>
@@ -90,7 +90,7 @@ Prerequisites:
    ```bash
    node .codex/khuym_reservations.mjs sweep --json
    ```
-5. Update `.khuym/state.json` and `.khuym/STATE.md` with current swarm intent and epic ID.
+5. Update `.khuym/state.json` with current swarm intent and epic ID.
 
 Do not create runtime tracks, waves, or a separate runtime plan. The bead graph remains the execution source of truth.
 
@@ -107,7 +107,7 @@ Codex runtime contract:
    - `agent_id`
    - `agent_nickname`
 3. Immediately send follow-up startup context with `send_input(...)`.
-4. Record the worker in `.khuym/STATE.md` and `.khuym/state.json`.
+4. Record the worker in `.khuym/state.json`.
 
 Required startup context:
 
@@ -135,13 +135,7 @@ This is the smallest reliable same-session contract with the current Codex subag
 
 ### State Recording
 
-Mark spawned workers in `.khuym/STATE.md` under `## Active Workers` immediately after each spawn result.
-
-Use one line per worker:
-
-`- Codex: <codex-subagent-name> | Agent ID: <agent-id> | Status: spawned | Current bead: -`
-
-Mirror the same information in `.khuym/state.json` under `active_workers`.
+Mark spawned workers in `.khuym/state.json` under `active_workers` immediately after each spawn result.
 
 ---
 
@@ -168,7 +162,7 @@ Every loop cycle should do all of the following:
    ```text
    wait_agent(targets=[...worker ids...], timeout_ms=60000)
    ```
-4. Update `.khuym/STATE.md` and `.khuym/state.json` after every meaningful worker event.
+4. Update `.khuym/state.json` after every meaningful worker event.
 
 Use `wait_agent(...)` sparingly. Prefer longer waits over busy polling, and do not stop the whole swarm just because one worker is still running.
 
@@ -185,7 +179,7 @@ The expected formats live in `references/message-templates.md`.
 
 When a worker returns:
 
-1. update the matching worker entry in `.khuym/STATE.md`
+1. update the matching worker entry in `.khuym/state.json`
 2. verify the reported bead state with `br show <bead-id>` or `br ready --json`
 3. verify reservations were released, or release them yourself if safe
 4. decide whether to respawn that worker for another bead, redirect a different worker, or escalate
@@ -211,7 +205,7 @@ If two workers need overlapping files:
    - current holder keeps the reservation until a safe checkpoint
    - holder releases and the waiting worker is re-spawned
    - the change is deferred into a follow-up bead
-3. record the resolution in `.khuym/STATE.md`
+3. record the resolution in `.khuym/state.json`
 
 Do not ask workers to edit through an active conflict just to keep them busy.
 
@@ -249,8 +243,7 @@ When no current-phase beads remain `in_progress` and the live graph shows no rem
    - ask the user whether to defer, create cleanup beads, or continue later
 4. if all current-phase beads are closed:
    - run the project-appropriate build/test commands
-   - clear `## Active Workers` from `.khuym/STATE.md`
-   - update `.khuym/state.json`
+   - clear `active_workers` in `.khuym/state.json`
    - tell the user either:
      - the current phase is complete and planning should resume, or
      - the final phase is complete and `khuym:reviewing` should begin
@@ -264,7 +257,7 @@ When no current-phase beads remain `in_progress` and the live graph shows no rem
 - using workers as long-lived silent daemons instead of bounded bead runs
 - waiting passively while reservations or ready beads still exist
 - resolving collisions by asking workers to "just be careful" instead of changing reservations or bead scope
-- forgetting to mirror worker state in both `.khuym/STATE.md` and `.khuym/state.json`
+- forgetting to update `.khuym/state.json` after a worker-state change
 - handoff without a reservation snapshot
 
 ---
@@ -275,8 +268,7 @@ When no current-phase beads remain `in_progress` and the live graph shows no rem
 |---|---|
 | `references/worker-template.md` | worker bootstrap prompt |
 | `references/message-templates.md` | expected worker final-report formats |
-| `.khuym/state.json` | machine-readable worker and phase state |
-| `.khuym/STATE.md` | human-readable swarm status |
+| `.khuym/state.json` | worker, phase, and operator-facing runtime state |
 | `.khuym/HANDOFF.json` | pause/resume artifact |
 
 ## Completion Signal

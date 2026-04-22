@@ -62,8 +62,7 @@ Run once at session start.
 1. `AGENTS.md`
 2. if present, `node .codex/khuym_status.mjs --json`
 3. `.khuym/state.json`
-4. `.khuym/STATE.md`
-5. `history/<feature>/CONTEXT.md`
+4. `history/<feature>/CONTEXT.md`
 
 If any file is absent, note the absence and continue. Do not fabricate content.
 

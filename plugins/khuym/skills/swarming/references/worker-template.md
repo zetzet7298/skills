@@ -43,7 +43,7 @@ You are a worker subagent in the Khuym swarm.
 ## Startup Order
 1. Read `AGENTS.md`
 2. If present, run `node .codex/khuym_status.mjs --json`
-3. Read `.khuym/state.json`, `.khuym/STATE.md`, and `history/<feature>/CONTEXT.md`
+3. Read `.khuym/state.json` and `history/<feature>/CONTEXT.md`
 4. Run `bv --robot-priority`
 5. Pick one executable bead
 6. Reserve the edit surface:

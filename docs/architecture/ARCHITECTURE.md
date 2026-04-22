@@ -59,13 +59,12 @@ Behavioral summary:
 
 ## Runtime Artifacts
 
-Khuym uses paired human-readable and machine-readable runtime state:
+Khuym keeps runtime state local and file-based:
 
 ```text
 .khuym/
   onboarding.json   -> onboarding state for the plugin
-  state.json        -> machine-readable routing/status mirror
-  STATE.md          -> human-readable narrative state
+  state.json        -> single runtime state file for routing, focus, blockers, and summaries
   HANDOFF.json      -> pause/resume artifact
   reservations.json -> local file reservations for same-session Codex swarms
 
@@ -77,10 +76,9 @@ Khuym uses paired human-readable and machine-readable runtime state:
 
 Rules:
 
-- `state.json` is the routing mirror for tools and agents
-- `STATE.md` remains the human-readable summary
-- neither replaces `CONTEXT.md`, beads, or planning artifacts
-- if a workflow transition updates one, it must update the other
+- `state.json` is the single runtime state file for tools, agents, and operator-facing summaries
+- neither `state.json` nor `HANDOFF.json` replaces `CONTEXT.md`, beads, or planning artifacts
+- workflow transitions should update `state.json` directly instead of maintaining a second narrative file
 
 ## Session Scout
 
@@ -94,7 +92,6 @@ This is the preferred quick orientation step for both humans and agents. It summ
 
 - onboarding status
 - `.khuym/state.json`
-- `.khuym/STATE.md`
 - `.khuym/HANDOFF.json`
 - recommended next reads/actions
 
@@ -108,9 +105,8 @@ On normal Khuym sessions:
 2. If present, run `node .codex/khuym_status.mjs --json`
 3. Read `.khuym/HANDOFF.json` if resuming
 4. Read `.khuym/state.json`
-5. Read `.khuym/STATE.md`
-6. Re-open the active feature `CONTEXT.md`
-7. Read `history/learnings/critical-patterns.md` before planning or execution when it exists
+5. Re-open the active feature `CONTEXT.md`
+6. Read `history/learnings/critical-patterns.md` before planning or execution when it exists
 
 ## Verification Expectations
 

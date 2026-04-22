@@ -152,7 +152,7 @@ Write to `.khuym/HANDOFF.json` when either the orchestrator or a worker must pau
     ]
   },
   "resume_instructions": {
-    "read_first": [".khuym/STATE.md", ".khuym/HANDOFF.json"],
+    "read_first": [".khuym/state.json", ".khuym/HANDOFF.json"],
     "bead_check": "bv --robot-triage --graph-root <EPIC_ID>",
     "reservation_check": "node .codex/khuym_reservations.mjs list --active-only --json"
   }
