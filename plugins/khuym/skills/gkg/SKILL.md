@@ -9,7 +9,7 @@ description: >-
 metadata:
   version: "1.1"
   ecosystem: khuym
-  dependencies:
+  dependencies: |
     - id: gkg
       kind: mcp_server
       server_names: [gkg]

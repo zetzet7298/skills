@@ -942,6 +942,89 @@ test("dependency helper marks missing command and missing mcp_server dependencie
   }
 });
 
+test("dependency helper parses nested dependency list items", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "khuym-deps-nested-"));
+  const skillsRoot = path.join(root, "plugins", "khuym", "skills");
+
+  try {
+    const alphaDir = path.join(skillsRoot, "alpha");
+    fs.mkdirSync(alphaDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(alphaDir, "SKILL.md"),
+      [
+        "---",
+        "name: alpha",
+        "description: Use when testing nested dependency metadata.",
+        "metadata:",
+        "  dependencies:",
+        "    -",
+        "      id: must-have-command",
+        "      kind: command",
+        "      command: definitely-missing-command",
+        "      missing_effect: unavailable",
+        "      reason: required",
+        "---",
+        "",
+        "# alpha",
+        "",
+      ].join("\n"),
+      "utf8",
+    );
+
+    const report = buildKhuymDependencyReport({
+      repoRoot: root,
+      skillsRoot,
+      commandProbe: () => ({ available: false, detail: "missing in test" }),
+    });
+
+    assert.equal(report.summary.declared_dependencies, 1);
+    assert.equal(report.skills[0].missing_dependencies[0].id, "must-have-command");
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("dependency helper parses dependency block scalars for plugin-eval compatibility", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "khuym-deps-block-"));
+  const skillsRoot = path.join(root, "plugins", "khuym", "skills");
+
+  try {
+    const alphaDir = path.join(skillsRoot, "alpha");
+    fs.mkdirSync(alphaDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(alphaDir, "SKILL.md"),
+      [
+        "---",
+        "name: alpha",
+        "description: Use when testing block scalar dependency metadata.",
+        "metadata:",
+        "  dependencies: |",
+        "    - id: must-have-command",
+        "      kind: command",
+        "      command: definitely-missing-command",
+        "      missing_effect: unavailable",
+        "      reason: required",
+        "---",
+        "",
+        "# alpha",
+        "",
+      ].join("\n"),
+      "utf8",
+    );
+
+    const report = buildKhuymDependencyReport({
+      repoRoot: root,
+      skillsRoot,
+      commandProbe: () => ({ available: false, detail: "missing in test" }),
+    });
+
+    assert.equal(report.summary.declared_dependencies, 1);
+    assert.equal(report.skills[0].missing_dependencies[0].id, "must-have-command");
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test("dependency helper respects declared MCP config_sources and can use packaged manifests", () => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "khuym-mcp-sources-"));
   const pluginRoot = path.join(root, "plugins", "khuym");

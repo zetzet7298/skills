@@ -72,6 +72,13 @@ function parseSkillMetadata(frontmatter) {
           continue;
         }
 
+        if ([">", "|"].includes(rawValue.trim())) {
+          metadata.dependencies = dependencies;
+          inDependencies = true;
+          current = null;
+          continue;
+        }
+
         if (!rawValue.trim()) {
           metadata.dependencies = dependencies;
           inDependencies = true;
@@ -91,6 +98,13 @@ function parseSkillMetadata(frontmatter) {
     }
 
     if (!inDependencies) {
+      continue;
+    }
+
+    const emptyEntryMatch = line.match(/^\s{4}-\s*$/);
+    if (emptyEntryMatch) {
+      current = {};
+      dependencies.push(current);
       continue;
     }
 
