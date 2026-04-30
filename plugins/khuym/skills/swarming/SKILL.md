@@ -1,6 +1,6 @@
 ---
 name: swarming
-description: Orchestrates parallel worker agents for phase execution. Use after the khuym:validating skill approves the current phase for execution. Initializes the overseer/orchestrator context, spawns bounded worker subagents, monitors Agent Mail for completions/blockers/file conflicts, coordinates rescues and course corrections, and hands off either to planning for the next phase or to reviewing after the final phase. The orchestrator TENDS — it never implements beads directly.
+description: Orchestrates parallel worker agents for phase execution. Use after the khuym:validating skill approves the current phase for execution. Initializes the overseer/orchestrator context, spawns bounded Codex subagents, monitors worker results plus local file reservations, coordinates rescues and course corrections through the parent thread, and hands off either to planning for the next phase or to reviewing after the final phase. The orchestrator TENDS — it never implements beads directly.
 metadata:
   version: '1.0'
   role: orchestrator
@@ -19,12 +19,6 @@ metadata:
       command: bv
       missing_effect: unavailable
       reason: Live graph triage is required to route and supervise workers.
-    - id: agent-mail
-      kind: mcp_server
-      server_names: [mcp_agent_mail]
-      config_sources: [repo_codex_config, global_codex_config]
-      missing_effect: unavailable
-      reason: Worker orchestration and coordination run through Agent Mail.
 ---
 
 # Swarming
@@ -33,54 +27,57 @@ If `.khuym/onboarding.json` is missing or stale for the current repo, stop and i
 
 ## Role Boundary — Read First
 
-You are the **ORCHESTRATOR**. You launch workers, monitor coordination, handle escalations, and keep the swarm moving. You do NOT implement beads. If you find yourself editing source files, stop immediately — that is the khuym:executing skill's job.
+You are the **ORCHESTRATOR**. You launch workers, monitor coordination, handle escalations, and keep the swarm moving. You do NOT implement beads. If you find yourself editing source files, stop immediately — that is the `khuym:executing` skill's job.
 
-- **swarming** = launches and tends workers (this skill)
-- **executing** = each worker's self-routing implementation loop
+- `swarming` = launches and tends workers
+- `executing` = the bounded worker loop each spawned subagent follows
 
-## Hard Rule — Active Swarm Never Idles
+## Coordination Substrate
 
-If workers are spawned, online, busy, blocked, or expected to report, you are not in a waiting phase. You are in a tending phase.
+For normal same-session Codex swarming, Khuym now uses:
 
-While the swarm is active, you must keep looping through Agent Mail and the live bead graph. Do not stop and wait for user direction just because the thread is quiet. Silence is work for the orchestrator:
-- poll inboxes
-- inspect the epic timeline
-- send reminders
-- resolve conflicts
-- escalate only when the next move truly requires human judgment
+- beads + `bv` for work selection and graph state
+- Codex subagents for parallel execution
+- repo-local reservations in `.khuym/reservations.json`
+- the parent Codex thread for worker completion, blocker, and handoff summaries
 
-User escalation is for real product decisions, unresolved blockers, or persistent worker silence after you have already tried to recover the swarm through Agent Mail.
+This is intentionally local-first. There is no external inbox, mail server, or thread bootstrap step for same-session swarms.
 
-## Communication Standard
+## Hard Rule — Active Swarm Keeps Tending
 
-Blocker reports, conflict reports, and handoffs should be written so a busy teammate can understand them in one read.
+If workers are spawned, busy, blocked, or expected to finish soon, you are not in a waiting phase. You are in a tending phase.
 
-Prefer:
+While the swarm is active, keep looping through:
 
-- what is blocked
-- what is happening right now
-- one concrete example of the collision or failure
-- what needs to happen next
+- the live bead graph
+- worker statuses in `.khuym/state.json`
+- local reservation state via `node .codex/khuym_reservations.mjs`
+- spawned-agent results via `wait_agent(...)` and `close_agent(...)` when needed
 
-Do not hide the real issue behind labels like `reservation conflict`, `startup drift`, or `runtime blocker` without explaining the practical effect.
+Silence is work for the orchestrator, but silence alone is not failure. Keep tending the graph and reservations while workers run, and only interrupt a worker when the evidence shows a real stuck condition or the user explicitly wants it stopped.
 
-In Flywheel terms, this skill is the Khuym/Codex adaptation of the `ntm spawn` + human-overseer phase. The orchestrator launches the swarm, then tends it. Workers decide what to do next by using `bv --robot-priority` against the live bead graph.
+## Why The Contract Changed
+
+Official Codex subagent workflows already provide parent-controlled spawning, follow-up input, waiting, and thread inspection. They are a good fit for same-session parallel work.
+
+The key tradeoff is also explicit in the Codex docs: subagents are great for read-heavy or bounded parallel work, but parallel write-heavy work needs extra coordination. Khuym's local reservation layer exists to supply that coordination without depending on Agent Mail for the normal same-session path.
 
 ## When to Use This Skill
 
 Invoke after the `khuym:validating` skill issues: _"Validation complete. Current phase passes. Invoke khuym:swarming skill."_
 
 Prerequisites:
-- Current-phase beads are in `open` status and approved for execution
-- EPIC_ID is known (from STATE.md or user input)
-- Agent Mail server is reachable
-- If `.codex/khuym_status.mjs` exists, run `node .codex/khuym_status.mjs --json` first to confirm onboarding, current phase, and any saved handoff before launching the swarm
+
+- current-phase beads are in `open` status and approved for execution
+- `EPIC_ID` is known from `.khuym/state.json` or the validated phase contract
+- if `.codex/khuym_status.mjs` exists, run `node .codex/khuym_status.mjs --json` first
+- if `history/learnings/critical-patterns.md` exists, read it before you spawn workers
 
 ---
 
 ## Phase 1: Confirm Swarm Readiness
 
-1. Get `EPIC_ID`: prefer `.khuym/state.json`, then `.khuym/STATE.md`, then ask the user.
+1. Get `EPIC_ID`: prefer `.khuym/state.json`, then the validated phase artifacts.
 2. Check live bead status:
    ```bash
    bv --robot-triage --graph-root <EPIC_ID>
@@ -89,281 +86,201 @@ Prerequisites:
    - open beads exist
    - dependencies are acyclic
    - no unresolved validation blockers remain
-4. Update `.khuym/state.json` and `.khuym/STATE.md` with current swarm intent and epic ID.
+4. Sweep expired reservations before spawning:
+   ```bash
+   node .codex/khuym_reservations.mjs sweep --json
+   ```
+5. Update `.khuym/state.json` with current swarm intent and epic ID.
 
-**Do not** compute runtime tracks, runtime waves, or any separate runtime planning artifact. In the corrected model, the bead graph itself is the execution source of truth.
-
----
-
-## Phase 2: Initialize Agent Mail
-
-```
-ensure_project(human_key="<project-root-path>")
-register_agent(
-  project_key="<project-root-path>",
-  name="<COORDINATOR_AGENT_NAME>",  # must be a valid adjective+noun Agent Mail identity
-  program="codex-cli",
-  model="gpt-5",
-  task_description="swarm-coordinator"
-)
-```
-
-Define an epic topic tag:
-
-```
-EPIC_TOPIC="epic-<EPIC_ID>"
-```
-
-Bootstrap the epic coordination thread by sending the first message (this is the thread-creation moment in Agent Mail):
-
-```
-send_message(
-  project_key="<project-root-path>",
-  sender_name="<COORDINATOR_AGENT_NAME>",
-  to=["<COORDINATOR_AGENT_NAME>"],
-  subject="[SWARM START] <feature-name>",
-  body_md="Swarm initialized for epic <EPIC_ID> ...",
-  thread_id="<EPIC_ID>",
-  topic="<EPIC_TOPIC>"
-)
-```
-
-Template: see `references/message-templates.md` → **Spawn Notification**.
-
-The epic thread is the coordination surface for:
-- worker startup acknowledgments
-- completion reports
-- blocker alerts
-- file conflict requests
-- context handoffs
-- overseer broadcasts
+Do not create runtime tracks, waves, or a separate runtime plan. The bead graph remains the execution source of truth.
 
 ---
 
-## Phase 3: Spawn Workers
+## Phase 2: Spawn Workers
 
-Spawn a pool of worker subagents in parallel:
+Spawn a bounded worker pool with `spawn_agent(...)`. Use the worker prompt template in `references/worker-template.md`.
 
-```
-Subagent(
-  identity="Worker: <codex-subagent-name>",
-  context=<scoped worker context from references/worker-template.md>
-)
-```
+Codex runtime contract:
 
-`Subagent(...)` is the canonical contract. In an actual runtime, call whatever worker-spawn primitive is available, but preserve the same behavior: the orchestrator stays in control, each worker gets bounded scope by default, and workers report back through Agent Mail plus the live bead graph.
+1. Call `spawn_agent(...)`.
+2. Capture both:
+   - `agent_id`
+   - `agent_nickname`
+3. Immediately send follow-up startup context with `send_input(...)`.
+4. Record the worker in `.khuym/state.json`.
 
-In Codex, worker bootstrap is a two-step runtime handshake:
+Required startup context:
 
-1. Call `spawn_agent(...)` for the worker.
-2. Capture the returned Codex nickname from the spawn result.
-3. Immediately send follow-up startup context to that worker with:
-   - `codex_subagent_name`
-   - `project_key`
-   - `epic_id`
-   - `epic_topic`
-   - `feature_name`
-   - `coordinator_agent_name`
-   - optional `startup_hint`
-4. Only after that follow-up arrives may the worker call `macro_start_session(...)`.
+- `codex_subagent_name`
+- `agent_id`
+- `project_key`
+- `epic_id`
+- `feature_name`
+- optional `startup_hint`
+- instruction to load `khuym:executing` immediately
 
 Do not invent worker names locally. The parent runtime result is the source of truth for the Codex nickname.
 
-Provide each worker:
-- Codex subagent nickname plus the bootstrap context needed to resolve Agent Mail identity
-- Feature name / epic ID
-- Instruction to load the `khuym:executing` skill immediately
-- Optional startup hint if there is an urgent ready bead, clearly labeled as a hint rather than an assignment
-- Scoped task-specific context by default; full parent-context inheritance only when explicitly needed
+### Worker Scope
 
-Do **not** assign workers fixed tracks, fixed waves, or fixed bead lists as the normal case. Workers are expected to:
-1. register
-2. read `AGENTS.md` and project context
-3. post a startup acknowledgment with both identities
-4. fetch inbox updates
-5. call `bv --robot-priority`
-6. reserve files
-7. implement and report
-8. loop
+Workers are expected to be bead-scoped and short-lived:
 
-Mark spawned workers in `.khuym/STATE.md` under `## Active Workers` immediately after each spawn result.
+1. read the project context
+2. pick one executable bead from `bv --robot-priority`
+3. reserve the bead's edit surface locally
+4. implement and verify
+5. close the bead, release reservations, and return a structured result to the parent thread
 
-Use one line per worker:
+This is the smallest reliable same-session contract with the current Codex subagent surface. It preserves parallel execution while keeping write coordination explicit and parent-controlled.
 
-`- Codex: <codex-subagent-name> | Agent Mail: pending | Status: spawned | Current bead: -`
+### State Recording
 
-The worker startup acknowledgment will later replace `pending` with the resolved Agent Mail name returned by `macro_start_session(...)`.
+Mark spawned workers in `.khuym/state.json` under `active_workers` immediately after each spawn result.
 
 ---
 
-## Phase 4: Monitor + Tend
+## Phase 3: Tend The Swarm
 
-This is the "clockwork deity" phase. The swarm is live; now you manage it.
+Run a tend loop for as long as any of these are true:
 
-Run a poll-act-repeat loop for as long as any of these are true:
-- a worker is `spawned`, `online`, `busy`, or `blocked`
-- a worker owes a startup acknowledgment, completion report, blocker alert, or handoff
+- a worker is `spawned`, `busy`, or `blocked`
 - `bv --robot-triage --graph-root <EPIC_ID>` still shows ready or in-progress work
+- local reservations remain active for the current phase
 
-Every loop cycle must do all of the following:
+Every loop cycle should do all of the following:
 
-```
-fetch_inbox(
-  project_key="<project-root-path>",
-  agent_name="<COORDINATOR_AGENT_NAME>",
-  topic="<EPIC_TOPIC>"
-)
-fetch_topic(
-  project_key="<project-root-path>",
-  topic_name="<EPIC_TOPIC>"
-)
-```
-
-Then:
-1. Process every new worker message before moving on
-2. Update `.khuym/STATE.md` to reflect the latest worker status
-3. Reply, remind, or coordinate immediately when a worker is blocked or waiting
-4. Re-run the live graph check when a bead closes, a blocker clears, a worker goes silent, or the thread state looks stale
-
-Use live graph checks for oversight, not assignment:
-
-```bash
-bv --robot-triage --graph-root <EPIC_ID>
-```
-
-Do not park in passive wait mode while the swarm is active. If the thread is quiet, you still keep polling and tending until the swarm is complete or a real human decision is needed.
-
-### Worker Startup Acknowledgments
-
-When a worker posts an online message:
-1. Confirm it joined the correct epic thread
-2. Confirm it reports both the Codex nickname and resolved Agent Mail name
-3. Confirm it explicitly says `AGENTS.md` was read
-4. Confirm it is loading `khuym:executing`
-5. Confirm the worker's next step is `fetch_inbox(...)`, then `bv --robot-priority`
-6. Update the matching `.khuym/STATE.md` worker entry from:
-   `Codex: <nickname> | Agent Mail: pending | Status: spawned | Current bead: -`
-   to:
-   `Codex: <nickname> | Agent Mail: <resolved-name> | Status: online | Current bead: -`
-
-If a worker does not post a startup acknowledgment:
-1. After 2 poll cycles: send a direct reminder telling the worker to re-read `AGENTS.md`, post `[ONLINE]`, and fetch inbox
-2. After 3 silent poll cycles: mark the worker `stalled-startup` in `.khuym/STATE.md` and send a second reminder
-3. After 5 silent poll cycles with ready work remaining: escalate to the user with the specific worker name, current graph state, and recovery attempts already made
-
-### Bead Completion Reports
-
-When a worker posts a completion report:
-1. Verify the bead is actually closed: `br status <bead-id>`
-2. Acknowledge receipt on the thread
-3. Confirm the report includes the bead ID, both worker identities, verification summary, and commit hash
-4. Update `.khuym/STATE.md` using the existing worker entry keyed by Codex nickname
-5. Re-check the graph to see what newly unblocked
-
-### Blocker Alerts
-
-When a worker posts a blocker alert:
-1. Assess severity:
-   - **Resolvable with existing context:** reply on the thread
-   - **Needs another worker's status or release:** coordinate via thread
-   - **Needs human judgment:** escalate to user quickly
-2. Do not let workers spin silently on blockers
-3. Record blocker state in `.khuym/STATE.md` on the same worker entry that tracks both names
-
-### File Conflict Requests
-
-When a worker requests a file another worker holds:
-1. Identify holder and requester
-2. Coordinate one of:
-   - holder releases at a safe checkpoint
-   - requester waits
-   - requester defers and creates a follow-up bead
-3. Log the resolution in `.khuym/STATE.md` using the existing two-name worker entries
-
-### Silence Ladder
-
-Silence is not neutral. Treat it as a coordination problem to resolve.
-
-- After 2 quiet poll cycles from a worker that should have reported: send a reminder
-- After 3 quiet poll cycles from an active worker: send a direct status check telling the worker to fetch inbox, re-read `AGENTS.md` if needed, and report back on the epic thread
-- After 5 quiet poll cycles while ready work, in-progress work, or unresolved reservations still exist: mark the worker stalled in `.khuym/STATE.md` and escalate to the user with the concrete status, what you already tried, and why the swarm cannot safely continue unattended
-
-### Overseer Broadcasts
-
-Use broadcast messages when the swarm needs a shared correction, for example:
-- "re-read AGENTS.md after compaction"
-- "do not touch file X until blocker Y is cleared"
-- "new user decision: D7 is locked, honor it"
-- "fetch inbox now before claiming new work"
-
-### Context Checkpoint
-
-After each significant event, estimate your own context budget.
-
-**If context >65% used:**
-1. Write `.khuym/HANDOFF.json` with complete swarm state (see `references/message-templates.md` → **Handoff JSON template**)
-2. Broadcast a pause notification on the epic thread
-3. Report to user that the orchestrator paused safely and how to resume
-4. Do NOT abandon the swarm without writing `HANDOFF.json`
-
----
-
-## Phase 5: Swarm Complete
-
-When no current-phase beads remain `in_progress` and the graph shows no remaining executable work for the current phase:
-
-1. Run final bead verification:
+1. Re-run the live graph check when a bead closes, a blocker clears, or a worker finishes.
    ```bash
    bv --robot-triage --graph-root <EPIC_ID>
    ```
-2. If orphaned or blocked beads remain:
+2. Sweep and inspect reservations.
+   ```bash
+   node .codex/khuym_reservations.mjs sweep --json
+   node .codex/khuym_reservations.mjs list --active-only --json
+   ```
+3. Wait for any worker result only when you truly need the next finished result.
+   ```text
+   wait_agent(targets=[...worker ids...], timeout_ms=60000)
+   ```
+4. Update `.khuym/state.json` after every meaningful worker event.
+
+Use `wait_agent(...)` sparingly. Prefer longer waits over busy polling, batch worker ids when possible, and do not stop the whole swarm just because one worker is still running.
+
+### Worker Result Handling
+
+Workers report back by finishing their subagent run with one of these statuses in the final message:
+
+- `[DONE]`
+- `[BLOCKED]`
+- `[HANDOFF]`
+- `[NOOP]`
+
+The expected formats live in `references/message-templates.md`.
+
+When a worker returns:
+
+1. update the matching worker entry in `.khuym/state.json`
+2. verify the reported bead state with `br show <bead-id>` or `br ready --json`
+3. verify reservations were released, or release them yourself if safe
+4. decide whether to respawn that worker for another bead, redirect a different worker, or escalate
+
+### Silence Ladder
+
+Because the parent thread is the coordination surface, silence usually means a worker has not finished yet. Do not treat a quiet worker as failed just because `wait_agent(...)` timed out.
+
+- After one long wait timeout with no result: inspect reservation state and current graph status
+- If reservations, bead ownership, and graph state still look healthy: keep waiting
+- If the graph or reservation evidence looks unhealthy: keep the recovery flow parent-side first
+  - confirm whether another worker is blocked behind the held reservation
+  - verify whether the bead graph and reservation state still match the last known worker state
+  - decide whether the worker should simply keep running, whether the blocked work should be deferred, or whether the swarm now needs a human decision
+- Do not send routine `send_input(...)` messages to an in-flight worker just because it is quiet. Mid-flight status checks are disruptive and are not part of the normal silence ladder anymore
+- Do not use `send_input(..., interrupt=true)` as a routine silence step. Reserve interrupts for explicit user aborts or confirmed deadlocks where the user wants the worker preempted
+- If the swarm remains blocked and the reservation/graph evidence still looks unhealthy after the parent-side checks: escalate to the user with the worker name, current graph state, reservation evidence, and recovery attempts already made
+
+### File Conflict Resolution
+
+If two workers need overlapping files:
+
+1. inspect the active reservations:
+   ```bash
+   node .codex/khuym_reservations.mjs list --active-only --json
+   ```
+2. decide one of:
+   - current holder keeps the reservation until a safe checkpoint
+   - holder releases and the waiting worker is re-spawned
+   - the change is deferred into a follow-up bead
+3. record the resolution in `.khuym/state.json`
+
+Do not ask workers to edit through an active conflict just to keep them busy.
+
+---
+
+## Phase 4: Handoffs And Context Limits
+
+After each significant event, estimate your own context budget.
+
+If context usage passes roughly 65%:
+
+1. write `.khuym/HANDOFF.json`
+2. save the active worker list with `codex_name`, `agent_id`, `status`, and `bead_id`
+3. save a reservation snapshot from `node .codex/khuym_reservations.mjs list --active-only --json`
+4. report to the user that the orchestrator paused safely and how to resume
+
+Do not abandon the swarm without writing `HANDOFF.json`.
+
+---
+
+## Phase 5: Complete The Phase
+
+When no current-phase beads remain `in_progress` and the live graph shows no remaining executable work:
+
+1. run a final graph check:
+   ```bash
+   bv --robot-triage --graph-root <EPIC_ID>
+   ```
+2. inspect active reservations and confirm the phase is clean:
+   ```bash
+   node .codex/khuym_reservations.mjs list --active-only --json
+   ```
+3. if orphaned or blocked beads remain:
    - report which beads remain and why
    - ask the user whether to defer, create cleanup beads, or continue later
-3. If all current-phase beads are closed:
-   - run final build/test commands appropriate to the project
-   - clear `## Active Workers` from `.khuym/STATE.md`
-   - inspect `history/<feature>/phase-plan.md` and `.khuym/STATE.md`
-   - if more phases remain:
-     ```
-     Active skill: swarming -> COMPLETE
-     Swarm: <EPIC_ID> - current phase complete
-     Next: planning for Phase <n+1>
-     ```
-   - if this was the final phase:
-     ```
-     Active skill: swarming -> COMPLETE
-     Swarm: <EPIC_ID> - final phase complete
-     Next: reviewing
-     ```
-
-4. Handoff message:
-   - if more phases remain:
-     > "Swarm execution complete for the current phase. Return to khuym:planning to prepare the next phase."
-   - if this was the final phase:
-     > "Swarm execution complete for the final phase. Invoke khuym:reviewing skill."
+4. if all current-phase beads are closed:
+   - run the project-appropriate build/test commands
+   - clear `active_workers` in `.khuym/state.json`
+   - tell the user either:
+     - the current phase is complete and planning should resume, or
+     - the final phase is complete and `khuym:reviewing` should begin
 
 ---
 
 ## Red Flags
 
-Stop and diagnose before continuing if you see:
-
-- **Worker implements multiple beads at once** — self-routing does not mean parallelizing within one worker
-- **Orchestrator edits source files** — role violation
-- **Workers are idle but ready beads exist** — fetch inbox, inspect the thread, and recover the swarm instead of waiting for the user
-- **No Agent Mail activity for >5 poll cycles while work remains** — workers may be stuck, off-thread, or context-exhausted; run the silence ladder
-- **The same file conflict repeats** — bead decomposition may be too coarse; escalate
-- **Workers stop using `bv --robot-priority` and start freelancing** — re-broadcast the execution contract
-- **Build/test failures accumulate without intervention** — create fix beads or stop and escalate
+- spawning workers before validation approved execution
+- letting workers edit code without local reservations
+- using workers as long-lived silent daemons instead of bounded bead runs
+- waiting passively while reservations or ready beads still exist
+- resolving collisions by asking workers to "just be careful" instead of changing reservations or bead scope
+- forgetting to update `.khuym/state.json` after a worker-state change
+- handoff without a reservation snapshot
 
 ---
 
 ## Reference Files
 
-Load when needed:
-
-| File | Load When |
+| File | Use |
 |---|---|
-| `references/worker-template.md` | Spawning any worker (Phase 3) |
-| `references/message-templates.md` | Posting or parsing Agent Mail messages |
-| `references/pressure-scenarios.md` | Re-running RED/GREEN pressure tests for swarm coordination behavior |
+| `references/worker-template.md` | worker bootstrap prompt |
+| `references/message-templates.md` | expected worker final-report formats |
+| `.khuym/state.json` | worker, phase, and operator-facing runtime state |
+| `.khuym/HANDOFF.json` | pause/resume artifact |
+
+## Completion Signal
+
+Swarming is complete when either:
+
+- the current phase is cleanly executed and the workflow is ready to return to planning for the next phase, or
+- the final phase is executed and the user can be told:
+
+> "Swarm execution complete for the final phase. Invoke `khuym:reviewing`."

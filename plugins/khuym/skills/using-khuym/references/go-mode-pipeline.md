@@ -72,13 +72,12 @@ Before invoking `khuym:exploring`, always:
 1. Run State Bootstrap from SKILL.md (check `.khuym/`, read `critical-patterns.md`).
 2. Determine feature slug from the user's description (lowercase-hyphenated, e.g. `agent-email-inbox`).
 3. Create `history/<feature>/` if it does not exist.
-4. Write `.khuym/STATE.md`:
-   ```text
-   focus: <feature>
-   phase: go-mode/exploring
-   pipeline: go
-   last_updated: <timestamp>
-   ```
+4. Update `.khuym/state.json` with:
+   - `feature_slug: <feature>`
+   - `phase: go-mode/exploring`
+   - `mode: go`
+   - `focus: <feature>`
+   - `last_updated: <timestamp>`
 
 ---
 
@@ -96,7 +95,7 @@ Before invoking `khuym:exploring`, always:
 - Write `history/<feature>/CONTEXT.md`
 - Self-review `CONTEXT.md`
 
-**Update STATE.md:** `phase: go-mode/gate-1`
+**Update state.json:** set `phase` to `go-mode/gate-1`
 
 ---
 
@@ -138,7 +137,7 @@ If user says `revise`, loop back to exploring. If user says `yes`, proceed to St
 
 **Important:** this step does **not** create beads yet.
 
-**Update STATE.md:** `phase: go-mode/gate-2`
+**Update state.json:** set `phase` to `go-mode/gate-2`
 
 ---
 
@@ -182,7 +181,7 @@ If user says `revise`, return to the planning pass that owns `phase-plan.md`. If
 - never create later-phase beads early
 - every bead must include `Phase <n>` and `Story <m>` context
 
-**Update STATE.md:** `phase: go-mode/validating`
+**Update state.json:** set `phase` to `go-mode/validating`
 
 ---
 
@@ -200,7 +199,7 @@ If user says `revise`, return to the planning pass that owns `phase-plan.md`. If
 - Phase 3: bead polishing (`bv --robot-suggest`, `--robot-insights`, `--robot-priority`)
 - Phase 4: current-phase exit-state readiness review
 
-**Update STATE.md:** `phase: go-mode/gate-3`
+**Update state.json:** set `phase` to `go-mode/gate-3`
 
 ---
 
@@ -229,7 +228,7 @@ If user says `no` or `revise`, return to planning or validating. If user says `y
 
 **The khuym:swarming skill will:**
 
-- initialize Agent Mail
+- initialize local reservation state
 - spawn workers for the current phase bead set
 - monitor current-phase execution
 - verify current-phase beads closed
@@ -241,7 +240,7 @@ After current-phase execution completes:
 - if `phase-plan.md` shows later phases still pending -> return to Step 3 for the next phase
 - if the current phase was the final phase -> proceed to Step 6
 
-**Update STATE.md:** either:
+**Update state.json:** set `phase` to either:
 
 - `phase: go-mode/planning-next-phase`, or
 - `phase: go-mode/reviewing`
@@ -259,7 +258,7 @@ After current-phase execution completes:
 - run human UAT
 - run final finishing tasks
 
-**Update STATE.md:** `phase: go-mode/gate-4`
+**Update state.json:** set `phase` to `go-mode/gate-4`
 
 ---
 
@@ -303,14 +302,13 @@ If fix beads are created, execute them and re-run reviewing before presenting GA
 - promote critical items to `history/learnings/critical-patterns.md`
 - optionally index via CASS
 
-**Final update STATE.md:**
+**Final update state.json:**
 
-```text
-focus: (none)
-phase: idle
-last_feature: <feature>
-last_updated: <timestamp>
-```
+- `focus: ""`
+- `phase: idle`
+- `feature_slug: ""`
+- `summary: "Go mode complete for <feature>"`
+- `last_updated: <timestamp>`
 
 Delete `.khuym/HANDOFF.json` if it exists.
 

@@ -73,7 +73,7 @@ If any are missing, stop and return to `khuym:planning`.
 
 Before structural verification, orient the validator.
 
-Read from `.khuym/STATE.md` and the phase artifacts:
+Read from `.khuym/state.json` and the phase artifacts:
 
 - current phase number and name
 - whether `phase-plan.md` was approved
@@ -320,15 +320,17 @@ Approve execution for Phase <n>? (yes/no)
 
 ### If user approves
 
-Update `.khuym/STATE.md`:
+Update `.khuym/state.json`:
 
-```text
-PHASE: validated
-FEATURE: <feature-name>
-CURRENT_PHASE: Phase <n> - <name>
-VALIDATED_AT: <timestamp>
-STORIES: <N>
-BEADS: <N>
+```json
+{
+  "active_skill": "validating",
+  "feature_slug": "<feature-name>",
+  "phase": "validated",
+  "phase_number": <n>,
+  "summary": "Phase <n> passed validation and is ready for swarming.",
+  "next_action": "Invoke khuym:swarming for Phase <n>."
+}
 ```
 
 Handoff:

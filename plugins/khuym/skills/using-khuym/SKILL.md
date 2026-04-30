@@ -36,12 +36,6 @@ metadata:
       config_sources: [repo_codex_config, global_codex_config, plugin_mcp_manifest]
       missing_effect: degraded
       reason: Planning and exploration depend on gkg-backed architecture intelligence.
-    - id: agent-mail
-      kind: mcp_server
-      server_names: [mcp_agent_mail]
-      config_sources: [repo_codex_config, global_codex_config]
-      missing_effect: degraded
-      reason: Swarming and worker coordination rely on Agent Mail.
 ---
 
 # using-khuym
@@ -83,6 +77,7 @@ Onboarding installs or updates:
 - repo-local `.codex/hooks/khuym_*.mjs`
 - repo-local `.codex/khuym_status.mjs`
 - repo-local `.codex/khuym_state.mjs`
+- repo-local `.codex/khuym_reservations.mjs`
 - `.khuym/onboarding.json`
 - `.khuym/state.json`
 
@@ -103,9 +98,16 @@ The scout is read-only. It summarizes:
 - onboarding health
 - gkg readiness for this repo
 - `.khuym/state.json`
-- `.khuym/STATE.md`
 - `.khuym/HANDOFF.json`
 - recommended next reads/actions
+
+For swarm work, the local reservation helper is the other repo-native runtime surface:
+
+```bash
+node .codex/khuym_reservations.mjs list --active-only --json
+```
+
+It reads and writes `.khuym/reservations.json`, which is the local same-session coordination substrate for write ownership.
 
 Use it to get the current truth quickly, then open the deeper files it points to.
 
@@ -153,8 +155,8 @@ These checks are the package-wide contract: the report should stay fully covered
 | 2 | `khuym:exploring` | Identify gray areas, lock decisions → CONTEXT.md | Feature request is vague or new; "what exactly should this do?" |
 | 3 | `khuym:planning` | Research + synthesis → `phase-plan.md`, then current-phase contract/story map + beads | Decisions are locked (CONTEXT.md exists); ready to show the full phase/story breakdown and prepare the next phase |
 | 4 | `khuym:validating` | Verify the current phase contract, story map, and bead graph before execution | The phase plan is approved and the current phase has stories and beads; need to prove this phase is actually execution-ready |
-| 5 | `khuym:swarming` | Launch+tend worker pool via Agent Mail + bv | Beads are validated; ready to execute at scale |
-| 6 | `khuym:executing` | Single worker loop: priority → reserve → implement bead → close → loop | Spawned by swarming; one agent, self-routing from the live graph |
+| 5 | `khuym:swarming` | Launch+tend Codex subagents via parent-thread coordination + local reservations + bv | Beads are validated; ready to execute at scale |
+| 6 | `khuym:executing` | Bounded worker loop: priority → reserve locally → implement one bead → close → return | Spawned by swarming; one agent, one bead-scoped run |
 | 7 | `khuym:reviewing` | 5 parallel review agents (P1/P2/P3) + artifact verification + UAT | Execution complete; need quality gate before merge |
 | 8 | `khuym:compounding` | Capture learnings → history/learnings/ → critical-patterns.md | Feature shipped; extract patterns/decisions/failures for future runs |
 | 9 | `khuym:writing-khuym-skills` | TDD-for-skills: RED-GREEN-REFACTOR + persuasion psychology | Improving or creating khuym skills themselves |
@@ -217,7 +219,7 @@ On every session start, before doing anything else:
 2. Check .khuym/state.json
    → If missing: create with defaults:
      {
-       "schema_version": "1.0",
+       "schema_version": "1.1",
        "phase": "idle",
        "approved_gates": {
          "context": false,
@@ -227,21 +229,14 @@ On every session start, before doing anything else:
        }
      }
 
-3. Check .khuym/STATE.md
-   → If missing: create with template:
-     # STATE
-     focus: (none)
-     phase: idle
-     last_updated: <date>
-   
-4. Check .khuym/HANDOFF.json
+3. Check .khuym/HANDOFF.json
    → If exists → go to Resume Logic below
    → If missing → proceed normally
    
-5. Check .khuym/config.json
+4. Check .khuym/config.json
    → If missing: create {} (all features enabled by default — absent=enabled)
 
-6. Check for history/learnings/critical-patterns.md
+5. Check for history/learnings/critical-patterns.md
    → If exists: read it now. These are mandatory context for all subsequent skills.
 ```
 
@@ -434,7 +429,7 @@ Watch for these violations. Pause and surface them immediately when detected:
 - Implementation diverges from locked decisions without surfacing conflict
 
 **Execution violations:**
-- Files reserved but never released (Agent Mail reservation leak)
+- Files reserved but never released (local reservation leak)
 - Bead closed as "done" without the acceptance criteria actually verified
 - Agent commits code without a bead ID in the commit message
 
@@ -447,7 +442,7 @@ Watch for these violations. Pause and surface them immediately when detected:
 - Context >65% but no HANDOFF.json written
 - Session resumed without reading HANDOFF.json
 - `state.json` missing or stale after a phase transition
-- STATE.md not updated after a phase transition
+- state.json not updated after a phase transition
 
 ---
 
@@ -456,14 +451,15 @@ Watch for these violations. Pause and surface them immediately when detected:
 ```
 .khuym/
   onboarding.json   ← Khuym plugin onboarding status + managed asset versions
-  state.json        ← Machine-readable routing snapshot used by agents and tools
-  STATE.md          ← Current phase, focus, blockers (update at every phase transition)
+  state.json        ← Single runtime state file used by agents, tools, and humans
   config.json       ← Feature toggles (absent=enabled)
   HANDOFF.json      ← Session resume data (write when pausing)
+  reservations.json ← Local same-session file reservations for Codex subagents
 
 .codex/
   khuym_status.mjs  ← Read-only scout command for onboarding, state, and handoff
   khuym_state.mjs   ← Shared state helpers used by the scout command
+  khuym_reservations.mjs ← Local reservation helper used by swarming, executing, and hooks
 
 history/<feature>/
   CONTEXT.md        ← Locked decisions from exploring (source of truth)
@@ -493,8 +489,8 @@ Each skill reads from upstream artifacts and writes for downstream:
 | exploring | (user conversation) | history/\<feature>/CONTEXT.md |
 | planning | CONTEXT.md, critical-patterns.md | discovery.md, approach.md, phase-plan.md, current-phase contract/story map, current-phase beads |
 | validating | phase-plan.md, current-phase contract/story map, current-phase beads, approach.md, CONTEXT.md | validated current phase, .spikes/ results |
-| swarming | validated beads, state.json, STATE.md | Agent Mail threads, HANDOFF.json, updated state.json, updated STATE.md |
-| executing | bead file, Agent Mail, CONTEXT.md | implementation commits, br close |
+| swarming | validated beads, state.json, local reservations | spawned subagent state, HANDOFF.json, updated state.json |
+| executing | bead file, local reservations, CONTEXT.md | implementation commits, `br close`, structured worker result |
 | reviewing | diff, CONTEXT.md, approach.md, beads | P1/P2/P3 findings |
 | compounding | review findings, full feature history | history/learnings/YYYYMMDD-\<slug>.md, critical-patterns.md |
 

@@ -52,7 +52,7 @@ Collect all artifacts from the completed feature. Read:
 history/<feature>/CONTEXT.md          ← locked decisions (what we committed to)
 history/<feature>/discovery.md        ← research findings (what we learned before coding)
 history/<feature>/approach.md         ← synthesis + risk map (how we planned to do it)
-.khuym/STATE.md or HANDOFF artifacts  ← runtime coordination state, if retained
+.khuym/state.json or HANDOFF artifacts ← runtime coordination state, if retained
 .beads/ or `br show` output           ← the executable work graph we actually ran
 ```
 
@@ -243,16 +243,23 @@ The file-based learnings are the primary system. CASS/CM are acceleration layers
 
 ---
 
-### Phase 6: Update STATE.md
+### Phase 6: Update state.json
 
-Update `.khuym/STATE.md` to record that compounding ran:
+Update `.khuym/state.json` to record that compounding ran:
 
-```markdown
-## Last Compounding Run
-- Feature: <feature-name>
-- Date: YYYY-MM-DD
-- Learnings file: history/learnings/YYYYMMDD-<slug>.md
-- Critical promotions: N (or 0)
+```json
+{
+  "active_skill": "compounding",
+  "phase": "compounding-complete",
+  "summary": "Compounding complete. Learnings captured for the next feature.",
+  "next_action": "Start the next feature or reopen deferred follow-up work.",
+  "last_compounding_run": {
+    "feature": "<feature-name>",
+    "date": "YYYY-MM-DD",
+    "learnings_file": "history/learnings/YYYYMMDD-<slug>.md",
+    "critical_promotions": <N>
+  }
+}
 ```
 
 ---

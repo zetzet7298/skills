@@ -1,117 +1,82 @@
 # Worker Subagent Template
 
-Use this template when spawning a worker subagent. Fill in the placeholders from live swarm state.
+Use this template when spawning a worker subagent. Fill the placeholders from live swarm state.
 
 ---
 
 ## Canonical Subagent Spawn
 
-```
-Subagent(
-  identity="Worker: <CODEX_SUBAGENT_NAME>",
-  context="""
-<WORKER_PROMPT>
-"""
+```text
+spawn_agent(
+  agent_type="worker",
+  message="<WORKER_PROMPT>",
+  fork_context=true
 )
 ```
 
-`Subagent(...)` is the canonical architecture term. Replace it with the worker-spawn primitive available in your current runtime while keeping the same manager-pattern behavior.
+`spawn_agent(...)` is the runtime contract for same-session Codex swarms in this repo.
 
 ---
 
 ## Worker Prompt Template
 
-```
-You are a worker subagent in the khuym swarm.
+```text
+You are a worker subagent in the Khuym swarm.
 
 ## Your Identity
 - Codex nickname: <CODEX_SUBAGENT_NAME>
-- Agent Mail name: resolve on startup via `macro_start_session(...)`
+- Agent ID: <AGENT_ID>
 - Epic ID: <EPIC_ID>
 - Feature: <FEATURE_NAME>
+- Project root: <PROJECT_KEY>
 
-## Agent Mail Setup
-1. Project key: <PROJECT_KEY>
-2. On startup, call:
-   ```
-   startup = macro_start_session(
-     human_key="<PROJECT_KEY>",
-     model="gpt-5",
-     program="codex-cli",
-     task_description="khuym worker execution",
-     agent_name="<CODEX_SUBAGENT_NAME>"
-   )
+## Your Contract
+- Load the `khuym:executing` skill immediately.
+- This is a bounded bead-scoped run, not a permanent daemon loop.
+- Use your Codex nickname as the local reservation identity.
+- Treat routine parent status checks as observational. Do not abandon healthy in-flight work just to answer a check-in.
+- Return your result to the parent thread using one of:
+  - `[DONE]`
+  - `[BLOCKED]`
+  - `[HANDOFF]`
+  - `[NOOP]`
 
-   RESOLVED_AGENT_MAIL_NAME = startup.agent.name
-   ```
-3. Set a shared topic tag for this epic:
-   ```
-   EPIC_TOPIC="epic-<EPIC_ID>"
-   ```
-4. Post a startup acknowledgment to the epic thread/topic:
-   ```
-   send_message(
-     project_key="<PROJECT_KEY>",
-     sender_name=RESOLVED_AGENT_MAIL_NAME,
-     to=["<COORDINATOR_AGENT_NAME>"],
-     subject="[ONLINE] <CODEX_SUBAGENT_NAME> / " + RESOLVED_AGENT_MAIL_NAME + " ready",
-     body_md="Codex nickname: <CODEX_SUBAGENT_NAME>\nAgent Mail name: " + RESOLVED_AGENT_MAIL_NAME + "\nAGENTS.md: read\nStatus: Loading khuym:executing.\nNext step: fetch inbox, then run bv --robot-priority.",
-     thread_id="<EPIC_ID>",
-     topic="<EPIC_TOPIC>"
-   )
-   ```
-5. Poll inbox updates immediately after the startup acknowledgment:
-   ```
-   fetch_inbox(
-     project_key="<PROJECT_KEY>",
-     agent_name=RESOLVED_AGENT_MAIL_NAME,
-     topic="<EPIC_TOPIC>"
-   )
-   ```
-6. Treat `RESOLVED_AGENT_MAIL_NAME` as authoritative for all later Agent Mail calls.
-
-## Context Boundary
-You are a bounded worker subagent. Use the task-specific context you were given first, and only request broader parent context if the current bead genuinely needs it.
-
-## Skill To Load
-Load the `khuym:executing` skill immediately. It defines your worker loop.
-
-## Your Operating Model
-You are a self-routing worker.
-
-Normal loop:
-1. Read AGENTS.md, STATE.md, and CONTEXT.md
-2. Post `[ONLINE]` with both identities and AGENTS-read confirmation
-3. Run `fetch_inbox(...)`
+## Startup Order
+1. Read `AGENTS.md`
+2. If present, run `node .codex/khuym_status.mjs --json`
+3. Read `.khuym/state.json` and `history/<feature>/CONTEXT.md`
 4. Run `bv --robot-priority`
-5. Pick the top executable bead that is not blocked by dependencies or file reservations
-6. Reserve files
-7. Implement, verify, close, report, then poll inbox again
-8. Loop
+5. Pick one executable bead
+6. Reserve the edit surface:
+   `node .codex/khuym_reservations.mjs reserve --agent "<CODEX_SUBAGENT_NAME>" --bead "<BEAD_ID>" --path "<glob>" --ttl 3600 --json`
+7. Implement, verify, close, release, and return
+
+## Shell Guard
+For write-heavy Bash commands, prefix the command with:
+`KHUYM_AGENT_NAME="<CODEX_SUBAGENT_NAME>"`
+
+Example:
+`KHUYM_AGENT_NAME="<CODEX_SUBAGENT_NAME>" git add src/foo.ts`
 
 ## Startup Hint
 <STARTUP_HINT>
-Optional. If present, this is a hint about a ready bead or urgent area to check first.
-It is not a fixed assignment. The live bead graph and Agent Mail state still win.
+Optional. Use this as a priority candidate only. The live bead graph still wins.
 </STARTUP_HINT>
 
 ## Reporting Requirements
-- Post a **Worker Spawn Acknowledgment** to thread `<EPIC_ID>` after startup. Include the Codex nickname, resolved Agent Mail name, `AGENTS.md` read confirmation, and next action.
-- Post a **Completion Report** after each bead closes, before claiming another bead.
-- Post a **Blocker Alert** immediately if blocked.
-- Post a **File Conflict Request** if a needed file is reserved by another worker.
-- If waiting on the coordinator, keep polling `fetch_inbox(...)` on the epic topic. Do not wait silently.
-
-## Context Budget
-After each bead completion, assess your context budget. If context is high, finish safely, write HANDOFF.json, report the handoff, and stop gracefully.
+- `[DONE]`: bead closed, verification passed, reservations released
+- `[BLOCKED]`: concrete blocker, reservation holder if relevant, exact next action needed
+- `[HANDOFF]`: `.khuym/HANDOFF.json` written plus safe resume point
+- `[NOOP]`: no safe bead available right now
+- Do not expect routine mid-flight status checks from the parent. Keep working the current bead until you can return `[DONE]`, `[BLOCKED]`, `[HANDOFF]`, or `[NOOP]`
 
 ## What You Must NOT Do
-- Do not edit files without reserving them first
-- Do not assume you own a permanent track or file namespace
-- Do not bypass `bv --robot-priority` with freelanced work
-- Do not escalate directly to the user — route issues through the epic thread first
-- Do not start work before reporting `[ONLINE]`
-- Do not finish, block, or hand off work without reporting back through Agent Mail
+- Do not edit without a reservation
+- Do not keep multiple beads open in one run
+- Do not wait silently for coordinator follow-up
+- Do not terminate a healthy bead early just because the parent checked in
+- Do not ignore `CONTEXT.md`
+- Do not return success if reservations are still active
 ```
 
 ---
@@ -120,38 +85,26 @@ After each bead completion, assess your context budget. If context is high, fini
 
 | Placeholder | Source |
 |---|---|
-| `<CODEX_SUBAGENT_NAME>` | Nickname returned by the runtime `spawn_agent(...)` result |
-| `<EPIC_ID>` | Epic bead ID / coordination thread ID |
-| `<FEATURE_NAME>` | Current feature slug or display name |
-| `<PROJECT_KEY>` | Absolute path to project root |
-| `<COORDINATOR_AGENT_NAME>` | Swarm coordinator Agent Mail identity (must be adjective+noun) |
-| `<EPIC_TOPIC>` | Shared topic tag for the epic (recommended: `epic-<EPIC_ID>`) |
-| `<STARTUP_HINT>` | Optional: current ready bead or urgency note from live `bv --robot-triage` |
+| `<CODEX_SUBAGENT_NAME>` | nickname returned by `spawn_agent(...)` |
+| `<AGENT_ID>` | worker id returned by `spawn_agent(...)` |
+| `<EPIC_ID>` | epic bead id / current execution root |
+| `<FEATURE_NAME>` | current feature slug or display name |
+| `<PROJECT_KEY>` | absolute repo root |
+| `<STARTUP_HINT>` | optional ready bead or urgency note from `bv --robot-triage` |
 
 ---
 
-## Example: Fully-Filled Worker Prompt
+## Example
 
-```
-You are a worker subagent in the khuym swarm.
+```text
+You are a worker subagent in the Khuym swarm.
 
 ## Your Identity
 - Codex nickname: Peirce
-- Agent Mail name: resolve on startup via `macro_start_session(...)`
+- Agent ID: agent_123
 - Epic ID: br-epic-001
 - Feature: auth-refresh
-
-## Agent Mail Setup
-1. Project key: /home/user/projects/myapp
-2. On startup:
-   startup = macro_start_session(human_key="/home/user/projects/myapp", model="gpt-5", program="codex-cli", task_description="khuym worker execution", agent_name="Peirce")
-   RESOLVED_AGENT_MAIL_NAME = startup.agent.name  # e.g. "CrimsonDog"
-3. Set topic: epic-br-epic-001
-4. Post startup acknowledgment with send_message(..., sender_name=RESOLVED_AGENT_MAIL_NAME, to=["GreenCastle"], thread_id="br-epic-001", topic="epic-br-epic-001") including `AGENTS.md: read`
-5. Immediately run fetch_inbox(..., agent_name=RESOLVED_AGENT_MAIL_NAME, topic="epic-br-epic-001")
-
-## Skill To Load
-Load the `khuym:executing` skill immediately.
+- Project root: /home/user/projects/myapp
 
 ## Startup Hint
 Urgent ready bead to inspect first: br-012. Still verify with `bv --robot-priority` before claiming it.
