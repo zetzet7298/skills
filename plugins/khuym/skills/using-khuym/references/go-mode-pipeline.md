@@ -24,22 +24,23 @@ User: "/go [feature]"
 [GATE 1] ← HARD STOP: "Approve CONTEXT.md?"
        │
        ▼
-[STEP 2] planning (work shape)
+[STEP 2] planning (work shape / epic map)
        │ Output: discovery.md, approach.md, mode-sized shape artifact
        │
        ▼
 [GATE 2] ← HARD STOP: "Approve work shape?"
        │
        ▼
-[STEP 3] planning (current work prep)
-       │ Output: needed contracts/story maps, current-work beads when needed
+[STEP 3] planning (current story/work prep)
+       │ Output: current-story pack or needed contracts/story maps
        │
        ▼
 [STEP 4] validating (current work)
-       │ Reality gate + plan-checker (<=3x) + spikes + bead polish
+       │ Reality gate + feasibility matrix + spikes + readiness + bead polish
+       │ If feasible but beads are missing, return to STEP 3 for current-story beads
        │
        ▼
-[GATE 3] ← HARD STOP: "Current work verified. Approve execution?"
+[GATE 3] ← HARD STOP: "Feasibility validated. Approve execution?"
        │
        ▼
 [STEP 5] swarming -> executing (xN workers)
@@ -133,7 +134,7 @@ If user says `revise`, loop back to exploring. If user says `yes`, proceed to St
 - run discovery
 - synthesize an approach
 - choose the mode: `direct_task`, `spike`, `small_change`, `standard_feature`, or `high_risk_feature`
-- write the smallest shape artifact that fits: direct task note, spike question, small-change work shape, or `history/<feature>/phase-plan.md`
+- write the smallest shape artifact that fits: direct task note, spike question, small-change work shape, `history/<feature>/phase-plan.md`, or `history/<feature>/epic-map.md`
 - show the chosen shape in plain English
 
 **Important:** this step does **not** create beads yet.
@@ -151,8 +152,8 @@ Present:
   "Planning complete for [feature].
    Mode: [direct_task / spike / small_change / standard_feature / high_risk_feature]
    Proposed shape:
-   - [work item / spike question / Phase 1 outcome]
-   - [only list more phases when the mode needs them]
+   - [work item / spike question / first story / Phase 1 outcome]
+   - [list epics or phases only when the mode needs them]
 
    Why this is the least workflow that protects the work: [one sentence]
 
@@ -163,23 +164,23 @@ If user says `revise`, return to the planning pass that owns the shape artifact.
 
 ---
 
-## Step 3: Planning (Current Phase Prep)
+## Step 3: Planning (Current Story/Work Prep)
 
-**Invoke:** Load `khuym:planning` again in current-phase preparation mode.
+**Invoke:** Load `khuym:planning` again in current story/work preparation mode.
 
 **Input:** approved shape artifact, `approach.md`, `CONTEXT.md`.
 
 **The second planning pass will:**
 
 - select the current execution surface from the approved shape
-- write only the contract/story-map artifacts the mode needs
-- create beads only for that approved execution surface
+- write only the current story pack or contract/story-map artifacts the mode needs
+- wait for validation before creating beads unless the current work is already concretely proven
 
 **Rules:**
 
 - default to the first unprepared approved work item
 - never create future-work beads early
-- every bead must include mode and work context; include `Phase <n>` and `Story <m>` only when those exist
+- every bead must include mode and current story/work context; include `Phase <n>` only when a phase exists
 
 **Update state.json:** set `phase` to `go-mode/validating`
 
@@ -189,16 +190,17 @@ If user says `revise`, return to the planning pass that owns the shape artifact.
 
 **Invoke:** Load `khuym:validating` skill.
 
-**Input:** current work beads when present, approved shape artifact, current work artifacts, `approach.md`, `CONTEXT.md`.
+**Input:** approved shape artifact, current story/work artifacts, current work beads when present, `approach.md`, `CONTEXT.md`.
 
 **The khuym:validating skill will:**
 
 - Phase 0: orient on mode/current work and confirm the shape was approved
 - Phase 1: reality gate against current repo/system truth
-- Phase 2: plan-checker loop (<=3 iterations, mode-sized dimensions)
-- Phase 3: spike execution for assumptions that can invalidate the path
-- Phase 4: bead polishing when beads exist (`bv --robot-suggest`, `--robot-insights`, `--robot-priority`)
-- Phase 5: current-work exit-state readiness review
+- Phase 2: feasibility matrix with concrete evidence
+- Phase 3: spike/probe execution for assumptions that can invalidate the path
+- Phase 4: integration and current-story readiness review
+- Phase 5: return to planning if beads are required but not created yet
+- Phase 6: bead polishing when beads exist (`bv --robot-suggest`, `--robot-insights`, `--robot-priority`)
 
 **Update state.json:** set `phase` to `go-mode/gate-3`
 
@@ -213,12 +215,13 @@ Present:
   "Validation complete for [feature], current work.
    Mode: [mode].
    [N] beads ready for current work execution.
-   Reality gate: [passed / failed / spike required]
-   Risk: [X] assumptions -> spikes: [all passed / N failed]
+   Reality gate: [passed / failed]
+   Feasibility: [READY / READY WITH CONSTRAINTS / NOT READY]
+   Risk: [X] assumptions -> spikes/probes: [all passed / N failed]
 
    Any unresolved concerns: [list or 'none']
 
-   Current work verified. Approve execution? (yes / review beads / no - revise plan)"
+   Feasibility validated. Approve execution? (yes / review beads / no - revise plan)"
 ```
 
 If user says `no` or `revise`, return to planning or validating. If user says `yes`, proceed to Step 5.
@@ -296,7 +299,7 @@ If fix beads are created, execute them and re-run reviewing before presenting GA
 
 **Invoke:** Load `khuym:compounding` skill.
 
-**Input:** full feature history (`CONTEXT.md`, `approach.md`, `phase-plan.md`, review findings, execution notes).
+**Input:** full feature history (`CONTEXT.md`, `approach.md`, shape artifacts, review findings, execution notes).
 
 **The khuym:compounding skill will:**
 
@@ -353,6 +356,15 @@ Delete `.khuym/HANDOFF.json` if it exists.
 -> Present: "Spike [id] failed: [reason]. Current work is blocked."
 -> Options: (a) Revise approach, (b) Descope the risky part, (c) Change mode or boundaries
 -> If revise: return to planning and then re-run validating
+```
+
+### If feasibility evidence is missing
+
+```text
+-> STOP: do not proceed to GATE 3
+-> Present the missing matrix rows and required proof
+-> Route to spike/probe or planning revision
+-> Do not create execution beads for that story until proof exists
 ```
 
 ### If orchestrator context hits 65% mid-swarm
@@ -415,6 +427,7 @@ planning (lightweight)
   ↓
 validating (lightweight)
   -> reality gate
+  -> feasibility check from existing repo evidence
   -> abbreviated structural verification
   -> skip spikes (LOW risk)
   -> bv check only when beads exist
@@ -433,7 +446,7 @@ compounding (only if lesson learned)
 
 **Why 4 gates, not 3?**
 
-Because the work shape itself is now a first-class human decision. `CONTEXT.md` locks intent, the shape artifact locks the execution shape, validating locks reality and readiness for the current work, and reviewing locks merge-readiness.
+Because the work shape itself is now a first-class human decision. `CONTEXT.md` locks intent, the shape artifact locks the execution shape, validating locks feasibility and readiness for the current work, and reviewing locks merge-readiness.
 
 **Why is GATE 3 the most critical?**
 

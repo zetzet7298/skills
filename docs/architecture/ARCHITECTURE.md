@@ -28,8 +28,8 @@ Khuym keeps these invariants:
 Khuym presents three user-facing modes over the same core workflow:
 
 - `small_change` — bounded, low-risk work with lightweight planning and validating
-- `standard_feature` — the default full Khuym workflow
-- `high_risk_feature` — the full workflow plus deeper planning scrutiny and stronger spike discipline
+- `standard_feature` — the default full Khuym workflow; may use phases or epics
+- `high_risk_feature` — defaults to epic maps, feasibility proof, and stronger spike discipline
 
 Modes change the amount of ceremony, not the core contract. `validating` still gates execution in every mode.
 
@@ -50,8 +50,8 @@ Behavioral summary:
 
 - `using-khuym` bootstraps, routes, explains modes, and handles resume/startup logic
 - `exploring` extracts decisions and writes `history/<feature>/CONTEXT.md`
-- `planning` turns those decisions into discovery, approach, a mode gate, mode-sized artifacts, and approved-work beads when needed
-- `validating` proves the chosen shape fits repo reality and the current work is ready before execution starts
+- `planning` turns those decisions into discovery, approach, a mode gate, work-shape artifacts, and approved current story/work prep
+- `validating` proves the chosen shape fits repo reality, feasibility evidence exists, and the current story/work is ready before execution starts
 - `swarming` launches and tends workers through Codex subagents, the parent thread, and the live bead graph
 - `executing` is the per-worker loop: claim, reserve locally, implement, verify, close, report
 - `reviewing` performs specialist review, artifact verification, and the merge gate
@@ -77,7 +77,7 @@ Khuym keeps runtime state local and file-based:
 Rules:
 
 - `state.json` is the single runtime state file for tools, agents, and operator-facing summaries
-- neither `state.json` nor `HANDOFF.json` replaces `CONTEXT.md`, beads, or planning artifacts
+- neither `state.json` nor `HANDOFF.json` replaces `CONTEXT.md`, beads, feasibility evidence, or planning artifacts
 - workflow transitions should update `state.json` directly instead of maintaining a second narrative file
 
 ## Session Scout
@@ -95,7 +95,7 @@ This is the preferred quick orientation step for both humans and agents. It summ
 - `.khuym/HANDOFF.json`
 - recommended next reads/actions
 
-The scout command is a shortcut for orientation. It does not replace deeper reads of `CONTEXT.md`, planning artifacts, beads, or review outputs.
+The scout command is a shortcut for orientation. It does not replace deeper reads of `CONTEXT.md`, planning artifacts, feasibility evidence, beads, or review outputs.
 
 ## Startup Contract
 

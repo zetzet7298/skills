@@ -176,16 +176,16 @@ When in doubt, invoke `khuym:exploring` first.
 ## Modes
 
 - `small_change`: at most 3 files, no API/data model change, low risk, no gray areas. Still run planning and validating.
-- `standard_feature`: normal default Khuym chain.
-- `high_risk_feature`: cross-cutting or hard-to-reverse work; add deeper planning, explicit spikes, and slower approval.
+- `standard_feature`: normal default Khuym chain; use a phase plan or epic map, whichever explains the work honestly.
+- `high_risk_feature`: cross-cutting or hard-to-reverse work; default to epic map, feasibility proof, explicit spikes, and slower approval.
 
 ## Go Mode Gates
 
 Go mode chains all skills but still has exactly four human gates:
 
 1. After exploring: approve `CONTEXT.md` before planning.
-2. After whole-feature planning: approve `phase-plan.md` before current-phase prep.
-3. After validating: approve execution before swarming.
+2. After whole-feature planning: approve the work shape, phase plan, or epic map before current-story/work prep.
+3. After validating: approve feasibility-validated current work before swarming.
 4. After reviewing: P1 findings block merge; if no P1s, approve merge.
 
 Never skip these gates. Load `references/go-mode-pipeline.md` for the full sequence.
@@ -216,8 +216,8 @@ Never skip these gates. Load `references/go-mode-pipeline.md` for the full seque
 Each skill reads upstream artifacts and writes for downstream:
 
 - exploring writes `CONTEXT.md`
-- planning writes discovery, approach, phase plan, current-phase contract/story map, and current-phase beads
-- validating verifies the current phase and spike results
+- planning writes discovery, approach, work shape, epic map or phase plan, and current-story/work artifacts
+- validating verifies repo reality, feasibility evidence, spike results, and current story/work readiness
 - swarming launches and supervises workers
 - executing closes one verified bead
 - reviewing returns P1/P2/P3 findings
