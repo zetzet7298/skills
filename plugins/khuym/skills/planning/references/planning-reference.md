@@ -1,167 +1,122 @@
 # Planning Reference
 
-Use this when `khuym:planning` needs quality checks or artifact schemas.
+Use when `khuym:planning` needs quality rules or artifact schemas.
 
 ## Quality Rules
 
-- Use the least workflow that can honestly protect the work.
-- Choose one mode before shaping artifacts: `direct_task`, `spike`, `small_change`, `standard_feature`, or `high_risk_feature`.
-- Explain phases by what becomes true for users or systems.
-- Use phases only when separate observable milestones reduce risk or clarify approval. Standard features usually have 2-4 phases; smaller modes usually do not.
-- Stories are ordered steps inside current work, not architecture layers. Skip stories when the work is one clear unit.
-- Beads are worker-sized: one concern, clear file scope, dependencies, verification.
-- Risk: LOW = direct existing pattern; MEDIUM = variation; HIGH = novel, external/security/data risk or >5-file blast radius. HIGH needs a spike.
+- Choose one mode first: `direct_task`, `spike`, `small_change`, `standard_feature`, or `high_risk_feature`.
+- Use the least workflow that honestly protects the work.
+- Use phases only for observable milestones. Use epics when capability/risk areas explain tough work better.
+- `high_risk_feature` defaults to an epic map unless a phase plan is plainly clearer.
+- Stories are end-to-end outcomes, not architecture layers.
+- Beads are worker-sized tasks for validated current work, not speculative future planning.
+- MEDIUM/HIGH unknowns need validating proof or a spike before execution beads.
 
-Trace must hold at the chosen scale:
+Trace:
 
 ```text
-mode -> shape -> work -> story? -> bead?
+mode -> shape -> epic? -> current story/work -> bead?
 ```
 
 ## Mode Gate
 
 | Mode | Use When | Shape |
 |---|---|---|
-| `direct_task` | obvious local change, no ambiguity | short approach + one bead or direct handoff |
-| `spike` | one assumption decides the path | yes/no question, proof, outcome |
-| `small_change` | <=3 files, LOW risk, no API/data model change | one work shape, usually one bead |
-| `standard_feature` | user-visible capability needs ordered slices | phase plan, current phase contract/story map, beads |
-| `high_risk_feature` | hard-to-reverse, external/security/data, or broad blast radius | standard feature plus spikes and stricter validation |
+| `direct_task` | obvious local change | short approach + direct handoff or one bead |
+| `spike` | one assumption decides path | yes/no question + proof |
+| `small_change` | <=3 files, LOW risk, no API/data model change | one work shape |
+| `standard_feature` | ordered user/system capability | phase plan or epic map |
+| `high_risk_feature` | hard-to-reverse, external/security/data, broad blast | epic map + feasibility proof |
 
 Above `small_change`, record why smaller modes are insufficient.
 
-## Discovery
+## Discovery And Approach
 
-```markdown
-# Discovery Report: <Feature>
+`discovery.md` should capture only facts needed for the plan:
 
-**Date:** <YYYY-MM-DD>
-**Feature:** <slug>
-**CONTEXT.md:** `history/<feature>/CONTEXT.md`
+- architecture snapshot: areas, entry points, key files
+- constraints: runtime/framework versions, dependencies, quality gates
+- summary: what exists, what is missing, warnings
 
-## Architecture Snapshot
-| Area | Purpose | Key Files |
-|---|---|---|
-| <module> | <purpose> | `<path>` |
+`approach.md` should capture:
 
-Entry points: <paths>
+- recommended approach and rejected alternatives
+- risk map: component, LOW/MEDIUM/HIGH, reason, proof needed
+- likely file/order boundaries
+- relevant learnings and validating questions
 
-## Constraints
-- Runtime/framework: <versions>
-- Dependencies: <existing and new, with risk>
-- Quality gates: `<command>`, `<command>`
+## Shape Artifacts
 
-## Summary For Synthesis
-Have: <1-2 sentences>
-Need: <1-2 sentences>
-Constraints/warnings: <bullets>
-```
-
-## Approach
-
-```markdown
-# Approach: <Feature>
-
-## Recommended Approach
-<3-5 sentences with strategy and why it fits locked decisions.>
-
-Alternatives considered: <option -> why rejected>
-
-## Risk Map
-| Component | Risk | Reason | Validation |
-|---|---|---|---|
-| <component> | LOW/MEDIUM/HIGH | <why> | proceed/sketch/spike |
-
-Spikes: <assumption -> yes/no question, or none>
-
-Files/order/learnings/questions: `<path>`; Layer 1 -> Layer 2; `history/learnings/<file>`; [ ] <validating question>
-```
-
-## Phase Plan
-
-```markdown
-# Phase Plan: <Feature>
-
-Mode: `standard_feature` | `high_risk_feature`
-
-## Feature Summary
-<2-4 sentences>
-
-## Phase Overview
-| Phase | What Changes | Why Now | Demo | Unlocks |
-|---|---|---|---|---|
-| Phase 1: <name> | <outcome> | <why first> | <proof> | <next> |
-| Phase 2: <name> | <outcome> | <why next> | <proof> | <next> |
-
-## Order Check
-- [ ] Phase 1 is obviously first.
-- [ ] Later phases depend on or benefit from earlier phases.
-- [ ] No phase is merely a technical bucket.
-
-## Approval Summary
-- Current phase to prepare next: Phase <n> - <name>
-- Picture after that phase: <one sentence>
-- Deferred until later: <one sentence>
-```
-
-For `direct_task`, `spike`, or `small_change`, replace the phase table with:
+For direct, spike, or small work:
 
 ```markdown
 # Work Shape: <Feature>
-
 Mode: `<mode>`
 Why this mode: <why smaller/bigger workflow is unnecessary>
-Current work: <one practical outcome or yes/no spike question>
+Current work: <outcome or yes/no spike question>
 Proof: `<command>` or observable check
-Out of scope: <what this will not solve>
-Approval: approve this work shape before prep/beads.
+Out of scope: <not solved>
+Approval: approve before prep/beads.
 ```
 
-## Phase Contract
+For milestone-shaped work:
+
+```markdown
+# Phase Plan: <Feature>
+Mode: `standard_feature` | `high_risk_feature`
+Feature summary: <2-4 sentences>
+Phase overview: Phase | What Changes | Why Now | Demo | Unlocks
+Order check: first phase is obvious; later phases build on it; no technical buckets.
+Approval summary: current phase, picture after it, deferred work.
+```
+
+For tough capability/risk-shaped work:
+
+```markdown
+# Epic Map: <Feature>
+Mode: `standard_feature` | `high_risk_feature`
+Feature outcome: <what is true when all epics finish>
+Architecture / reality basis: <repo facts, stack constraints, external limits>
+Epics: Epic | Capability/Risk Area | Why It Exists | Stories | Proof Needed
+Story queue: Story | Epic | Outcome | Depends On | Feasibility Status
+Current story to prepare: <story, why now, testable exit>
+```
+
+## Current Work Prep
+
+For epic-map work, prepare only the approved current story:
+
+```markdown
+# Current Story Pack: <Story>
+Epic: <name>
+Entry state: <current repo truth>
+Exit state: <what must be true after execution>
+Files likely touched: <bounded list>
+Feasibility assumptions: <assumption | risk | proof needed>
+Verification: <commands/checks>
+Out of scope: <not solved>
+Bead mapping: <created after validation accepts feasibility>
+```
+
+For phase-shaped work, keep the existing contract/story-map pattern:
 
 ```markdown
 # Phase Contract: Phase <N> - <Name>
+Entry state: <observable truth>
+Exit state: <testable truth>
+Demo: <walkthrough/checks>
+Stories: Story | What Happens | Unlocks | Done
+Out/success/pivot: <scope boundary, proof, revise signal>
 
-## Entry State
-- <observable truth>
-
-## Exit State
-- <testable truth>
-
-## Demo Walkthrough
-<short proof> with checklist steps.
-
-## Story Sequence
-| Story | What Happens | Unlocks | Done |
-|---|---|---|---|
-| Story 1 | <outcome> | <next> | <proof> |
-
-## Out Of Scope / Success / Pivot Signals
-- Out: <not solved>
-- Success: <review/UAT proof>
-- Pivot: <signal to revise>
-```
-
-## Story Map
-
-```markdown
 # Story Map: Phase <N> - <Name>
-
-## Dependency Diagram
-`Entry -> Story 1 -> Story 2 -> Exit` (replace with Mermaid when helpful)
-
-## Story Table
-| Story | What Happens | Contributes To | Creates | Done |
-|---|---|---|---|---|
-| Story 1 | <outcome> | <exit item> | <artifact> | <proof> |
-
-## Order Check
-- [ ] Story 1 is obviously first.
-- [ ] Later stories build on or de-risk earlier stories.
-- [ ] If all stories finish, the phase exit state holds.
-
-## Story-To-Bead Mapping
-| Story | Beads | Notes |
-|---|---|---|
-| Story 1 | <br-id> | <scope/dependency note> |
+Dependency diagram: Entry -> Story 1 -> Story 2 -> Exit
+Story table: Story | Outcome | Contributes To | Creates | Done
+Story-to-bead mapping: <br-id or pending validation>
 ```
+
+## Pressure Scenarios
+
+- Small fix stays `direct_task` or `small_change`; no epic/phase ceremony.
+- Tough feature uses an epic map when capability/risk areas are clearer than 2-4 phases.
+- MEDIUM/HIGH unknown appears as proof needed before beads.
+- Current story is small enough for feasibility validation and one bounded execution pass.
