@@ -293,28 +293,29 @@ function featureSectionBody(text) {
   return range ? text.slice(range.start, range.end) : null;
 }
 
-function isCodexHooksEnabled(text) {
+function areHooksEnabled(text) {
   const body = featureSectionBody(text);
-  return body ? /^codex_hooks\s*=\s*true\s*$/m.test(body) : false;
+  return body ? /^hooks\s*=\s*true\s*$/m.test(body) : false;
 }
 
-function upsertFeaturesCodexHooks(text) {
+function upsertFeaturesHooks(text) {
   const range = findSectionRange(text, "features");
   if (!range) {
-    const block = "[features]\ncodex_hooks = true\n";
+    const block = "[features]\nhooks = true\n";
     const suffix = text && !text.endsWith("\n") ? "\n" : "";
     return `${text}${suffix}${text.trim() ? "\n" : ""}${block}`;
   }
 
   let body = text.slice(range.start, range.end);
-  if (/^codex_hooks\s*=/m.test(body)) {
-    body = body.replace(/^codex_hooks\s*=.*$/m, "codex_hooks = true");
+  if (/^hooks\s*=/m.test(body)) {
+    body = body.replace(/^hooks\s*=.*$/m, "hooks = true");
   } else {
     if (body && !body.endsWith("\n")) {
       body += "\n";
     }
-    body += "codex_hooks = true\n";
+    body += "hooks = true\n";
   }
+  body = body.replace(/^codex_hooks\s*=.*\n?/m, "");
 
   return `${text.slice(0, range.start)}${body}${text.slice(range.end)}`;
 }
@@ -407,9 +408,9 @@ function mergeCodexConfig(configPath, allowCompactPromptReplace) {
     updatedText = nextProjectDocText;
   }
 
-  const nextFeatureText = upsertFeaturesCodexHooks(updatedText);
+  const nextFeatureText = upsertFeaturesHooks(updatedText);
   if (nextFeatureText !== updatedText) {
-    changes.push("enable_codex_hooks_feature");
+    changes.push("enable_hooks_feature");
     updatedText = nextFeatureText;
   }
 
@@ -657,8 +658,8 @@ export function checkRepo(repoRoot) {
     if (projectDocMaxBytes === undefined || projectDocMaxBytes < 65536) {
       actions.push("set_project_doc_max_bytes");
     }
-    if (!isCodexHooksEnabled(configText)) {
-      actions.push("enable_features.codex_hooks");
+    if (!areHooksEnabled(configText)) {
+      actions.push("enable_features.hooks");
     }
     if (compactPromptConflict) {
       actions.push("compact_prompt_requires_confirmation");
