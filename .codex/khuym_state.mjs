@@ -68,6 +68,7 @@ const WALK_SKIP_DIRS = new Set([
 
 const DEFAULT_APPROVED_GATES = {
   context: false,
+  work_shape: false,
   phase_plan: false,
   execution: false,
   review: false,
@@ -374,6 +375,7 @@ function normalizeApprovedGates(value) {
   const gates = value && typeof value === "object" && !Array.isArray(value) ? value : {};
   return {
     context: Boolean(gates.context),
+    work_shape: Boolean(gates.work_shape),
     phase_plan: Boolean(gates.phase_plan),
     execution: Boolean(gates.execution),
     review: Boolean(gates.review),
