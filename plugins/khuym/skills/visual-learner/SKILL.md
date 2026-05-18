@@ -1,6 +1,8 @@
 ---
 name: visual-learner
 description: Create self-contained interactive HTML visual explainers that turn difficult topics, concepts, code, math, systems, or arguments into memorable explorable artifacts. Use when Codex should research a topic, choose an interaction model, and build an artifact with simulations, diagrams, charts, sliders, hover inspection, scrollytelling, or small game mechanics so readers can explore and understand the message.
+metadata:
+  dependencies: []
 ---
 
 # Visual Learner
