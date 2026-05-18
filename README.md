@@ -241,8 +241,10 @@ Standalone skills remain available, but they are intentionally secondary to the 
 |-------|-------------|
 | `book-sft-pipeline` | Convert books into SFT datasets for training style-transfer models |
 | `bootstrap-project-context` | Bootstrap a new session by reading repo docs and mapping the codebase |
+| `concept-game-builder` | Turn concepts and tutorials into educational browser games |
 | `prompt-leverage` | Upgrade raw prompts into stronger execution-ready prompts |
 | `refresh-project-docs` | Refresh README and docs so they match the current repo state |
+| `visual-learner` | Turn difficult topics into interactive HTML visual explainers |
 | `xia` | Research feature requests before implementation to avoid reinventing existing patterns |
 
 ## Requirements
