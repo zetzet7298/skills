@@ -1,4 +1,4 @@
 interface:
   display_name: "Visual Learner"
-  short_description: "Make beautiful explorable HTML learning artifacts."
-  default_prompt: "Create a beautiful explorable HTML learning artifact for this topic. Start with a concrete interaction, use reactive SVG/charts where useful, and synchronize the visual state with plain-language explanation."
+  short_description: "Build interactive HTML explainers"
+  default_prompt: "Use $visual-learner to turn this concept into a self-contained interactive HTML explainer."

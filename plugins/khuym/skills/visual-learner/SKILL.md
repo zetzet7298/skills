@@ -1,68 +1,63 @@
 ---
 name: visual-learner
-description: Create beautiful self-contained explorable HTML learning artifacts for non-technical explainers, diagrams, walkthroughs, reports, comparisons, codebase tours, study guides, and lightweight interactive playgrounds. Use when spatial layout, reactive SVG/charts, progressive disclosure, or interaction would teach better than markdown. Stay in chat for short answers, code-only replies, command output, or disposable summaries.
-metadata:
-  dependencies: []
+description: Create self-contained interactive HTML visual explainers that turn difficult topics, concepts, code, math, systems, or arguments into memorable explorable artifacts. Use when Codex should research a topic, choose an interaction model, and build an artifact with simulations, diagrams, charts, sliders, hover inspection, scrollytelling, or small game mechanics so readers can explore and understand the message.
 ---
 
 # Visual Learner
 
-Use this skill to turn complex material into something the user can see, scan, manipulate, and revisit. Prefer a single self-contained HTML file when the learning problem has structure: flows, comparisons, timelines, system maps, state changes, lifecycle phases, diagrams, examples, or interactive parameters.
-
-Beauty is part of the learning surface, not decoration. But the pass condition is understanding: the artifact should let the user test a mental model, see consequences, and leave with a reusable next step.
-
-For non-technical, intuitive, "start using", or "help me understand" requests, start with a concrete interaction before theory. The first viewport should be the explorable model itself, not a hero/article intro. Prefer an inline SVG diagram, graph, map, timeline, chart, or state machine with clickable/highlightable nodes, plus controls that let the user try a sample, select a path, toggle assumptions, or see how an input changes the result.
-
-This skill is adapted from the Apache-2.0 `html-artifacts` skill by Greg/dogum, refocused for Codex learning and codebase comprehension.
-
-## Decision
-
-Create an HTML learning artifact when at least one is true:
-
-- The answer needs a diagram, map, timeline, side-by-side comparison, or before/after view.
-- The user is trying to understand a system, code path, document, feature, incident, or tradeoff.
-- The material would be easier with progressive disclosure: tabs, collapsibles, hover notes, glossary, or anchored sections.
-- The user can learn by touching it: sliders, toggles, clickable steps, draggable order, live preview, animation replay.
-- The artifact is likely to be shared, kept, or handed to another person or agent.
-- The markdown version would exceed roughly 100 lines or force the reader to mentally compare distant sections.
-
-Stay in markdown when the answer is short, terminal-like, code-only, or intentionally lightweight.
-
-## Artifact Rules
-
-Every visual learning artifact must be:
-
-- A single `.html` file with inline CSS and JS unless the user explicitly asks for another format.
-- Offline-capable by default: no required network calls at view time.
-- Responsive with `<meta name="viewport" content="width=device-width, initial-scale=1">`.
-- Purpose-built for the learning task, not a generic dashboard.
-- Structured visually: comparisons use columns/tables, flows use diagrams, timelines look like timelines, code paths use maps/traces.
-- Visually intentional: choose an aesthetic direction, typography, palette, and composition that support the subject instead of falling back to generic cards.
-- Cognitively interactive when the user needs intuition: include a simulator, classifier, decision tree, graph, chart, checklist, live preview, or SVG model that changes state.
-- Synchronized: when controls change, update the SVG/chart, labels, result text, and export together.
-- Inspectable: important nodes, bars, dots, edges, or steps reveal details on click, focus, or hover.
-- Mission-led: give the reader a 10-30 second task with a visible outcome before asking them to read concepts.
-- Surprising or corrective when possible: show what goes wrong in the naive/default path, then let the reader fix it.
-- Readable within five seconds: title, one-sentence frame, then the learning surface.
-- Exportable when interactive. If the user changes state, include "copy as markdown", "copy as JSON", "copy as prompt", or another round-trip output.
+Create an interactive HTML explainer that lets the reader understand by doing. Prefer a portable single-file artifact unless the user asks for a larger app. The artifact must behave like an instrument, simulator, map, or game board; a beautiful article with buttons is not enough.
 
 ## Workflow
 
-1. Identify the learning shape: explorable explanation, concept explainer, codebase walkthrough, comparison, diagram, report, deck, or editor.
-2. Read only the matching reference files below.
-3. Inspect source material before drawing conclusions. For repo/code explainers, trace real files and link to them.
-4. Choose the concrete interaction, reader mission, visual model, and visual direction before writing prose.
-5. Save the artifact in the working directory with a descriptive kebab-case `.html` name.
-6. Verify the core interaction: controls change visual state, explanatory text, and export output; then verify the file opens or at least validate basic HTML structure when practical.
-7. Tell the user the path and summarize what the artifact covers.
+1. Identify the learning goal in one sentence: what should the reader remember or be able to explain after the artifact?
+2. Research the topic enough to avoid shallow metaphors. For current facts, libraries, APIs, laws, prices, or examples, browse primary or official sources and cite them in the final response.
+3. Choose the smallest fitting explainer shape:
+   - **Reactive document** for assumptions, formulas, tradeoffs, policy, finance, or scientific claims.
+   - **Explorable example** for algorithms, math, physics, architecture, and causal mechanisms.
+   - **Simulation** for feedback loops, emergent behavior, queues, networks, social dynamics, and probabilistic systems.
+   - **Scrollytelling** for stepwise arguments, timeline narratives, or data journalism.
+   - **Small game** for strategy, incentives, negotiation, memory, classification, or concepts where consequences teach better than prose.
+4. Define the load-bearing model before layout: state variables, rules/formulas, reader actions, visual consequences, and the intended surprise or memory hook.
+5. Design from concrete to abstract. Start with a direct interaction in the first viewport; introduce terms only after the reader has manipulated or observed the system.
+6. Build the artifact. Default to one `.html` file with inline CSS and JS, no build step, and CDN dependencies only when they materially reduce risk.
+7. Verify the artifact in a browser when possible. Check desktop and mobile layout, no overlapping text, meaningful interaction states, accessible labels, and nonblank visuals.
+8. Final response: link the artifact path, summarize the explainer model, list verification performed, and mention any source or test gaps.
 
-## Reference Guide
+## Load-Bearing Interaction Doctrine
 
-- Concept explainers, reports, learning guides: read `references/learning-artifacts.md`.
-- Explorable explanations and interactive article patterns: read `references/explorable-explanations.md`.
-- Codebase tours, PR/code reviews, module maps: read `references/codebase-walkthroughs.md`.
-- Flowcharts, architecture maps, SVG figures: read `references/diagrams.md`.
-- One-off editors, tuners, playgrounds: read `references/interactive-editors.md`.
-- Visual taste, typography, and source-project style matching: read `references/visual-style.md`.
+Every primary control must alter the concept model, not merely swap copy. A scenario choice should set assumptions, move the simulation, change the path, alter the score, reveal a different causal chain, or reframe the task with visible consequences. If an interaction can be removed without weakening understanding, remove it or make it meaningful.
 
-If a task spans multiple shapes, read multiple references. Keep the main file focused on the actual deliverable, not on explaining the design choices.
+Before writing CSS, specify:
+
+- **Reader mission**: the concrete challenge the reader can try in 10-30 seconds.
+- **Model state**: the few variables that represent the concept.
+- **Rules**: formulas, transitions, constraints, or local rules that turn state into outcomes.
+- **Visual encoding**: how state changes position, motion, size, color, topology, labels, or score.
+- **Inspection path**: how the reader sees the formula, rule, local detail, or evidence behind a mark.
+- **Takeaway trigger**: the moment where the reader sees why the naive mental model fails or becomes incomplete.
+
+## Artifact Requirements
+
+- Include a visible interactive surface, not only explanatory prose.
+- Keep prose synchronized with state: sliders, choices, and simulation results must update labels, formulas, annotations, or conclusions.
+- Make important visual elements inspectable with hover, focus, click, or touch-friendly detail panels.
+- Layer complexity: default view must be easy; advanced details require a deliberate reader action.
+- Use stable responsive dimensions for canvases, SVGs, boards, charts, controls, and counters.
+- Prefer semantic HTML controls (`button`, `input`, `select`, `details`) and keyboard-reachable interactions.
+- Avoid decorative-only graphics. Every visual should reveal structure, motion, contrast, consequence, or state.
+- Make the final message explicit inside the artifact through the experience, not through a long conclusion.
+- Label illustrative models honestly. If numbers are invented for teaching, call them a toy model and expose the formula or assumptions.
+- Put the main model, game, simulator, or manipulative diagram in the first viewport. Avoid hero-first layouts unless the hero itself is the interactive learning surface.
+- Include a reset, preset, or replay path when the model has state.
+- Use generated notes, exports, or summaries only after the reader has interacted with the model; they are outcomes, not the core explainer.
+
+## Reference Map
+
+- Read [philosophy-and-research.md](references/philosophy-and-research.md) when choosing pedagogy or explaining why interactivity fits.
+- Read [pattern-catalog.md](references/pattern-catalog.md) to choose mechanics and interaction patterns.
+- Read [library-selection.md](references/library-selection.md) before selecting D3, SVG, Canvas, Chart.js, Vega-Lite, Plotly, Three.js, or no library.
+- Read [html-artifact-contract.md](references/html-artifact-contract.md) before implementation and again for verification.
+
+## Quality Bar
+
+Treat the artifact as a learning instrument. A good result has a surprising concrete experience, a small set of meaningful controls, a clear causal model, inspectable assumptions, and a remembered takeaway. If the topic cannot benefit from interaction, say so and produce the strongest visual/static explanation instead.
